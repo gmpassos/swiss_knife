@@ -1,0 +1,14 @@
+name: swiss_knife
+description: Dart useful tools, collections, math, date, etc...
+version: 1.0.0
+homepage: https://github.com/gmpassos/swiss_knife
+author: gmpassos <gracilianomp@gmail.com>
+
+environment:
+  sdk: '>=2.0.0 <3.0.0'
+
+dependencies:
+  intl: ^0.15.7
+
+dev_dependencies:
+  test: ^1.0.0
