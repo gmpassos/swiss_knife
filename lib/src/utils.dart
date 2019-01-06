@@ -2,6 +2,7 @@
 import 'dart:async';
 
 import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class EventStream<T> implements Stream<T>{
 
@@ -77,8 +78,8 @@ class EventStream<T> implements Stream<T>{
   }
 
   @override
-  Future<T> elementAt(int index) {
-    return _s.elementAt(index);
+  Future<T> elementAt(int updateMetadata) {
+    return _s.elementAt(updateMetadata);
   }
 
   @override
@@ -398,8 +399,16 @@ String dataSizeFormat(int size) {
   }
 }
 
+void _initializeDateFormatting() {
+  var locale = Intl.defaultLocale;
+  if (locale == null || locale.isEmpty) locale = 'en' ;
+  initializeDateFormatting(locale, null);
+}
+
 String dateFormat_YYYY_MM_dd_HH_mm_ss([int time]) {
   if (time == null) time = getCurrentTimeMillis() ;
+
+  _initializeDateFormatting();
 
   var date = new DateTime.fromMillisecondsSinceEpoch(time) ;
   var dateFormat = new DateFormat('yyyy-MM-dd HH:mm:ss');
@@ -409,6 +418,8 @@ String dateFormat_YYYY_MM_dd_HH_mm_ss([int time]) {
 String dateFormat_YYYY_MM_dd([int time]) {
   if (time == null) time = getCurrentTimeMillis() ;
 
+  _initializeDateFormatting();
+
   var date = new DateTime.fromMillisecondsSinceEpoch(time) ;
   var dateFormat = new DateFormat('yyyy-MM-dd');
   return dateFormat.format(date) ;
@@ -416,6 +427,8 @@ String dateFormat_YYYY_MM_dd([int time]) {
 
 String getDateAmPm([int time]) {
   if (time == null) time = getCurrentTimeMillis() ;
+
+  _initializeDateFormatting();
 
   var date = new DateTime.fromMillisecondsSinceEpoch(time) ;
   var dateFormat = new DateFormat('jm');
@@ -425,6 +438,8 @@ String getDateAmPm([int time]) {
 
 int getDateHour([int time]) {
   if (time == null) time = getCurrentTimeMillis() ;
+
+  _initializeDateFormatting();
 
   var date = new DateTime.fromMillisecondsSinceEpoch(time) ;
   var dateFormat = new DateFormat('HH');
@@ -477,4 +492,70 @@ double parseDouble(dynamic v, [double def]) {
 String toUpperCaseInitials(String s) {
   if (s == null || s.isEmpty) return s ;
   return s.toLowerCase().replaceAllMapped(new RegExp("(\\s|^)(\\w)"), (m) => "${m[1]}${m[2].toUpperCase()}") ;
+}
+
+List<String> asListOfString( dynamic o ) {
+  if (o == null) return null ;
+  List<dynamic> l = o as List<dynamic> ;
+  return l.map( (e) => e.toString() ).toList() as List<String> ;
+}
+
+Map asMap(dynamic o) {
+  if (o == null) return null ;
+  if (o is Map) return o ;
+
+  Map m = {} ;
+
+  if (o is List) {
+    int sz = o.length ;
+
+    for (int i = 0 ; i < sz ; i+=2) {
+      dynamic key = o[i] ;
+      dynamic val = o[i+1] ;
+      m[key] = val ;
+    }
+  }
+  else {
+    throw new StateError("Can't handle type: "+ o) ;
+  }
+
+  return m ;
+}
+
+List<Map> asListOfMap( dynamic o ) {
+  if (o == null) return null ;
+  List<dynamic> l = o as List<dynamic> ;
+  return l.map( (e) => asMap(e) ).toList() ;
+}
+
+List<String> split(String s, String delimiter, [int limit]) {
+  if (limit == null) return s.split(delimiter) ;
+  if (limit < 1) return [s] ;
+
+  int delimiterSz = delimiter.length ;
+
+  if (limit == 1) {
+    int idx = s.indexOf(delimiter) ;
+    return idx >= 0 ? [ s.substring(0,idx) , s.substring(idx+delimiterSz) ] : [s] ;
+  }
+
+  List<String> parts = [] ;
+
+  for (int i = 0; i < limit; i++) {
+    int idx = s.indexOf(delimiter) ;
+
+    if (idx >= 0) {
+      var s1 = s.substring(0, idx) ;
+      var s2 = s.substring(idx+delimiterSz) ;
+
+      parts.add(s1) ;
+      s = s2 ;
+    }
+    else {
+      break ;
+    }
+  }
+
+  parts.add(s) ;
+  return parts ;
 }

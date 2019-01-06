@@ -3,6 +3,23 @@ import 'dart:convert';
 import 'dart:html';
 
 
+class RESTResponse {
+  final String method ;
+  final int status ;
+  final String body ;
+
+  RESTResponse(this.method, this.status, this.body);
+
+  dynamic get json => hasBody ? jsonDecode(body) : null ;
+
+  bool get hasBody => body != null && body.isNotEmpty ;
+
+  @override
+  String toString() {
+    return 'RESTResponse{method: $method, status: $status, body: $body}';
+  }
+}
+
 class RESTClient {
 
   String baseURL ;
@@ -17,16 +34,22 @@ class RESTClient {
   }
 
   Future<dynamic> getJSON(String path, [Map<String,String> parameters]) async {
-    return get(path, parameters).then((s) => _jsonDecode(s)) ;
+    return get(path, parameters).then((r) => _jsonDecode(r.body)) ;
+  }
+
+  Future<dynamic> optionsJSON(String path, [Map<String,String> parameters]) async {
+    return options(path, parameters).then((r) => _jsonDecode(r.body)) ;
   }
 
   Future<dynamic> postJSON(String path,  { Map<String,String> parameters , String body , String contentType }) async {
-    return post(path, parameters: parameters, body: body, contentType: contentType).then((s) => _jsonDecode(s)) ;
+    return post(path, parameters: parameters, body: body, contentType: contentType).then((r) => _jsonDecode(r.body)) ;
   }
 
   Future<dynamic> putJSON(String path,  { String body , String contentType }) async {
-    return put(path, body: body, contentType: contentType).then((s) => _jsonDecode(s)) ;
+    return put(path, body: body, contentType: contentType).then((r) => _jsonDecode(r.body)) ;
   }
+
+  bool withCredentials = false ;
 
   bool logJSON = false ;
 
@@ -42,12 +65,17 @@ class RESTClient {
     print(log);
   }
 
-  Future<String> get(String path, [Map<String,String> parameters]) async {
+  Future<RESTResponse> get(String path, [Map<String,String> parameters]) async {
     String url = _buildURL(path, parameters);
     return _requestGET(url);
   }
 
-  Future<String> post(String path, { Map<String,String> parameters , String body , String contentType , String accept}) async {
+  Future<RESTResponse> options(String path, [Map<String,String> parameters]) async {
+    String url = _buildURL(path, parameters);
+    return _requestOPTIONS(url);
+  }
+
+  Future<RESTResponse> post(String path, { Map<String,String> parameters , String body , String contentType , String accept}) async {
     String url = _buildURL(path);
 
     var uri = Uri.parse(url);
@@ -66,7 +94,7 @@ class RESTClient {
     return _requestPOST(url, parameters, body, contentType, accept);
   }
 
-  Future<String> put(String path, { String body , String contentType , String accept}) async {
+  Future<RESTResponse> put(String path, { String body , String contentType , String accept}) async {
     String url = _buildURL(path);
 
     var uri = Uri.parse(url);
@@ -75,7 +103,7 @@ class RESTClient {
   }
 
   Uri _removeURIQueryParameters(var uri) {
-    if ( uri.scheme.toLowerCase() == "https" ) {
+    if ( uri.schema.toLowerCase() == "https" ) {
       return new Uri.https(uri.authority, uri.path) ;
     }
     else {
@@ -87,7 +115,7 @@ class RESTClient {
     if ( !path.startsWith("/") ) path = "/$path" ;
     String url = "$baseURL$path" ;
 
-    var uri = Uri.parse(url);
+    Uri uri = Uri.parse(url);
 
     var pathParameters = uri.queryParameters ;
 
@@ -116,43 +144,52 @@ class RESTClient {
     return url2 ;
   }
 
-  Future<String> _requestGET(String url) {
+  Future<RESTResponse> _requestGET(String url) {
     return HttpRequest.request(url,
         method: 'GET',
-        withCredentials: true,
+        withCredentials: this.withCredentials,
         requestHeaders: _buildRequestHeaders(url)
-    ).then( _processResponse );
+    ).then( (xhr) => _processResponse("GET", xhr) );
   }
 
-  Future<String> _requestPOST(String url, [Map<String,String> queryParameters, String body, String contentType, String accept]) {
+  Future<RESTResponse> _requestOPTIONS(String url) {
+    return HttpRequest.request(url,
+        method: 'OPTIONS',
+        withCredentials: this.withCredentials,
+        requestHeaders: _buildRequestHeaders(url)
+    ).then( (xhr) => _processResponse("GET", xhr) );
+  }
+
+  Future<RESTResponse> _requestPOST(String url, [Map<String,String> queryParameters, String body, String contentType, String accept]) {
     if (queryParameters != null && queryParameters.isNotEmpty) {
       return HttpRequest.postFormData(url, queryParameters,
-          withCredentials: true,
+          withCredentials: this.withCredentials,
           requestHeaders: _buildRequestHeaders(url, body, contentType, accept)
-      ).then( _processResponse );
+      ).then( (xhr) => _processResponse("POST", xhr) );
     }
     else {
       return HttpRequest.request(url,
           method: 'POST',
-          withCredentials: true,
+          withCredentials: this.withCredentials,
           requestHeaders: _buildRequestHeaders(url, body, contentType, accept),
           sendData: body
-      ).then( _processResponse );
+      ).then( (xhr) => _processResponse("POST", xhr) );
     }
   }
 
-  Future<String> _requestPUT(String url, [String body, String contentType, String accept]) {
+  Future<RESTResponse> _requestPUT(String url, [String body, String contentType, String accept]) {
     return HttpRequest.request(url,
         method: 'PUT',
-        withCredentials: true,
+        withCredentials: this.withCredentials,
         requestHeaders: _buildRequestHeaders(url, body, contentType, accept),
         sendData: body
-    ).then( _processResponse );
+    ).then( (xhr) => _processResponse("PUT", xhr) );
   }
 
 
-  String _processResponse(HttpRequest xhr) {
-    return xhr.responseText ;
+  RESTResponse _processResponse(String method, HttpRequest xhr) {
+    RESTResponse resp = new RESTResponse(method, xhr.status, xhr.responseText) ;
+    return resp ;
   }
 
   Map<String, String> _buildRequestHeaders(String url, [String body, String contentType, String accept]) {
@@ -232,17 +269,17 @@ class RESTClientSimulation extends RESTClient {
   }
 
   @override
-  Future<String> _requestGET(String url) {
+  Future<RESTResponse> _requestGET(String url) {
     return _requestSimulated('GET', url, _getPatterns, null) ;
   }
 
 
   @override
-  Future<String> _requestPOST(String url, [Map<String, String> queryParameters, String body, String contentType, String accept]) {
+  Future<RESTResponse> _requestPOST(String url, [Map<String, String> queryParameters, String body, String contentType, String accept]) {
     return _requestSimulated('POST', url, _postPatterns, queryParameters) ;
   }
 
-  Future<String> _requestSimulated(String method, String url, Map<RegExp, SimulateResponse> mainPatterns, Map<String, String> queryParameters) {
+  Future<RESTResponse> _requestSimulated(String method, String url, Map<RegExp, SimulateResponse> mainPatterns, Map<String, String> queryParameters) {
     var resp = _findResponse(url, mainPatterns) ;
 
     if (resp == null) {
@@ -256,7 +293,9 @@ class RESTClientSimulation extends RESTClient {
 
     var respVal = resp(url, queryParameters) ;
 
-    return new Future.value(respVal) ;
+    RESTResponse restResponse = new RESTResponse(method, 200, respVal) ;
+
+    return new Future.value(restResponse) ;
   }
 
 }

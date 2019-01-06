@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:swiss_knife/src/utils.dart';
 import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/message_lookup_by_library.dart';
 import 'package:intl/src/intl_helpers.dart';
 
@@ -732,7 +733,7 @@ class LocalesManager {
   Future<bool> setPreferredLocale(String locale) {
     if (locale == null) {
       print("setPreferredLocale: null locale!") ;
-      return ;
+      return new Future.value(false) ;
     }
 
     print("setPreferredLocale: $locale") ;
@@ -844,6 +845,13 @@ class LocalesManager {
     Intl.defaultLocale = locale ;
 
     print("Locale defined: $locale") ;
+
+    try {
+      initializeDateFormatting(locale, null);
+    }
+    catch (e) {
+      print(e) ;
+    }
 
     onDefineLocale.add(locale) ;
   }

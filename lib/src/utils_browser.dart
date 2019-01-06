@@ -95,6 +95,10 @@ bool addJScript(String scriptCode) {
   return true ;
 }
 
+void evalJS(String scriptCode) {
+  context.callMethod('eval', [scriptCode]);
+}
+
 typedef void MappedFunction(dynamic o) ;
 
 void mapJSFunction(String jsFunctionName, MappedFunction f) {
@@ -118,6 +122,35 @@ void mapJSFunction(String jsFunctionName, MappedFunction f) {
 
   setter.apply([ (dynamic o) => f(o) ]) ;
   
+}
+
+void disableScrolling() {
+  String scriptCode = '''
+  
+  if ( window.UI__BlcokScroll__ == null ) {
+    UI__BlcokScroll__ = function(event) {
+      window.scrollTo( 0, 0 );
+      event.preventDefault();
+    }  
+  }
+  
+  ''';
+
+  addJScript(scriptCode) ;
+
+  evalJS('''
+    window.addEventListener('scroll', UI__BlcokScroll__, { passive: false });
+  ''') ;
+
+
+}
+
+void enableScrolling() {
+  evalJS('''
+    if ( window.UI__BlcokScroll__ != null ) {
+      window.removeEventListener('scroll', UI__BlcokScroll__);  
+    }
+  ''') ;
 }
 
 void disableZooming() {
@@ -146,7 +179,7 @@ void disableZooming() {
     }
   }
   
-  block = function(types) {
+  var block = function(types) {
     UIConsole('Block scale event of types: '+types) ;
     
     for (var i = 0; i < types.length; i++) {
