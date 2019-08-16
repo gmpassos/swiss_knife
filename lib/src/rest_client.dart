@@ -7,16 +7,60 @@ class RESTResponse {
   final String method ;
   final int status ;
   final String body ;
+  final HttpRequest request ;
 
-  RESTResponse(this.method, this.status, this.body);
+  RESTResponse(this.method, this.status, this.body, [this.request]);
 
   dynamic get json => hasBody ? jsonDecode(body) : null ;
 
   bool get hasBody => body != null && body.isNotEmpty ;
 
+  String getResponseHeader(String headerName) {
+    if (request == null) return null ;
+    return request.getResponseHeader(headerName) ;
+  }
+
   @override
   String toString() {
     return 'RESTResponse{method: $method, status: $status, body: $body}';
+  }
+}
+
+typedef void ResponseProcessor(RESTClient client, HttpRequest request, RESTResponse response) ;
+
+abstract class Credential {
+
+  String get type ;
+
+  String buildHeaderLine() ;
+
+}
+
+class BasicCredential extends Credential {
+  final String username ;
+  final String password ;
+
+  BasicCredential(this.username, this.password);
+
+  String get type => "Basic" ;
+
+  String buildHeaderLine() {
+    String payload = "$username:$password" ;
+    var encode = Base64Codec.urlSafe().encode(payload.codeUnits) ;
+    return "Basic $encode" ;
+  }
+}
+
+
+class BearerCredential extends Credential {
+  final String token ;
+
+  BearerCredential(this.token);
+
+  String get type => "Bearer" ;
+
+  String buildHeaderLine() {
+    return "Bearer $token" ;
   }
 }
 
@@ -49,7 +93,16 @@ class RESTClient {
     return put(path, body: body, contentType: contentType).then((r) => _jsonDecode(r.body)) ;
   }
 
-  bool withCredentials = false ;
+  bool withCredentials = true ;
+
+  Credential authorization ;
+
+  String _responseHeaderWithToken ;
+
+  RESTClient autoChangeAuthorizationToBearerToken(String responseHeaderWithToken) {
+    this._responseHeaderWithToken = responseHeaderWithToken ;
+    return this ;
+  }
 
   bool logJSON = false ;
 
@@ -186,9 +239,27 @@ class RESTClient {
     ).then( (xhr) => _processResponse("PUT", xhr) );
   }
 
+  ResponseProcessor responseProcessor ;
 
   RESTResponse _processResponse(String method, HttpRequest xhr) {
-    RESTResponse resp = new RESTResponse(method, xhr.status, xhr.responseText) ;
+    RESTResponse resp = new RESTResponse(method, xhr.status, xhr.responseText, xhr) ;
+
+    if (_responseHeaderWithToken != null) {
+      var accessToken = resp.getResponseHeader(_responseHeaderWithToken) ;
+      if (accessToken != null) {
+        authorization = new BearerCredential(accessToken) ;
+      }
+    }
+
+    if (responseProcessor != null) {
+      try {
+        responseProcessor(this, xhr, resp);
+      }
+      catch (e) {
+        print(e) ;
+      }
+    }
+
     return resp ;
   }
 
@@ -203,6 +274,13 @@ class RESTClient {
     if (accept != null) {
       if (header == null) header = {} ;
       header["Accept"] = accept ;
+    }
+
+    if ( authorization != null ) {
+      if (header == null) header = {} ;
+
+      String buildHeaderLine = authorization.buildHeaderLine();
+      header["Authorization"] = buildHeaderLine ;
     }
 
     /*

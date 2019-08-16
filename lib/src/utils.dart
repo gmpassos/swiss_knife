@@ -375,6 +375,21 @@ Map<String,String> decodeQueryString(String queryString) {
   return parameters;
 }
 
+dynamic getIgnoreCase(Map m, String key) {
+  var val = m[key] ;
+  if (val != null) return val ;
+
+  key = key.toLowerCase() ;
+
+  for (var v in m.keys) {
+    if ( v.toString().toLowerCase() == key ) {
+      return m[v] ;
+    }
+  }
+
+  return null ;
+}
+
 int getCurrentTimeMillis() {
   return new DateTime.now().millisecondsSinceEpoch ;
 }

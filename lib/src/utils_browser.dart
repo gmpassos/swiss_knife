@@ -20,7 +20,8 @@ Element createDivInline([String html]) {
   return createDiv(true, html);
 }
 
-const _HTML_ELEMENTS_ALLOWED_ATTRS = ['style', 'src', 'field', 'navigate', 'action', 'capture', 'oneventkeypress'] ;
+const _HTML_TAG_A_ALLOWED_ATTRS = ['style', 'navigate', 'action', 'capture', 'uilayout', 'oneventkeypress', 'oneventclick'] ;
+const _HTML_ELEMENTS_ALLOWED_ATTRS = ['style', 'src', 'field', 'navigate', 'action', 'capture', 'uilayout', 'oneventkeypress', 'oneventclick'] ;
 
 AnyUriPolicy _anyUriPolicy = new AnyUriPolicy() ;
 
@@ -34,6 +35,7 @@ class AnyUriPolicy implements UriPolicy {
 NodeValidatorBuilder _nodeValidatorBuilder = new NodeValidatorBuilder()
   ..allowTextElements()
   ..allowHtml5()
+  ..allowElement("a", attributes: _HTML_TAG_A_ALLOWED_ATTRS)
   ..allowElement("div", attributes: _HTML_ELEMENTS_ALLOWED_ATTRS)
   ..allowElement("span", attributes: _HTML_ELEMENTS_ALLOWED_ATTRS)
   ..allowElement("img", attributes: _HTML_ELEMENTS_ALLOWED_ATTRS)
@@ -250,6 +252,12 @@ String getHrefHost() {
   var href = window.location.href;
   var uri = Uri.parse(href);
   return uri.host;
+}
+
+int getHrefPort() {
+  var href = window.location.href;
+  var uri = Uri.parse(href);
+  return uri.port;
 }
 
 RegExp _regExp_localhostHref = new RegExp('^(?:localhost|127\\.0\\.0\\.1)\$') ;

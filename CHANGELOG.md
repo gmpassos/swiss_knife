@@ -1,4 +1,8 @@
 
+## 2.1.0
+
+- Added Authorization and Credential/Token handling to REST Client.
+
 ## 2.0.0
 
 - Update to Dart 2.0.1 and small fixes. Now able to import only utils (swiss_knife_utils.dart)
