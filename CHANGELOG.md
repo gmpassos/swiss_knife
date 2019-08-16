@@ -1,4 +1,8 @@
 
+## 2.1.1
+
+- Small fixes.
+
 ## 2.1.0
 
 - Added Authorization and Credential/Token handling to REST Client.

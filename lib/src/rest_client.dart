@@ -149,9 +149,6 @@ class RESTClient {
 
   Future<RESTResponse> put(String path, { String body , String contentType , String accept}) async {
     String url = _buildURL(path);
-
-    var uri = Uri.parse(url);
-
     return _requestPUT(url, body, contentType, accept);
   }
 

@@ -25,7 +25,7 @@ class EventStream<T> implements Stream<T>{
   }
 
   Future addStream(Stream<T> source, {bool cancelOnError}) {
-    _controller.addStream(source, cancelOnError: cancelOnError) ;
+    return _controller.addStream(source, cancelOnError: cancelOnError) ;
   }
 
   Future close() {
