@@ -641,8 +641,8 @@ class LocaleInitializer {
     });
   }
 
-  EventStream<String> onInitializeLocale = new EventStream() ;
-  EventStream<String> onFailLocale = new EventStream() ;
+  final EventStream<String> onInitializeLocale = new EventStream() ;
+  final EventStream<String> onFailLocale = new EventStream() ;
 
   List<String> _failedLocales = [] ;
   List<String> get failedLocales => new List.from(_failedLocales) ;
@@ -677,6 +677,15 @@ class LocaleInitializer {
 typedef Future<bool> InitializeLocaleFunction(String locale) ;
 
 class LocalesManager {
+  static List<LocalesManager> _instances = [] ;
+
+  static List<LocalesManager> instances() => List.from(_instances) ;
+
+  static List<LocalesManager> instancesInitialized() => List<LocalesManager>.from(_instances)..retainWhere( (l) => l.getInitializedLocales().isNotEmpty ) ;
+
+  static final EventStream<String> onDefineLocaleGlobal = new EventStream() ;
+
+  //////////////////////////////////////////////////////
 
   final InitializeLocaleFunction initializeLocaleFunction ;
 
@@ -687,6 +696,8 @@ class LocalesManager {
     if (onDefineLocale != null) {
       this.onDefineLocale.listen(onDefineLocale) ;
     }
+
+    _instances.add(this) ;
   }
 
   bool isInitializedLocale(String locale) {
@@ -839,7 +850,7 @@ class LocalesManager {
     _defineInitializedLocale(locale) ;
   }
 
-  EventStream<String> onDefineLocale = new EventStream() ;
+  final EventStream<String> onDefineLocale = new EventStream() ;
 
   void _defineInitializedLocale(String locale) {
     Intl.defaultLocale = locale ;
@@ -854,6 +865,8 @@ class LocalesManager {
     }
 
     onDefineLocale.add(locale) ;
+
+    onDefineLocaleGlobal.add(locale) ;
   }
 
   List<String> getLocalesSequence(String locale) {

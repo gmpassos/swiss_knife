@@ -1,4 +1,8 @@
 
+## 2.1.2
+
+- Add LocalesManager.onDefineLocale and LocalesManager.onDefineLocaleGlobal 
+
 ## 2.1.1
 
 - Small fixes.
