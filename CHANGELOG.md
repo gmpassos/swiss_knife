@@ -1,3 +1,7 @@
+## 2.2.0
+
+- Remove locales to package intl_messages.
+- Remove rest_client to package mercury_client.
 
 ## 2.1.2
 

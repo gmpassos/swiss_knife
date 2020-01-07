@@ -4,8 +4,8 @@ import 'dart:html';
 import 'dart:js';
 import 'dart:js_util';
 
-Element createDiv([bool inline = false, String html]) {
-  var div = new Element.div() ;
+DivElement createDiv([bool inline = false, String html]) {
+  var div = new DivElement() ;
 
   if (inline) div.style.display = 'inline-block';
 
@@ -16,11 +16,20 @@ Element createDiv([bool inline = false, String html]) {
   return div ;
 }
 
-Element createDivInline([String html]) {
+DivElement createDivInline([String html]) {
   return createDiv(true, html);
 }
 
-const _HTML_TAG_A_ALLOWED_ATTRS = ['style', 'navigate', 'action', 'capture', 'uilayout', 'oneventkeypress', 'oneventclick'] ;
+Element createHTML([String html]) {
+  var div = createDiv(true, html);
+  if ( div.childNodes.isEmpty ) return div ;
+
+  Node childNode = div.childNodes.firstWhere( (e) => e is Element , orElse: () => null ) ;
+
+  return childNode ;
+}
+
+const _HTML_TAG_A_ALLOWED_ATTRS = ['style', 'navigate', 'action', 'capture', 'uilayout', 'oneventkeypress', 'oneventclick', 'href', 'target'] ;
 const _HTML_ELEMENTS_ALLOWED_ATTRS = ['style', 'src', 'field', 'navigate', 'action', 'capture', 'uilayout', 'oneventkeypress', 'oneventclick'] ;
 
 AnyUriPolicy _anyUriPolicy = new AnyUriPolicy() ;
@@ -44,6 +53,7 @@ NodeValidatorBuilder _nodeValidatorBuilder = new NodeValidatorBuilder()
   ..allowElement("button", attributes: _HTML_ELEMENTS_ALLOWED_ATTRS)
   ..allowElement("iframe", attributes: _HTML_ELEMENTS_ALLOWED_ATTRS)
   ..allowImages(_anyUriPolicy)
+  ..allowNavigation(_anyUriPolicy)
   ..allowInlineStyles()
 ;
 
@@ -271,6 +281,15 @@ RegExp _regExp_IpHref = new RegExp('^\\d+\\.\\d+\\.\\d+\\.\\d+\$') ;
 
 bool isIPtHref() {
   String host = getHrefHost();
+  return _regExp_IpHref.hasMatch( host ) ;
+}
+
+bool isIPHref() {
+  String host = getHrefHost();
+  return isIP( host ) ;
+}
+
+bool isIP(String host) {
   return _regExp_IpHref.hasMatch( host ) ;
 }
 
