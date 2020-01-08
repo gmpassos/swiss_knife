@@ -1,3 +1,11 @@
+## 2.2.1
+
+- Organize code in different dart files.
+- Code analysis.
+- Upgrade dependencies:
+    - intl: ^0.16.1
+    - remove "enum_to_string".
+
 ## 2.2.0
 
 - Remove locales to package intl_messages.

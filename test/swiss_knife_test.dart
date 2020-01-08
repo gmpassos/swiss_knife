@@ -1,6 +1,8 @@
 
 import 'package:test/test.dart';
 
+import 'package:swiss_knife/swiss_knife.dart';
+
 class Foo {
 
   bool get isOk => true ;
@@ -15,8 +17,9 @@ void main() {
       awesome = new Foo();
     });
 
-    test('First Test', () {
-      expect(awesome.isOk, isTrue);
+    test('Math Test', () {
+      expect( Math.max(11, 22), equals(22));
+      expect( Math.min(11, 22), equals(11));
     });
   });
 }

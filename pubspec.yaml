@@ -1,14 +1,13 @@
 name: swiss_knife
 description: Dart useful tools, collections, math, date, etc...
-version: 2.2.0
+version: 2.2.1
 homepage: https://github.com/gmpassos/swiss_knife
 
 environment:
   sdk: '>=2.2.0 <3.0.0'
 
 dependencies:
-  intl: ^0.15.7
-  enum_to_string: ^1.0.7
+  intl: ^0.16.1
 
 dev_dependencies:
   test: ^1.5.1

@@ -254,7 +254,6 @@ String getElementAttributeStr(Element element, String key) {
 }
 
 dynamic callObjectMethod(dynamic o, String method, [List args]) {
-
   return callMethod(o, method, args);
 }
 
