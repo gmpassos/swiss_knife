@@ -50,8 +50,8 @@ bool isEquivalentMap(Map m1, Map m2) {
 
   if (m1.length != m2.length) return false ;
 
-  var k1 = new List.from(m1.keys);
-  var k2 = new List.from(m2.keys);
+  var k1 = List.from(m1.keys);
+  var k2 = List.from(m2.keys);
 
   if ( !isEquivalentList(k1,k2,true) ) return false ;
 
@@ -94,22 +94,22 @@ List joinLists(List l1, [List l2, List l3, List l4, List l5, List l6, List l7, L
 
 List copyList(List l) {
   if (l == null) return null ;
-  return new List.from(l);
+  return List.from(l);
 }
 
 List<String> copyListString(List<String> l) {
   if (l == null) return null ;
-  return new List<String>.from(l);
+  return List<String>.from(l);
 }
 
 Map copyMap(Map m) {
   if (m == null) return null ;
-  return new Map.from(m);
+  return Map.from(m);
 }
 
 Map<String,String> copyMapString(Map<String,String> m) {
   if (m == null) return null ;
-  return new Map<String,String>.from(m);
+  return Map<String,String>.from(m);
 }
 
 MapEntry<String,V> getEntryIgnoreCase<V>(Map<String,V> map, String key) {
@@ -163,7 +163,7 @@ Map asMap(dynamic o) {
     }
   }
   else {
-    throw new StateError("Can't handle type: "+ o) ;
+    throw StateError("Can't handle type: "+ o) ;
   }
 
   return m ;

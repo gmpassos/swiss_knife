@@ -296,8 +296,7 @@ String dataSizeFormat(int size) {
   }
   else if (size < 1024*1024) {
     var s = "${size ~/ 1024} KB";
-    var s2 = s.replaceFirstMapped(new RegExp("\\.(\\d\\d)\\d+"), (m) => ".${m[1]}");
-    return s2 ;
+    return s ;
   }
   else {
     return formatDecimal( size / (1024*1024) )+ ' MB' ;

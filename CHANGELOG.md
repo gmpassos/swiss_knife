@@ -1,3 +1,7 @@
+## 2.3.1
+
+- Clean code.
+
 ## 2.3.0
 
 - More tests.

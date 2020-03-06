@@ -5,7 +5,7 @@ import 'dart:js';
 import 'dart:js_util';
 
 DivElement createDiv([bool inline = false, String html]) {
-  var div = new DivElement() ;
+  var div = DivElement() ;
 
   if (inline) div.style.display = 'inline-block';
 
@@ -32,7 +32,7 @@ Element createHTML([String html]) {
 const _HTML_TAG_A_ALLOWED_ATTRS = ['style', 'navigate', 'action', 'capture', 'uilayout', 'oneventkeypress', 'oneventclick', 'href', 'target'] ;
 const _HTML_ELEMENTS_ALLOWED_ATTRS = ['style', 'src', 'field', 'navigate', 'action', 'capture', 'uilayout', 'oneventkeypress', 'oneventclick'] ;
 
-AnyUriPolicy _anyUriPolicy = new AnyUriPolicy() ;
+AnyUriPolicy _anyUriPolicy = AnyUriPolicy() ;
 
 class AnyUriPolicy implements UriPolicy {
   @override
@@ -41,7 +41,7 @@ class AnyUriPolicy implements UriPolicy {
   }
 }
 
-NodeValidatorBuilder _nodeValidatorBuilder = new NodeValidatorBuilder()
+NodeValidatorBuilder _nodeValidatorBuilder = NodeValidatorBuilder()
   ..allowTextElements()
   ..allowHtml5()
   ..allowElement("a", attributes: _HTML_TAG_A_ALLOWED_ATTRS)
@@ -67,7 +67,7 @@ void appendElementInnerHTML(Element e, String html) {
 
 void scrollToTopAsync(int delayMs) {
   if (delayMs < 1) delayMs = 1 ;
-  new Future.delayed( new Duration(milliseconds: delayMs), scrollToTop) ;
+  Future.delayed( Duration(milliseconds: delayMs), scrollToTop) ;
 }
 
 void scrollToTop() {
@@ -99,7 +99,7 @@ bool addJScript(String scriptCode) {
   */
 
   HeadElement head = querySelector('head') ;
-  ScriptElement script = new ScriptElement() ;
+  ScriptElement script = ScriptElement() ;
   script.type = "text/javascript";
   script.text = scriptCode ;
   head.children.add(script);
@@ -269,14 +269,14 @@ int getHrefPort() {
   return uri.port;
 }
 
-RegExp _regExp_localhostHref = new RegExp('^(?:localhost|127\\.0\\.0\\.1)\$') ;
+RegExp _regExp_localhostHref = RegExp('^(?:localhost|127\\.0\\.0\\.1)\$') ;
 
 bool isLocalhostHref() {
   String host = getHrefHost();
   return _regExp_localhostHref.hasMatch( host ) ;
 }
 
-RegExp _regExp_IpHref = new RegExp('^\\d+\\.\\d+\\.\\d+\\.\\d+\$') ;
+RegExp _regExp_IpHref = RegExp('^\\d+\\.\\d+\\.\\d+\\.\\d+\$') ;
 
 bool isIPtHref() {
   String host = getHrefHost();

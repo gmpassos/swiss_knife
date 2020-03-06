@@ -35,7 +35,7 @@ class EventStream<T> implements Stream<T>{
   Stream<T> _s ;
 
   EventStream() {
-    _controller = new StreamController();
+    _controller = StreamController();
     _s = _controller.stream.asBroadcastStream() ;
   }
 
@@ -188,7 +188,7 @@ class EventStream<T> implements Stream<T>{
   }
 
   Future<T> listenAsFuture() {
-    Completer<T> completer = new Completer() ;
+    Completer<T> completer = Completer() ;
     listen((e){
       completer.complete(e) ;
     });

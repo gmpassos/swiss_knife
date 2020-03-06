@@ -2,7 +2,7 @@
 import 'dart:async';
 
 Future callAsync(int delayMs, function()) {
-  return new Future.delayed(new Duration(milliseconds: delayMs), function) ;
+  return Future.delayed(Duration(milliseconds: delayMs), function) ;
 }
 
 String encodeQueryString(Map<String,String> parameters) {
@@ -44,7 +44,7 @@ Map<String,String> decodeQueryString(String queryString) {
 
 String toUpperCaseInitials(String s) {
   if (s == null || s.isEmpty) return s ;
-  return s.toLowerCase().replaceAllMapped(new RegExp("(\\s|^)(\\w)"), (m) => "${m[1]}${m[2].toUpperCase()}") ;
+  return s.toLowerCase().replaceAllMapped(RegExp("(\\s|^)(\\w)"), (m) => "${m[1]}${m[2].toUpperCase()}") ;
 }
 
 List<String> split(String s, String delimiter, [int limit]) {

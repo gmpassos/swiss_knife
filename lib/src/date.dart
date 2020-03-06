@@ -4,7 +4,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:swiss_knife/src/math.dart';
 
 int getCurrentTimeMillis() {
-  return new DateTime.now().millisecondsSinceEpoch ;
+  return DateTime.now().millisecondsSinceEpoch ;
 }
 
 void _initializeDateFormatting() {
@@ -18,8 +18,8 @@ String dateFormat_YYYY_MM_dd_HH_mm_ss([int time]) {
 
   _initializeDateFormatting();
 
-  var date = new DateTime.fromMillisecondsSinceEpoch(time) ;
-  var dateFormat = new DateFormat('yyyy-MM-dd HH:mm:ss');
+  var date = DateTime.fromMillisecondsSinceEpoch(time) ;
+  var dateFormat = DateFormat('yyyy-MM-dd HH:mm:ss');
   return dateFormat.format(date) ;
 }
 
@@ -28,8 +28,8 @@ String dateFormat_YYYY_MM_dd([int time]) {
 
   _initializeDateFormatting();
 
-  var date = new DateTime.fromMillisecondsSinceEpoch(time) ;
-  var dateFormat = new DateFormat('yyyy-MM-dd');
+  var date = DateTime.fromMillisecondsSinceEpoch(time) ;
+  var dateFormat = DateFormat('yyyy-MM-dd');
   return dateFormat.format(date) ;
 }
 
@@ -38,8 +38,8 @@ String getDateAmPm([int time]) {
 
   _initializeDateFormatting();
 
-  var date = new DateTime.fromMillisecondsSinceEpoch(time) ;
-  var dateFormat = new DateFormat('jm');
+  var date = DateTime.fromMillisecondsSinceEpoch(time) ;
+  var dateFormat = DateFormat('jm');
   var s = dateFormat.format(date) ;
   return s.contains("PM") ? 'PM' : 'AM';
 }
@@ -49,8 +49,8 @@ int getDateHour([int time]) {
 
   _initializeDateFormatting();
 
-  var date = new DateTime.fromMillisecondsSinceEpoch(time) ;
-  var dateFormat = new DateFormat('HH');
+  var date = DateTime.fromMillisecondsSinceEpoch(time) ;
+  var dateFormat = DateFormat('HH');
   var s = dateFormat.format(date) ;
   return int.parse(s);
 }
