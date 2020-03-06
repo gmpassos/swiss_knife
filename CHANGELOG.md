@@ -1,3 +1,11 @@
+## 2.3.0
+
+- More tests.
+- Math.min/max/ceil/floor/round/mean/standardDeviation
+- parseNum(), parseInt(), parseDouble(), parsePercent(), getEntryIgnoreCase(), putIgnoreCase().
+- dataSizeFormat()
+- Base64 and DataURLBase64.
+
 ## 2.2.1
 
 - Organize code in different dart files.

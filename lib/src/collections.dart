@@ -1,11 +1,13 @@
 
+
 bool isEquivalentList(List l1, List l2, [bool sort = false]) {
   if (l1 == l2) return true ;
 
   if (l1 == null) return false ;
   if (l2 == null) return false ;
 
-  if ( l1.length != l2.length ) return false ;
+  var length = l1.length;
+  if ( length != l2.length ) return false ;
 
   if (sort) {
     l1.sort();
@@ -21,11 +23,32 @@ bool isEquivalentList(List l1, List l2, [bool sort = false]) {
   return true ;
 }
 
+bool isEquivalentIterator(Iterable it1, Iterable it2) {
+  if (it1 == it2) return true ;
+
+  if (it1 == null) return false ;
+  if (it2 == null) return false ;
+
+  var length = it1.length;
+  if (length != it2.length) return false ;
+
+  for (int i = 0 ; i < length; i++) {
+    var elem1 = it1.elementAt(i) ;
+    var elem2 = it2.elementAt(i) ;
+
+    if ( elem1 != elem2 ) return false ;
+  }
+
+  return true ;
+}
+
 bool isEquivalentMap(Map m1, Map m2) {
   if (m1 == m2) return true ;
 
   if (m1 == null) return false ;
   if (m2 == null) return false ;
+
+  if (m1.length != m2.length) return false ;
 
   var k1 = new List.from(m1.keys);
   var k2 = new List.from(m2.keys);
@@ -89,19 +112,39 @@ Map<String,String> copyMapString(Map<String,String> m) {
   return new Map<String,String>.from(m);
 }
 
-dynamic getIgnoreCase(Map m, String key) {
-  var val = m[key] ;
-  if (val != null) return val ;
+MapEntry<String,V> getEntryIgnoreCase<V>(Map<String,V> map, String key) {
+  var val = map[key] ;
+  if (val != null) return MapEntry(key, val) ;
 
-  key = key.toLowerCase() ;
+  if (key == null) return null ;
 
-  for (var v in m.keys) {
-    if ( v.toString().toLowerCase() == key ) {
-      return m[v] ;
+  var keyLC = key.toLowerCase() ;
+
+  for (var k in map.keys) {
+    if ( k.toLowerCase() == keyLC ) {
+      var value = map[k];
+      return MapEntry<String,V>( k , value ) ;
     }
   }
 
   return null ;
+}
+
+V getIgnoreCase<V>(Map<String,V> map, String key) {
+  var entry = getEntryIgnoreCase(map, key) ;
+  return entry != null ? entry.value : null ;
+}
+
+V putIgnoreCase<V>(Map<String,V> map, String key, V value) {
+  var entry = getEntryIgnoreCase(map, key) ;
+  if (entry != null) {
+    map[ entry.key ] = value ;
+    return entry.value ;
+  }
+  else {
+    map[ key ] = value ;
+    return null ;
+  }
 }
 
 Map asMap(dynamic o) {
@@ -146,4 +189,42 @@ List<String> asListOfString( dynamic o ) {
   if (o == null) return null ;
   List<dynamic> l = o as List<dynamic> ;
   return l.map( (e) => e.toString() ).toList() ;
+}
+
+MapEntry<K,V> findKeyEntry<K,V>(Map<K,V> map, List<K> keys, [bool ignoreCase]) {
+  if (map == null || keys == null) return null ;
+
+  ignoreCase ??= false ;
+
+  if (ignoreCase) {
+    for (var key in keys) {
+      if ( map.containsKey(key) ) return MapEntry(key, map[key]) ;
+
+      String keyLC = key.toString().toLowerCase() ;
+
+      for (var k in map.keys) {
+        if ( k.toString().toLowerCase() == keyLC ) {
+          var value = map[k];
+          return MapEntry<K,V>( k , value ) ;
+        }
+      }
+    }
+  }
+  else {
+    for (var key in keys) {
+      if ( map.containsKey(key) ) return MapEntry(key, map[key]) ;
+    }
+  }
+
+  return null ;
+}
+
+V findKeyValue<K,V>(Map<K,V> map, List<K> keys, [bool ignoreCase]) {
+  var entry = findKeyEntry(map, keys, ignoreCase) ;
+  return entry != null ? entry.value : null ;
+}
+
+K findKeyName<K,V>(Map<K,V> map, List<K> keys, [bool ignoreCase]) {
+  var entry = findKeyEntry(map, keys, ignoreCase) ;
+  return entry != null ? entry.key : null ;
 }

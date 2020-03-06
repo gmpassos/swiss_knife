@@ -49,11 +49,11 @@ String toUpperCaseInitials(String s) {
 
 List<String> split(String s, String delimiter, [int limit]) {
   if (limit == null) return s.split(delimiter) ;
-  if (limit < 1) return [s] ;
+  if (limit <= 1) return [s] ;
 
   int delimiterSz = delimiter.length ;
 
-  if (limit == 1) {
+  if (limit == 2) {
     int idx = s.indexOf(delimiter) ;
     return idx >= 0 ? [ s.substring(0,idx) , s.substring(idx+delimiterSz) ] : [s] ;
   }
