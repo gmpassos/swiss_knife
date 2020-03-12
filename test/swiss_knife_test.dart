@@ -1,7 +1,9 @@
 
 import 'package:test/test.dart';
 
-import 'package:swiss_knife/swiss_knife.dart';
+//import 'package:swiss_knife/swiss_knife.dart';
+// ignore: avoid_relative_lib_imports
+import '../lib/swiss_knife.dart' ;
 
 void main() {
 
@@ -14,8 +16,8 @@ void main() {
       expect( isEquivalentMap( {'a':1,'b':2} , {'b':2,'a':1}  ), equals(true));
       expect( isEquivalentMap( {'a':1,'b':2} , {'b':3,'a':1}  ), equals(false));
 
-      expect( isEquivalentList( [1,2,3,4] , [4,3,2,1] , true ), equals(true));
-      expect( isEquivalentList( [1,2,3,4] , [4,3,2,1] , false ), equals(false));
+      expect( isEquivalentList( [1,2,3,4] , [4,3,2,1] , sort: true ), equals(true));
+      expect( isEquivalentList( [1,2,3,4] , [4,3,2,1] , sort: false ), equals(false));
 
       expect( findKeyValue( {'a':11, 'b':22} , ['A'] , true ), equals(11));
       expect( findKeyValue( {'a':11, 'b':22} , ['A'] , false ), equals(null));
@@ -38,6 +40,19 @@ void main() {
         putIgnoreCase( map , 'aa' , 11.1 );
         expect( map['Aa'] , equals(11.1));
       }
+
+    });
+
+
+    test('deep', () {
+
+      expect( isEquivalentMap( {'a': [1,2] ,'b':2} , {'b':2,'a': [1,2]}  ), equals(false));
+      expect( isEquivalentMap( {'a': [1,2] ,'b':2} , {'b':2,'a': [1,2]}  , deep: true ), equals(true));
+      expect( isEquivalentMap( {'a': [1,2] ,'b':2} , {'b':2,'a': [1,'2']}  , deep: true ), equals(false));
+
+      expect( isEquivalentMap( {'a': {'x':[1,2]} ,'b':2} , {'b':2,'a': {'x': [1,2]} }  ), equals(false));
+      expect( isEquivalentMap( {'a': {'x':[1,2]} ,'b':2} , {'b':2,'a': {'x': [1,2]} } , deep: true  ), equals(true));
+      expect( isEquivalentMap( {'a': {'x':[1,2]} ,'b':2} , {'b':2,'a': {'x': [1,'2']} } , deep: true  ), equals(false));
 
     });
 

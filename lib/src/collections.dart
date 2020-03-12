@@ -1,6 +1,34 @@
 
+bool isEquals( dynamic o1, dynamic o2 , [bool deep = false]) {
+  if ( deep != null && deep ) {
+    return isEqualsDeep(o1, o2) ;
+  }
+  else {
+    return o1 == o2 ;
+  }
+}
 
-bool isEquivalentList(List l1, List l2, [bool sort = false]) {
+bool isEqualsDeep( dynamic o1, dynamic o2 ) {
+  if ( identical(o1, o2) ) return true ;
+
+  if ( o1 is List ) {
+    if ( o2 is List ) {
+      return isEquivalentList(o1, o2, deep: true) ;
+    }
+    return false ;
+  }
+  else if ( o1 is Map ) {
+    if ( o2 is Map ) {
+      return isEquivalentMap(o1, o2, deep:  true) ;
+    }
+    return false ;
+  }
+
+  return o1 == o2 ;
+}
+
+
+bool isEquivalentList(List l1, List l2, { bool sort = false , bool deep = false } ) {
   if (l1 == l2) return true ;
 
   if (l1 == null) return false ;
@@ -14,16 +42,19 @@ bool isEquivalentList(List l1, List l2, [bool sort = false]) {
     l2.sort();
   }
 
+  deep ??= false ;
+
   for (var i = 0; i < l1.length; ++i) {
     var v1 = l1[i];
     var v2 = l2[i];
-    if (v1 != v2) return false ;
+
+    if ( !isEquals(v1, v2, deep) ) return false ;
   }
 
   return true ;
 }
 
-bool isEquivalentIterator(Iterable it1, Iterable it2) {
+bool isEquivalentIterator(Iterable it1, Iterable it2, { bool deep = false } ) {
   if (it1 == it2) return true ;
 
   if (it1 == null) return false ;
@@ -32,17 +63,19 @@ bool isEquivalentIterator(Iterable it1, Iterable it2) {
   var length = it1.length;
   if (length != it2.length) return false ;
 
-  for (int i = 0 ; i < length; i++) {
-    var elem1 = it1.elementAt(i) ;
-    var elem2 = it2.elementAt(i) ;
+  deep ??= false ;
 
-    if ( elem1 != elem2 ) return false ;
+  for (int i = 0 ; i < length; i++) {
+    var v1 = it1.elementAt(i) ;
+    var v2 = it2.elementAt(i) ;
+
+    if ( !isEquals(v1, v2, deep) ) return false ;
   }
 
   return true ;
 }
 
-bool isEquivalentMap(Map m1, Map m2) {
+bool isEquivalentMap(Map m1, Map m2, { bool deep = false } ) {
   if (m1 == m2) return true ;
 
   if (m1 == null) return false ;
@@ -53,13 +86,15 @@ bool isEquivalentMap(Map m1, Map m2) {
   var k1 = List.from(m1.keys);
   var k2 = List.from(m2.keys);
 
-  if ( !isEquivalentList(k1,k2,true) ) return false ;
+  if ( !isEquivalentList(k1,k2, sort: true) ) return false ;
+
+  deep ??= false ;
 
   for (var k in k1) {
     var v1 = m1[k];
     var v2 = m2[k];
 
-    if ( v1 != v2 ) return false ;
+    if ( !isEquals(v1, v2, deep) ) return false ;
   }
 
   return true ;
@@ -227,4 +262,40 @@ V findKeyValue<K,V>(Map<K,V> map, List<K> keys, [bool ignoreCase]) {
 K findKeyName<K,V>(Map<K,V> map, List<K> keys, [bool ignoreCase]) {
   var entry = findKeyEntry(map, keys, ignoreCase) ;
   return entry != null ? entry.key : null ;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+typedef StringMapper<T> = T Function(String s) ;
+
+List<T> parseFromInlineList<T>(String s, Pattern pattern, StringMapper mapper) {
+  if (s == null) return [] ;
+  s = s.trim() ;
+  if (s.isEmpty) return [] ;
+
+  var parts = s.split(pattern) ;
+
+  List<T> list = [] ;
+
+  for (var n in parts) {
+    list.add( mapper(n) ) ;
+  }
+
+  return list ;
+}
+
+String parseString(dynamic v, [String def]) {
+  if (v == null) return def ;
+
+  if (v is String) return v ;
+
+  String s = v.toString().trim() ;
+
+  if (s.isEmpty) return def ;
+
+  return s ;
+}
+
+List<String> parseStringFromInlineList(String s, Pattern pattern) {
+  return parseFromInlineList( s , pattern , parseString ) ;
 }

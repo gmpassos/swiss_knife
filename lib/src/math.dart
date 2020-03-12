@@ -1,6 +1,8 @@
 
 import 'dart:math' as dart_math ;
 
+import 'collections.dart';
+
 /// See dart:math
 class Math {
 
@@ -257,6 +259,38 @@ num parseNum(dynamic v, [double def]) {
   if (s.isEmpty) return def ;
 
   return num.parse(s) ;
+}
+
+bool parseBool(dynamic v, [bool def]) {
+  if (v == null) return def ;
+
+  if (v is bool) return v ;
+
+  String s ;
+  if (v is String) {
+    s = v ;
+  }
+  else {
+    s = v.toString() ;
+  }
+
+  s = s.trim().toLowerCase() ;
+
+  if (s.isEmpty) return def ;
+
+  return s == 'true' || s == '1' || s == 'y' || s == 's' || s == 't' ;
+}
+
+List<num> parseNumsFromInlineList(String s, Pattern pattern) {
+  return parseFromInlineList( s , pattern , parseNum ) ;
+}
+
+List<num> parseIntsFromInlineList(String s, Pattern pattern) {
+  return parseFromInlineList( s , pattern , parseInt ) ;
+}
+
+List<num> parseBoolsFromInlineList(String s, Pattern pattern) {
+  return parseFromInlineList( s , pattern , parseBool ) ;
 }
 
 RegExp _REGEXP_SPLIT_COMMA = RegExp(r'\s*,\s*');
