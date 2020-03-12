@@ -1,3 +1,8 @@
+## 2.3.3
+
+- splitRegExp().
+- Tests: split() and splitRegExp() (limits: Java compliant).
+
 ## 2.3.2
 
 - isEqualsDeep() ; parseFromInlineList() ;

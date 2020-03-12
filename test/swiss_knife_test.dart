@@ -1,7 +1,6 @@
 
 import 'package:test/test.dart';
 
-//import 'package:swiss_knife/swiss_knife.dart';
 // ignore: avoid_relative_lib_imports
 import '../lib/swiss_knife.dart' ;
 
@@ -57,6 +56,77 @@ void main() {
     });
 
   });
+
+
+  group('String', () {
+    setUp(() {});
+
+    test('split', () {
+
+      expect( split('a,b,c', ','), equals( ['a','b','c'] ));
+      expect( split('a,b,c', ',' , 0), equals( ['a','b','c'] ));
+      expect( split('a,b,c', ',' , 1), equals( ['a,b,c'] ));
+      expect( split('a,b,c', ',' , 2), equals( ['a','b,c'] ));
+      expect( split('a,b,c', ',' , 3), equals( ['a','b','c'] ));
+
+      expect( split('a,b,c,d', ',' , 0), equals( ['a','b','c','d'] ));
+      expect( split('a,b,c,d', ',' , 1), equals( ['a,b,c,d'] ));
+      expect( split('a,b,c,d', ',' , 2), equals( ['a','b,c,d'] ));
+      expect( split('a,b,c,d', ',' , 3), equals( ['a','b','c,d'] ));
+      expect( split('a,b,c,d', ',' , 4), equals( ['a','b','c','d'] ));
+      expect( split('a,b,c,d', ',' , 5), equals( ['a','b','c','d'] ));
+
+      expect( split('a,', ',' , 0), equals( ['a',''] ));
+      expect( split('a,', ',' , 1), equals( ['a,'] ));
+      expect( split('a,', ',' , 2), equals( ['a',''] ));
+      expect( split('a,', ',' , 3), equals( ['a',''] ));
+
+      expect( split('a,b,', ',' , 0), equals( ['a','b',''] ));
+      expect( split('a,b,', ',' , 1), equals( ['a,b,'] ));
+      expect( split('a,b,', ',' , 2), equals( ['a','b,'] ));
+      expect( split('a,b,', ',' , 3), equals( ['a','b',''] ));
+
+      expect( split('AA,,BB,,CC', ',,'), equals( ['AA','BB','CC'] ));
+      expect( split('AA,,BB,,CC,,', ',,'), equals( ['AA','BB','CC',''] ));
+      expect( split('AA,,BB,,CC', ',,', 2), equals( ['AA','BB,,CC'] ));
+      expect( split('AA,,BB,,CC', ',,', 3), equals( ['AA','BB','CC'] ));
+      expect( split('AA,,BB,,CC,,', ',,', 3), equals( ['AA','BB','CC,,'] ));
+
+    });
+
+    test('splitRegexp', () {
+
+      var delimiter = RegExp(',');
+
+      expect( splitRegExp('a,b,c', delimiter), equals( ['a','b','c'] ));
+      expect( splitRegExp('a,b,c', delimiter , 0), equals( ['a','b','c'] ));
+      expect( splitRegExp('a,b,c', delimiter , 1), equals( ['a,b,c'] ));
+      expect( splitRegExp('a,b,c', delimiter , 2), equals( ['a','b,c'] ));
+      expect( splitRegExp('a,b,c', delimiter , 3), equals( ['a','b','c'] ));
+
+      expect( splitRegExp('a,b,c,d', delimiter , 0), equals( ['a','b','c','d'] ));
+      expect( splitRegExp('a,b,c,d', delimiter , 1), equals( ['a,b,c,d'] ));
+      expect( splitRegExp('a,b,c,d', delimiter , 2), equals( ['a','b,c,d'] ));
+      expect( splitRegExp('a,b,c,d', delimiter , 3), equals( ['a','b','c,d'] ));
+      expect( splitRegExp('a,b,c,d', delimiter , 4), equals( ['a','b','c','d'] ));
+      expect( splitRegExp('a,b,c,d', delimiter , 5), equals( ['a','b','c','d'] ));
+
+      expect( splitRegExp('a,b,', delimiter , 0), equals( ['a','b',''] ));
+      expect( splitRegExp('a,b,', delimiter , 1), equals( ['a,b,'] ));
+      expect( splitRegExp('a,b,', delimiter , 2), equals( ['a','b,'] ));
+      expect( splitRegExp('a,b,', delimiter , 3), equals( ['a','b',''] ));
+
+
+      expect( splitRegExp('AA,,BB,,CC', ',,'), equals( ['AA','BB','CC'] ));
+      expect( splitRegExp('AA,,BB,,CC,,', ',,'), equals( ['AA','BB','CC',''] ));
+      expect( splitRegExp('AA,,BB,,CC', ',,', 2), equals( ['AA','BB,,CC'] ));
+      expect( splitRegExp('AA,,BB,,CC', ',,', 3), equals( ['AA','BB','CC'] ));
+      expect( splitRegExp('AA,,BB,,CC,,', ',,', 3), equals( ['AA','BB','CC,,'] ));
+
+    });
+
+  });
+
 
   group('Math', () {
 

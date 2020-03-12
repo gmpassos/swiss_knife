@@ -49,7 +49,7 @@ String toUpperCaseInitials(String s) {
 
 List<String> split(String s, String delimiter, [int limit]) {
   if (limit == null) return s.split(delimiter) ;
-  if (limit <= 1) return [s] ;
+  if (limit == 1) return [s] ;
 
   int delimiterSz = delimiter.length ;
 
@@ -58,7 +58,11 @@ List<String> split(String s, String delimiter, [int limit]) {
     return idx >= 0 ? [ s.substring(0,idx) , s.substring(idx+delimiterSz) ] : [s] ;
   }
 
+  if (limit <= 0) limit = s.length ;
+
   List<String> parts = [] ;
+
+  limit-- ;
 
   for (int i = 0; i < limit; i++) {
     int idx = s.indexOf(delimiter) ;
@@ -78,3 +82,48 @@ List<String> split(String s, String delimiter, [int limit]) {
   parts.add(s) ;
   return parts ;
 }
+
+List<String> splitRegExp(String s, Pattern delimiter, [int limit]) {
+  if (limit == null) return s.split(delimiter) ;
+  if (limit == 1) return [s] ;
+
+  if (limit == 2) {
+    for ( var match in delimiter.allMatches(s) ) {
+      var s1 = s.substring(0 , match.start) ;
+      var s2 = s.substring( match.end ) ;
+      return [s1,s2] ;
+    }
+    return [s] ;
+  }
+
+  if (limit <= 0) limit = s.length ;
+
+  List<String> parts = [] ;
+
+  int sOffset = 0 ;
+
+  --limit ;
+
+  for ( var match in delimiter.allMatches(s) ) {
+    var start = match.start - sOffset;
+    var end = match.end - sOffset ;
+
+    var s1 = s.substring(0, start) ;
+    var s2 = s.substring(end) ;
+
+    parts.add(s1) ;
+
+    s = s2 ;
+    sOffset = match.end ;
+
+    if ( parts.length == limit ) {
+      break ;
+    }
+  }
+
+  parts.add(s) ;
+
+  return parts ;
+}
+
+
