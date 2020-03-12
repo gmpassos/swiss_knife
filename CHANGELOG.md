@@ -1,3 +1,7 @@
+## 2.3.4
+
+- deepHashCode
+
 ## 2.3.3
 
 - splitRegExp().

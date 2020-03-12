@@ -1,8 +1,6 @@
 
+import 'package:swiss_knife/swiss_knife.dart';
 import 'package:test/test.dart';
-
-// ignore: avoid_relative_lib_imports
-import '../lib/swiss_knife.dart' ;
 
 void main() {
 
@@ -349,6 +347,19 @@ void main() {
       expect( formatTimeMillis(1000*60*60*24), equals('1 day'));
       expect( formatTimeMillis(1000*60*60*24*2), equals('2 days'));
       expect( formatTimeMillis( (1000*60*60*24*2.5).toInt() )  , equals('2.5 days'));
+
+    });
+  });
+
+  group('deepHashCode', ()
+  {
+    setUp(() {});
+
+    test('Base64,DataURLBase64', () {
+
+      expect( {'a': 1, 'b': 1}.hashCode == {'a': 1, 'b': 1}.hashCode , equals(false));
+      expect( deepHashCode( {'a': 1, 'b': 1} ) == {'a': 1, 'b': 1}.hashCode , equals(false));
+      expect( deepHashCode( {'a': 1, 'b': 1} ) == deepHashCode( {'a': 1, 'b': 1} ) , equals(true));
 
     });
   });

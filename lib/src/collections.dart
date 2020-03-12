@@ -299,3 +299,41 @@ String parseString(dynamic v, [String def]) {
 List<String> parseStringFromInlineList(String s, Pattern pattern) {
   return parseFromInlineList( s , pattern , parseString ) ;
 }
+
+int deepHashCode(dynamic o) {
+  if (o == null) return 0 ;
+
+  if (o is List) {
+    return deepHashCodeList(o) ;
+  }
+  else if (o is Map) {
+    return deepHashCodeMap(o) ;
+  }
+  else {
+    return o.hashCode ;
+  }
+}
+
+int deepHashCodeList(List l) {
+  if (l == null) return 0 ;
+
+  int h = 1 ;
+
+  for(var e in l) {
+    h ^= deepHashCode(e) ;
+  }
+
+  return h ;
+}
+
+int deepHashCodeMap(Map m) {
+  if (m == null) return 0 ;
+
+  int h = 1 ;
+
+  for(var e in m.entries) {
+    h ^= deepHashCode( e.key ) ^ deepHashCode( e.value ) ;
+  }
+
+  return h ;
+}
