@@ -364,4 +364,29 @@ void main() {
     });
   });
 
+
+  group('RegExp', ()
+  {
+    setUp(() {});
+
+    test('regExpHasMatch', () {
+
+      expect( regExpHasMatch( r'\w\s*(,+)\s*\w',  'a,b' ) , equals(true));
+      expect( regExpHasMatch( r'\w\s*(,+)\s*\w',  'a, b' ) , equals(true));
+      expect( regExpHasMatch( r'\w\s*(,+)\s*\w',  'a ,b' ) , equals(true));
+      expect( regExpHasMatch( r'\w\s*(,+)\s*\w',  'a , b' ) , equals(true));
+      expect( regExpHasMatch( r'\w\s*(,+)\s*\w',  'a ;, b' ) , equals(false));
+
+
+    });
+
+    test('regExpReplaceAll', () {
+
+      expect( regExpReplaceAll( r'\s*(,+)\s*',  'a ,b, c ,, d' , '\$1' ) , equals('a,b,c,,d'));
+      expect( regExpReplaceAll( r'\s*(,+)\s*',  'a ,b, c ,, d' , '-\$1-' ) , equals('a-,-b-,-c-,,-d'));
+
+    });
+
+  });
+
   }

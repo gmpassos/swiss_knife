@@ -126,4 +126,61 @@ List<String> splitRegExp(String s, Pattern delimiter, [int limit]) {
   return parts ;
 }
 
+bool regExpHasMatch(dynamic regExp, String s) {
+  var theRegExp = regExp is RegExp ? regExp : RegExp(regExp) ;
+  return theRegExp.hasMatch(s);
+}
+
+class RegExpReplacer {
+  List _parts ;
+
+  RegExpReplacer(String replace) {
+    var matches = RegExp(r'\$(\d+)').allMatches(replace) ;
+
+    _parts = [] ;
+
+    int cursor = 0 ;
+    for (var match in matches) {
+      if ( match.start > cursor ) {
+        String sPrev = replace.substring(cursor , match.start) ;
+        _parts.add(sPrev) ;
+      }
+      int groupID = int.parse(match.group(1)) ;
+
+      _parts.add(groupID) ;
+
+      cursor = match.end ;
+    }
+
+    if ( cursor < replace.length ) {
+      var sEnd = replace.substring(cursor) ;
+      _parts.add(sEnd) ;
+    }
+  }
+
+  String replaceMatch( Match match ) {
+    String s = '';
+
+    for (var part in _parts) {
+      if (part is int) {
+        s += match.group(part) ;
+      }
+      else {
+        s += part ;
+      }
+    }
+
+    return s ;
+  }
+
+  String replaceAll( dynamic regExp , String s ) {
+    var theRegExp = regExp is RegExp ? regExp : RegExp(regExp) ;
+    return s.replaceAllMapped(theRegExp, replaceMatch) ;
+  }
+
+}
+
+String regExpReplaceAll(dynamic regExp, String s, String replace) {
+  return RegExpReplacer( replace ).replaceAll(regExp, s) ;
+}
 

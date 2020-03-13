@@ -1,3 +1,8 @@
+## 2.3.6
+
+- regExpHasMatch
+- regExpReplaceAll
+
 ## 2.3.5
 
 - Fix return of parseIntsFromInlineList().
