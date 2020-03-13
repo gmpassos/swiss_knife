@@ -281,16 +281,16 @@ bool parseBool(dynamic v, [bool def]) {
   return s == 'true' || s == '1' || s == 'y' || s == 's' || s == 't' ;
 }
 
-List<num> parseNumsFromInlineList(String s, Pattern pattern) {
-  return parseFromInlineList( s , pattern , parseNum ) ;
+List<num> parseNumsFromInlineList(String s, Pattern delimiter, [List<num> def]) {
+  return parseFromInlineList( s , delimiter , parseNum , def) ;
 }
 
-List<num> parseIntsFromInlineList(String s, Pattern pattern) {
-  return parseFromInlineList( s , pattern , parseInt ) ;
+List<int> parseIntsFromInlineList(String s, Pattern delimiter, [List<int> def]) {
+  return parseFromInlineList( s , delimiter , parseInt , def) ;
 }
 
-List<num> parseBoolsFromInlineList(String s, Pattern pattern) {
-  return parseFromInlineList( s , pattern , parseBool ) ;
+List<bool> parseBoolsFromInlineList(String s, Pattern delimiter, [List<bool> def]) {
+  return parseFromInlineList( s , delimiter , parseBool , def) ;
 }
 
 RegExp _REGEXP_SPLIT_COMMA = RegExp(r'\s*,\s*');

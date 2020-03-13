@@ -1,3 +1,8 @@
+## 2.3.5
+
+- Fix return of parseIntsFromInlineList().
+- Added default value for parseXXFromInlineList().
+
 ## 2.3.4
 
 - deepHashCode

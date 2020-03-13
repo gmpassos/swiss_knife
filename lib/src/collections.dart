@@ -268,12 +268,12 @@ K findKeyName<K,V>(Map<K,V> map, List<K> keys, [bool ignoreCase]) {
 
 typedef StringMapper<T> = T Function(String s) ;
 
-List<T> parseFromInlineList<T>(String s, Pattern pattern, StringMapper mapper) {
-  if (s == null) return [] ;
+List<T> parseFromInlineList<T>(String s, Pattern delimiter, StringMapper mapper, [List<T> def]) {
+  if (s == null) return def ;
   s = s.trim() ;
-  if (s.isEmpty) return [] ;
+  if (s.isEmpty) return def ;
 
-  var parts = s.split(pattern) ;
+  var parts = s.split(delimiter) ;
 
   List<T> list = [] ;
 
@@ -296,8 +296,8 @@ String parseString(dynamic v, [String def]) {
   return s ;
 }
 
-List<String> parseStringFromInlineList(String s, Pattern pattern) {
-  return parseFromInlineList( s , pattern , parseString ) ;
+List<String> parseStringFromInlineList(String s, Pattern pattern, [List<String> def]) {
+  return parseFromInlineList( s , pattern , parseString , def) ;
 }
 
 int deepHashCode(dynamic o) {
