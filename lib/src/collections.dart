@@ -27,6 +27,14 @@ bool isEqualsDeep( dynamic o1, dynamic o2 ) {
   return o1 == o2 ;
 }
 
+bool isEqualsAsString( dynamic o1, dynamic o2 ) {
+  if ( identical(o1, o2) ) return true ;
+  if (o1 == o2) return true ;
+  if (o1 == null || o2 == null) return false ;
+  var s1 = o1.toString() ;
+  var s2 = o2.toString() ;
+  return s1 == s2 ;
+}
 
 bool isEquivalentList(List l1, List l2, { bool sort = false , bool deep = false } ) {
   if (l1 == l2) return true ;

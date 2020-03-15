@@ -1,3 +1,11 @@
+## 2.3.7
+
+- regExpReplaceAll(): allow ${1} marks (previously was only $1).
+- fix regExpReplaceAll() when group match is optional.
+- regExpDialect()
+- isEqualsAsString()
+- swiss_knife_vm.dart: catFile(), saveFile()
+
 ## 2.3.6
 
 - regExpHasMatch

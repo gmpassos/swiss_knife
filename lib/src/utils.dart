@@ -1,6 +1,8 @@
 
 import 'dart:async';
 
+import 'package:swiss_knife/src/collections.dart';
+
 Future callAsync(int delayMs, function()) {
   return Future.delayed(Duration(milliseconds: delayMs), function) ;
 }
@@ -135,7 +137,7 @@ class RegExpReplacer {
   List _parts ;
 
   RegExpReplacer(String replace) {
-    var matches = RegExp(r'\$(\d+)').allMatches(replace) ;
+    var matches = RegExp(r'(?:\$(\d+)|\${(\d+)})').allMatches(replace) ;
 
     _parts = [] ;
 
@@ -145,7 +147,13 @@ class RegExpReplacer {
         String sPrev = replace.substring(cursor , match.start) ;
         _parts.add(sPrev) ;
       }
-      int groupID = int.parse(match.group(1)) ;
+
+      var g1 = match.group(1);
+      var g2 = match.group(2);
+
+      var id = g1 ?? g2 ;
+
+      int groupID = int.parse(id) ;
 
       _parts.add(groupID) ;
 
@@ -163,7 +171,10 @@ class RegExpReplacer {
 
     for (var part in _parts) {
       if (part is int) {
-        s += match.group(part) ;
+        var groupValue = match.group(part) ;
+        if (groupValue != null) {
+          s += groupValue ;
+        }
       }
       else {
         s += part ;
@@ -184,3 +195,28 @@ String regExpReplaceAll(dynamic regExp, String s, String replace) {
   return RegExpReplacer( replace ).replaceAll(regExp, s) ;
 }
 
+String regExpReplaceAllMapped(dynamic regExp, String s, String replace(Match match)) {
+  return s.replaceAllMapped(regExp, replace) ;
+}
+
+RegExp regExpDialect( Map<String,String> words , String pattern , { bool multiLine = false, bool caseSensitive = true}) {
+  for (var i = 0 ; i < 10 ; i++) {
+    var words2 = words.map((k, v) => MapEntry(k, _regExpDialectImpl(words, v).pattern));
+    if ( isEqualsDeep(words, words2)) break ;
+    words = words2 ;
+  }
+  return _regExpDialectImpl(words, pattern) ;
+}
+
+RegExp _regExpDialectImpl( Map<String,String> words , String pattern , { bool multiLine = false, bool caseSensitive = true}) {
+  var translated = pattern.replaceAllMapped(RegExp(r'(\\\$|\$)(\w+)'), (m) {
+    var mark = m.group(1) ;
+    var key = m.group(2) ;
+
+    if (mark == r'\$') return '$mark$key' ;
+
+    var value = words[key] ;
+    return value ?? '$mark$key' ;
+  });
+  return RegExp(translated, multiLine: multiLine, caseSensitive: caseSensitive);
+}
