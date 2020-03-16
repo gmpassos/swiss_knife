@@ -392,9 +392,10 @@ void main() {
 
     test('regExpDialect', () {
 
-      var pattern1 = regExpDialect({
-        's': '[ \t]' ,
-        'commas': ',+' ,
+      var pattern1 = regExpDialect(
+        {
+          's': '[ \t]' ,
+          'commas': ',+' ,
         }
         ,
         r'$s*($commas)$s*'
