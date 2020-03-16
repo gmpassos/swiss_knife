@@ -385,6 +385,24 @@ void main() {
       expect( regExpReplaceAll( r'\s*(,+)\s*',  'a ,b, c ,, d' , '\$1' ) , equals('a,b,c,,d'));
       expect( regExpReplaceAll( r'\s*(,+)\s*',  'a ,b, c ,, d' , '-\$1-' ) , equals('a-,-b-,-c-,,-d'));
 
+      expect( regExpReplaceAll( r'\s*(,+)\s*',  'a ,b, c ,, d' , '\${1}' ) , equals('a,b,c,,d'));
+      expect( regExpReplaceAll( r'\s*(,+)\s*',  'a ,b, c ,, d' , '-\${1}-' ) , equals('a-,-b-,-c-,,-d'));
+
+    });
+
+    test('regExpDialect', () {
+
+      var pattern1 = regExpDialect({
+        's': '[ \t]' ,
+        'commas': ',+' ,
+      }
+      ,
+      r'$s*($commas)$s*'
+      );
+
+      expect( regExpReplaceAll( pattern1,  'a ,b, c ,, d' , '\$1' ) , equals('a,b,c,,d'));
+      expect( regExpReplaceAll( pattern1,  'a ,b, c ,, d' , '-\$1-' ) , equals('a-,-b-,-c-,,-d'));
+
     });
 
   });
