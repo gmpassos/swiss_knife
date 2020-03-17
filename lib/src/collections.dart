@@ -304,8 +304,10 @@ String parseString(dynamic v, [String def]) {
   return s ;
 }
 
-List<String> parseStringFromInlineList(String s, Pattern pattern, [List<String> def]) {
-  return parseFromInlineList( s , pattern , parseString , def) ;
+List<String> parseStringFromInlineList(dynamic s, [Pattern pattern, List<String> def]) {
+  if (s == null) return def ;
+  if (s is List) return s.map( (e) => parseString(e) ).toList() ;
+  return parseFromInlineList( s.toString() , pattern , parseString , def) ;
 }
 
 int deepHashCode(dynamic o) {

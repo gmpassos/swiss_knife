@@ -278,19 +278,35 @@ bool parseBool(dynamic v, [bool def]) {
 
   if (s.isEmpty) return def ;
 
-  return s == 'true' || s == '1' || s == 'y' || s == 's' || s == 't' ;
+  return s == 'true' || s == 'yes' || s == '1' || s == 'y' || s == 's' || s == 't' ;
 }
 
-List<num> parseNumsFromInlineList(String s, Pattern delimiter, [List<num> def]) {
-  return parseFromInlineList( s , delimiter , parseNum , def) ;
+List<int> parseIntsFromInlineList(dynamic s, [Pattern delimiter = ',', List<int> def]) {
+  if (s == null) return def ;
+  if (s is int) return [s];
+  if (s is List) return s.map( (e) => parseInt(e) ).toList() ;
+  return parseFromInlineList( s.toString() , delimiter , parseInt , def) ;
 }
 
-List<int> parseIntsFromInlineList(String s, Pattern delimiter, [List<int> def]) {
-  return parseFromInlineList( s , delimiter , parseInt , def) ;
+List<num> parseNumsFromInlineList(dynamic s, [Pattern delimiter = ',', List<num> def]) {
+  if (s == null) return def ;
+  if (s is num) return [s];
+  if (s is List) return s.map( (e) => parseNum(e) ).toList() ;
+  return parseFromInlineList( s.toString() , delimiter , parseNum , def) ;
 }
 
-List<bool> parseBoolsFromInlineList(String s, Pattern delimiter, [List<bool> def]) {
-  return parseFromInlineList( s , delimiter , parseBool , def) ;
+List<double> parseDoublesFromInlineList(dynamic s, [Pattern delimiter = ',', List<double> def]) {
+  if (s == null) return def ;
+  if (s is double) return [s];
+  if (s is List) return s.map( (e) => parseDouble(e) ).toList() ;
+  return parseFromInlineList( s.toString() , delimiter , parseDouble , def) ;
+}
+
+List<bool> parseBoolsFromInlineList(dynamic s, Pattern delimiter, [List<bool> def]) {
+  if (s == null) return def ;
+  if (s is bool) return [s];
+  if (s is List) return s.map( (e) => parseBool(e) ).toList() ;
+  return parseFromInlineList( s.toString() , delimiter , parseBool , def) ;
 }
 
 RegExp _REGEXP_SPLIT_COMMA = RegExp(r'\s*,\s*');
@@ -412,4 +428,73 @@ String formatPercent(dynamic percent, [int precision = 2, bool isRatio]) {
   return '$integer.$decimal%' ;
 }
 
+///////////////////////////////////
+
+final RegExp _REGEXP_int = RegExp(r'^-?\d+$') ;
+
+bool isInt(dynamic value) {
+  if (value == null) return false ;
+  if (value is int) return true ;
+  if (value is num) return value.toInt() == value ;
+
+  var s = value.toString() ;
+  return _REGEXP_int.hasMatch(s) ;
+}
+
+bool isIntList(dynamic value, [String delimiter = ',']) {
+  if (value == null) return false ;
+  var s = value.toString() ;
+  return RegExp(r'^-?\d+(?:'+ delimiter+ r'-?\d+)+$').hasMatch(s) ;
+}
+
+final RegExp _REGEXP_num = RegExp(r'^-?\d+(?:\.\d+)?$') ;
+
+bool isNum(dynamic value) {
+  if (value == null) return false ;
+  if (value is num) return true ;
+
+  var s = value.toString() ;
+  return _REGEXP_num.hasMatch(s) ;
+}
+
+bool isNumList(dynamic value, [String delimiter = ',']) {
+  if (value == null) return false ;
+  var s = value.toString() ;
+  return RegExp(r'^-?\d+(?:\.\d+)?(?:'+ delimiter+ r'-?\d+(?:\.\d+)?)+$').hasMatch(s) ;
+}
+
+final RegExp _REGEXP_double = RegExp(r'^-?\d+\.\d+$') ;
+
+bool isDouble(dynamic value) {
+  if (value == null) return false ;
+  if (value is double) return true ;
+  if (value is num) return value.toDouble() == value ;
+
+  var s = value.toString() ;
+  return _REGEXP_double.hasMatch(s) ;
+}
+
+bool isDoubleList(dynamic value, [String delimiter = ',']) {
+  if (value == null) return false ;
+  var s = value.toString() ;
+  return RegExp(r'^-?\d+(?:\.\d+)(?:'+ delimiter+ r'-?\d+(?:\.\d+))+$').hasMatch(s) ;
+}
+
+final RegExp _REGEXP_bool = RegExp(r'^(?:true|false|yes|no)$') ;
+
+bool isBool(dynamic value) {
+  if (value == null) return false ;
+  if (value is bool) return true ;
+
+  var s = value.toString().toLowerCase() ;
+  return _REGEXP_bool.hasMatch(s) ;
+}
+
+bool isBoolList(dynamic value, [String delimiter = ',']) {
+  if (value == null) return false ;
+  var s = value.toString().toLowerCase() ;
+  return RegExp(r'^(?:true|false|yes|no)(?:'+ delimiter+ r'(?:true|false|yes|no))+$').hasMatch(s) ;
+}
+
+///////////////////////////////////
 

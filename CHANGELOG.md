@@ -1,3 +1,8 @@
+## 2.3.8
+
+- Accepts dynamic value as input: parseStringFromInlineList, parseIntsFromInlineList, parseNumsFromInlineList, parseDoublesFromInlineList, parseBoolsFromInlineList
+- New: isInt, isIntList, isNum, isNumList, isDouble, isDoubleList, isBool, isBoolList
+
 ## 2.3.7
 
 - regExpReplaceAll(): allow ${1} marks (previously was only $1).

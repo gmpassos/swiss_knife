@@ -408,4 +408,155 @@ void main() {
 
   });
 
+
+  group('isType', ()
+  {
+    setUp(() {});
+
+    test('isInt', () {
+      expect( isInt(1), equals(true));
+      expect( isInt(1.0), equals(true));
+      expect( isInt(123), equals(true));
+      expect( isInt('1'), equals(true));
+      expect( isInt('123'), equals(true));
+
+      expect( isInt('aa'), equals(false));
+      expect( isInt(''), equals(false));
+      expect( isInt(1.1), equals(false));
+      expect( isInt(true), equals(false));
+      expect( isInt(null), equals(false));
+    });
+
+    test('isNum', () {
+      expect( isNum(1), equals(true));
+      expect( isNum(1.0), equals(true));
+      expect( isNum(123), equals(true));
+      expect( isNum('1'), equals(true));
+      expect( isNum('123'), equals(true));
+      expect( isNum(1.1), equals(true));
+
+      expect( isNum('aa'), equals(false));
+      expect( isNum(''), equals(false));
+      expect( isNum(true), equals(false));
+      expect( isNum(null), equals(false));
+    });
+
+    test('isDouble', () {
+      expect( isDouble(1.0), equals(true));
+      expect( isDouble(2.0), equals(true));
+      expect( isDouble(2.2), equals(true));
+      expect( isDouble(1.1), equals(true));
+      expect( isDouble('123.1'), equals(true));
+
+      expect( isDouble('1'), equals(false));
+      expect( isDouble('123'), equals(false));
+      expect( isDouble('aa'), equals(false));
+      expect( isDouble(''), equals(false));
+      expect( isDouble(true), equals(false));
+      expect( isDouble(null), equals(false));
+    });
+
+    test('isBool', () {
+      expect( isBool(true), equals(true));
+      expect( isBool(false), equals(true));
+      expect( isBool('true'), equals(true));
+      expect( isBool('false'), equals(true));
+      expect( isBool('yes'), equals(true));
+      expect( isBool('no'), equals(true));
+
+      expect( isBool(1.0), equals(false));
+      expect( isBool(2.0), equals(false));
+      expect( isBool(2.2), equals(false));
+      expect( isBool(1.1), equals(false));
+      expect( isBool('123.1'), equals(false));
+
+      expect( isBool('1'), equals(false));
+      expect( isBool('123'), equals(false));
+      expect( isBool('aa'), equals(false));
+      expect( isBool(''), equals(false));
+      expect( isBool(null), equals(false));
+    });
+
+    test('isIntList', () {
+      expect( isIntList('1'), equals(false));
+      expect( isIntList('1,2'), equals(true));
+      expect( isIntList('1,2,3'), equals(true));
+
+      expect( isIntList('1'), equals(false));
+      expect( isIntList('123'), equals(false));
+
+      expect( isIntList('1 2 3'), equals(false));
+      expect( isIntList('1 2 3', ' '), equals(true));
+
+      expect( isIntList('a,a'), equals(false));
+      expect( isIntList(123), equals(false));
+      expect( isIntList(null), equals(false));
+    });
+
+    test('isNumList', () {
+      expect( isNumList('1'), equals(false));
+      expect( isNumList('1,2'), equals(true));
+      expect( isNumList('1.1,2'), equals(true));
+      expect( isNumList('1,2,3'), equals(true));
+      expect( isNumList('1,2.2,3'), equals(true));
+      expect( isNumList('1.1,2.2,3'), equals(true));
+
+      expect( isNumList('1'), equals(false));
+      expect( isNumList('1.1'), equals(false));
+      expect( isNumList('123'), equals(false));
+      expect( isNumList('123.4'), equals(false));
+
+      expect( isNumList('1 2 3'), equals(false));
+      expect( isNumList('1 2 3', ' '), equals(true));
+      expect( isNumList('1.1 2.2 3', ' '), equals(true));
+
+      expect( isNumList('a,a'), equals(false));
+      expect( isNumList(123), equals(false));
+      expect( isNumList(null), equals(false));
+    });
+
+    test('isDoubleList', () {
+      expect( isDoubleList('1'), equals(false));
+
+      expect( isDoubleList('1,2.2'), equals(false));
+      expect( isDoubleList('1.1,2'), equals(false));
+      expect( isDoubleList('1.1,2.2'), equals(true));
+
+      expect( isDoubleList('1,2,3'), equals(false));
+      expect( isDoubleList('1.1,2.2,3.3'), equals(true));
+
+      expect( isDoubleList('1'), equals(false));
+      expect( isDoubleList('1.1'), equals(false));
+      expect( isDoubleList('123'), equals(false));
+      expect( isDoubleList('123.4'), equals(false));
+
+      expect( isDoubleList('1 2 3'), equals(false));
+      expect( isDoubleList('1 2 3', ' '), equals(false));
+      expect( isDoubleList('1.1 2.2 3.3', ' '), equals(true));
+
+      expect( isDoubleList('a,a'), equals(false));
+      expect( isDoubleList(123), equals(false));
+      expect( isDoubleList(null), equals(false));
+    });
+
+
+    test('isBoolList', () {
+      expect( isBoolList('true'), equals(false));
+
+      expect( isBoolList('true,true,false'), equals(true));
+      expect( isBoolList('true,yes,no'), equals(true));
+
+      expect( isBoolList(1), equals(false));
+      expect( isBoolList(123), equals(false));
+      expect( isBoolList(1.2), equals(false));
+      expect( isBoolList('aaa'), equals(false));
+      expect( isBoolList(true), equals(false));
+      expect( isBoolList(false), equals(false));
+    });
+
+
+
+  });
+
+
   }
