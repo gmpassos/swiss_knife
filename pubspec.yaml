@@ -1,6 +1,6 @@
 name: swiss_knife
 description: Dart useful tools, collections, math, date, etc...
-version: 2.3.8
+version: 2.3.9
 homepage: https://github.com/gmpassos/swiss_knife
 
 environment:
@@ -8,6 +8,8 @@ environment:
 
 dependencies:
   intl: ^0.16.1
+  resource_portable: ^2.1.7
+    #path: ../resource_portable
 
 dev_dependencies:
   test: ^1.5.1

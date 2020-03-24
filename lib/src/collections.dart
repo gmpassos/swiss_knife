@@ -1,4 +1,6 @@
 
+import 'math.dart';
+
 bool isEquals( dynamic o1, dynamic o2 , [bool deep = false]) {
   if ( deep != null && deep ) {
     return isEqualsDeep(o1, o2) ;
@@ -103,6 +105,49 @@ bool isEquivalentMap(Map m1, Map m2, { bool deep = false } ) {
     var v2 = m2[k];
 
     if ( !isEquals(v1, v2, deep) ) return false ;
+  }
+
+  return true ;
+}
+
+bool isAllEquals( dynamic element , dynamic value , [bool deep = false]) {
+  if ( isEquals(element, value, deep) ) {
+    return true ;
+  }
+
+  if ( element is List ) {
+    return isAllEqualsInList(element, value, deep) ;
+  }
+  else if ( element is Map ) {
+    return isAllEqualsInMap(element, value, deep) ;
+  }
+
+  return false ;
+}
+
+bool isAllEqualsInList( List list , dynamic value , [bool deep = false]) {
+  if (list == null || list.isEmpty) return false ;
+
+  deep ??= false ;
+
+  for ( var e in list ) {
+    if ( !isEquals(e, value, deep) ) {
+      return false ;
+    }
+  }
+
+  return true ;
+}
+
+bool isAllEqualsInMap( Map map , dynamic value , [bool deep = false]) {
+  if (map == null || map.isEmpty) return false ;
+
+  deep ??= false ;
+
+  for ( var e in map.values ) {
+    if ( !isEquals(e, value, deep) ) {
+      return false ;
+    }
   }
 
   return true ;
@@ -272,9 +317,65 @@ K findKeyName<K,V>(Map<K,V> map, List<K> keys, [bool ignoreCase]) {
   return entry != null ? entry.key : null ;
 }
 
+V findKeyPathValue<V>(Map map, String keyPath, { String keyDelimiter = '/' , bool isValidValue(dynamic value) } ) {
+  if (map.isEmpty || keyPath == null || keyPath.isEmpty) return null ;
+  keyDelimiter ??= '/' ;
+
+  var keys = keyPath.split('/') ;
+
+  dynamic value = findKeyValue(map, [ keys.removeAt(0) ] , true ) ;
+  if (value == null) return null ;
+
+  for (var k in keys) {
+    if (value is Map) {
+      value = findKeyValue(value, [ k ] , true ) ;
+    }
+    else if (value is List && isInt(k)) {
+      var idx = parseInt(k) ;
+      value = value[idx] ;
+    }
+    else {
+      value = null ;
+    }
+
+    if (value == null) return null ;
+  }
+
+  if ( isValidValue != null ) {
+    if ( isValidValue(value) ) {
+      return value as V ;
+    }
+    else {
+      return null ;
+    }
+  }
+  else {
+    return value as V ;
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 typedef StringMapper<T> = T Function(String s) ;
+
+Map<K,V> parseFromInlineMap<K,V>(String s, Pattern delimiterPairs, Pattern delimiterKeyValue, StringMapper mapperKey, StringMapper mapperValue, [Map<K,V> def]) {
+  if (s == null) return def ;
+  s = s.trim() ;
+  if (s.isEmpty) return def ;
+
+  var pairs = s.split(delimiterPairs) ;
+
+  Map<K,V> map = {} ;
+
+  for (var pair in pairs) {
+    var entry = pair.split(delimiterKeyValue) ;
+    var k = mapperKey( entry[0] ) ;
+    var v = mapperValue( entry.length > 1 ? entry[1] : null ) ;
+    map[k] = v ;
+  }
+
+  return map ;
+}
 
 List<T> parseFromInlineList<T>(String s, Pattern delimiter, StringMapper mapper, [List<T> def]) {
   if (s == null) return def ;
@@ -304,10 +405,16 @@ String parseString(dynamic v, [String def]) {
   return s ;
 }
 
-List<String> parseStringFromInlineList(dynamic s, [Pattern pattern, List<String> def]) {
+Map<String,String> parseStringFromInlineMap(dynamic s, [Pattern delimiterPairs, Pattern delimiterKeyValue, Map<String,String> def]) {
+  if (s == null) return def ;
+  if (s is Map) return s.map( (k,v) => MapEntry( parseString(k) , parseString(v) ) ) ;
+  return parseFromInlineMap( s.toString() , delimiterPairs , delimiterKeyValue, parseString, parseString , def ) ;
+}
+
+List<String> parseStringFromInlineList(dynamic s, [Pattern delimiter, List<String> def]) {
   if (s == null) return def ;
   if (s is List) return s.map( (e) => parseString(e) ).toList() ;
-  return parseFromInlineList( s.toString() , pattern , parseString , def) ;
+  return parseFromInlineList( s.toString() , delimiter , parseString , def) ;
 }
 
 int deepHashCode(dynamic o) {
@@ -346,4 +453,28 @@ int deepHashCodeMap(Map m) {
   }
 
   return h ;
+}
+
+T deepCopy<T>(T o) {
+  if (o == null) return null ;
+  if (o is String) return o ;
+  if (o is num) return o ;
+  if (o is bool) return o ;
+
+  if (o is List) return deepCopyList(o) as T ;
+  if (o is Map) return deepCopyMap(o) as T ;
+
+  return o ;
+}
+
+List deepCopyList(List l) {
+  if (l == null) return null ;
+  if (l.isEmpty) return [] ;
+  return l.map( (e) => deepCopy(e) ).toList() ;
+}
+
+Map deepCopyMap(Map m) {
+  if (m == null) return null ;
+  if (m.isEmpty) return {} ;
+  return m.map( (k,v) => MapEntry( deepCopy(k) , deepCopy(v) ) ) ;
 }

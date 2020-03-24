@@ -1,3 +1,13 @@
+## 2.3.9
+
+- deepCopy()
+- buildStringPattern(), isHttpURL(), getPathExtension(), isAllEquals()
+- findKeyPathValue(), parseFromInlineMap()
+- ResourceContent, ResourceContentCache (moved from intl_messages)
+- fix default value of parseNum().
+- remove swiss_knife_browser.dart: moved to package 'dom_tools'.
+- resource_portable: ^2.1.7
+
 ## 2.3.8
 
 - Accepts dynamic value as input: parseStringFromInlineList, parseIntsFromInlineList, parseNumsFromInlineList, parseDoublesFromInlineList, parseBoolsFromInlineList

@@ -220,3 +220,67 @@ RegExp _regExpDialectImpl( Map<String,String> words , String pattern , { bool mu
   });
   return RegExp(translated, multiLine: multiLine, caseSensitive: caseSensitive);
 }
+
+bool isHttpURL(String s) {
+  if (s == null) return false ;
+  s = s.trim() ;
+  if (s.isEmpty) return false ;
+  return s.startsWith("http") && ( s.startsWith("http://") || s.startsWith("https://") ) ;
+}
+
+String getPathExtension(String path) {
+  if (path == null) return null ;
+  path = path.trim() ;
+  if (path.isEmpty) return null ;
+
+  int idx = path.lastIndexOf('.') ;
+  if (idx < 0) return null ;
+  var ext = path.substring(idx+1) ;
+  return ext.isNotEmpty ? ext : null ;
+}
+
+
+String buildStringPattern(String pattern, Map parameters, [ List<Map> extraParameters ]) {
+  if (pattern == null) return null ;
+
+  var matches = RegExp(r'{{(/?\w+(?:/\w+)*/?)}}').allMatches(pattern) ;
+
+  var strFilled = '' ;
+
+  var pos = 0 ;
+  for (var match in matches) {
+    var prev = pattern.substring(pos, match.start) ;
+    strFilled += prev ;
+
+    var varName = match.group(1) ;
+
+    while (varName.startsWith('/')) {
+      varName = varName.substring(1) ;
+    }
+
+    while (varName.endsWith('/')) {
+      varName = varName.substring(0, varName.length-1) ;
+    }
+
+    var val = findKeyPathValue(parameters, varName) ;
+
+    if (val == null && extraParameters != null) {
+      for (var parameters2 in extraParameters) {
+        val = findKeyPathValue(parameters2, varName) ;
+      }
+    }
+
+    strFilled += '$val' ;
+
+    pos = match.end ;
+  }
+
+  if (pos < pattern.length) {
+    var prev = pattern.substring(pos) ;
+    strFilled += prev ;
+  }
+
+  return strFilled ;
+}
+
+

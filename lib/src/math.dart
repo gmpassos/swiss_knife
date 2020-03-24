@@ -241,7 +241,7 @@ double parseDouble(dynamic v, [double def]) {
   return double.parse(s) ;
 }
 
-num parseNum(dynamic v, [double def]) {
+num parseNum(dynamic v, [num def]) {
   if (v == null) return def ;
 
   if (v is num) return v ;
