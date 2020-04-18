@@ -80,6 +80,12 @@ bool isHttpHURL(dynamic value) {
   return value is String && ( value.startsWith('http://') || value.startsWith('https://') ) ;
 }
 
+final REGEXP_EMAIL = RegExp(r'''^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?)*$''');
+
+bool isEmail(dynamic value) {
+  return value is String && value.contains('@') && REGEXP_EMAIL.hasMatch(value) ;
+}
+
 class MimeType {
 
   static const APPLICATION_JSON = 'application/json' ;

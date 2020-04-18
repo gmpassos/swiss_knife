@@ -115,6 +115,7 @@ class ResourceContent {
       _content = null;
     }
     _loaded = false ;
+    _loadError = false ;
   }
   Future<String> _readFuture ;
 
@@ -126,13 +127,18 @@ class ResourceContent {
     if (resource == null) return null ;
 
     if ( _readFuture == null) {
-      _readFuture = resource.readAsString().catchError( (e) {
-        _onLoad(null);
-        return null ;
-      } ).then( (c) {
-        _onLoad(c);
-        return c ;
-      } ) ;
+
+      _readFuture = resource.readAsString().then(
+        (c) {
+          _onLoad(c, false);
+          return c ;
+        } ,
+        onError: (e) {
+          _onLoad(null, true);
+          return null ;
+        }
+      ) ;
+
     }
 
     return _readFuture ;
@@ -141,14 +147,18 @@ class ResourceContent {
   String getContentIfLoaded() => isLoaded ? _content : null ;
 
   bool _loaded = false ;
+  bool _loadError = false ;
 
-  void _onLoad(String content) {
+  void _onLoad(String content, bool loadError) {
     _content = content ;
     _loaded = true ;
+    _loadError = loadError ;
     onLoad.add(content);
   }
 
   bool get isLoaded => _loaded ;
+
+  bool get isLoadedWithError => _loadError ;
 
   bool get hasContent => _content != null ;
 

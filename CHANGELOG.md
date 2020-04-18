@@ -1,3 +1,9 @@
+## 2.3.10
+
+- MapDelegate ; MapProperties
+- isEmail()
+- ResourceContent.isLoadedWithError
+
 ## 2.3.9
 
 - deepCopy()

@@ -153,6 +153,17 @@ bool isAllEqualsInMap( Map map , dynamic value , [bool deep = false]) {
   return true ;
 }
 
+// ignore: use_function_type_syntax_for_parameters
+bool listNotMatchesAll<T>(Iterable<T> list , bool matcher(T entry) ) {
+  var noMatch = list.firstWhere( (e) => !matcher(e) , orElse: () => null ) ;
+  return noMatch != null ;
+}
+
+// ignore: use_function_type_syntax_for_parameters
+bool listMatchesAll<T>(Iterable<T> list , bool matcher(T entry) ) {
+  return !listNotMatchesAll(list, matcher) ;
+}
+
 void addAllToList(List l, dynamic v) {
   if (v == null) return ;
 
@@ -277,6 +288,44 @@ List<String> asListOfString( dynamic o ) {
   if (o == null) return null ;
   List<dynamic> l = o as List<dynamic> ;
   return l.map( (e) => e.toString() ).toList() ;
+}
+
+Map<String,String> asMapOfString( dynamic o ) {
+  if (o == null) return null ;
+  Map<dynamic,dynamic> m = o as Map<dynamic,dynamic> ;
+  return m.map( (k,v) => MapEntry('$k','$v') ) ;
+}
+
+bool isListOfString(List list) {
+  if (list == null) return false ;
+  if ( list is List<String> ) return true ;
+  if (list.isEmpty) return false ;
+
+  if ( listNotMatchesAll( list , (e) => (e is String)) ) return false ;
+
+  return true ;
+}
+
+bool isMapOfString(Map map) {
+  if (map == null) return false ;
+  if ( map is Map<String,String> ) return true ;
+  if (map.isEmpty) return false ;
+
+  if ( listNotMatchesAll( map.keys , (k) => (k is String)) ) return false ;
+  if ( listNotMatchesAll( map.values , (k) => (k is String)) ) return false ;
+
+  return true ;
+}
+
+bool isMapOfStringKeys(Map map) {
+  if (map == null) return false ;
+  if ( map is Map<String,String> ) return true ;
+  if ( map is Map<String,dynamic> ) return true ;
+  if (map.isEmpty) return false ;
+
+  if ( listNotMatchesAll( map.keys , (k) => (k is String)) ) return false ;
+
+  return true ;
 }
 
 MapEntry<K,V> findKeyEntry<K,V>(Map<K,V> map, List<K> keys, [bool ignoreCase]) {
@@ -478,3 +527,211 @@ Map deepCopyMap(Map m) {
   if (m.isEmpty) return {} ;
   return m.map( (k,v) => MapEntry( deepCopy(k) , deepCopy(v) ) ) ;
 }
+
+
+
+class MapDelegate<K,V> implements Map<K, V> {
+
+  final Map<K, V> _map ;
+
+  MapDelegate(this._map);
+
+  Map<K, V> get mainMap => _map ;
+
+  @override
+  V operator [](Object key) => _map[key] ;
+
+
+  @override
+  void operator []=(K key, value) => _map[key] = value ;
+
+  @override
+  void addAll(Map<K, V> other) => _map.addAll(other) ;
+
+  @override
+  void addEntries(Iterable<MapEntry<K, V>> newEntries) => _map.addEntries(newEntries) ;
+
+  @override
+  Map<RK, RV> cast<RK, RV>() => _map.cast<RK,RV>() ;
+
+  @override
+  void clear() => _map.clear() ;
+
+  @override
+  bool containsKey(Object key) => _map.containsKey(key) ;
+
+  @override
+  bool containsValue(Object value) => _map.containsValue(value) ;
+
+  @override
+  Iterable<MapEntry<K, V>> get entries => _map.entries ;
+
+  @override
+  void forEach(void Function(K key, V value) f) => _map.forEach(f) ;
+
+  @override
+  bool get isEmpty => _map.isEmpty ;
+
+  @override
+  bool get isNotEmpty => _map.isNotEmpty ;
+
+  @override
+  Iterable<K> get keys => _map.keys ;
+
+  @override
+  int get length => _map.length ;
+
+  @override
+  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> Function(K key, V value) f) => _map.map<K2,V2>(f) ;
+
+  @override
+  V putIfAbsent(K key, Function() ifAbsent) => _map.putIfAbsent(key, ifAbsent) ;
+
+  @override
+  V remove(Object key) => _map.remove(key) ;
+
+  @override
+  void removeWhere(bool Function(K key, V value) predicate) => _map.removeWhere(predicate) ;
+
+  @override
+  V update(K key, Function(V value) update, {Function() ifAbsent}) => _map.update(key, update) ;
+
+  @override
+  void updateAll(Function(K key, V value) update) => _map.updateAll(update) ;
+
+  @override
+  Iterable<V> get values => _map.values ;
+
+}
+
+
+class MapProperties extends MapDelegate<String, dynamic> {
+
+  static dynamic parseValue(dynamic value) {
+    if ( isInt(value) ) {
+      return parseInt(value) ;
+    }
+    else if ( isDouble(value) ) {
+      return parseDouble(value) ;
+    }
+    else if ( isNum(value) ) {
+      return parseNum(value) ;
+    }
+    else if ( isBool(value) ) {
+      return parseBool(value) ;
+    }
+    else if ( isIntList(value) ) {
+      return parseIntsFromInlineList(value, ',') ;
+    }
+    else if ( isDoubleList(value) ) {
+      return parseBoolsFromInlineList(value, ',') ;
+    }
+    else if ( isNumList(value) ) {
+      return parseNumsFromInlineList(value, ',') ;
+    }
+    else if ( isBoolList(value) ) {
+      return parseBoolsFromInlineList(value, ',') ;
+    }
+    else {
+      return value ;
+    }
+  }
+
+  static Map<String,dynamic> parseStringProperties( Map<String,String> stringProperties ) {
+    if (stringProperties == null || stringProperties.isEmpty ) return {} ;
+    return stringProperties.map( (k,v) => MapEntry(k, parseValue(v) ) ) ;
+  }
+
+
+  MapProperties.fromProperties( Map<String,dynamic> properties ) : super( Map.from( ( properties ?? {} ) ).cast() ) ;
+
+  MapProperties.fromStringProperties( Map<String,String> stringProperties ) : super( parseStringProperties( stringProperties ) ) ;
+
+  MapProperties.fromMap( Map properties ) : super( ( properties ?? {} ).map( (k,v) => MapEntry( parseString(k) , parseString(v) ) ) ) ;
+
+  T getProperty<T>(String key, [T def]) {
+    var val = findKeyValue(_map, [key], true) ;
+    return val != null ? val as T : def ;
+  }
+
+  T findProperty<T>(List<String> keys, [T def]) {
+    var val = findKeyValue(_map, keys, true) ;
+    return val != null ? val as T : def ;
+  }
+
+  // ignore: use_function_type_syntax_for_parameters
+  T getPropertyAs<T>(String key, T mapper(dynamic v) , [T def] ) {
+    var val = findKeyValue(_map, [key], true) ;
+    return val != null ? mapper(val) : def ;
+  }
+
+  // ignore: use_function_type_syntax_for_parameters
+  T findPropertyAs<T>(List<String> keys, T mapper(dynamic v) , [T def] ) {
+    var val = findKeyValue(_map, keys, true) ;
+    return val != null ? mapper(val) : def ;
+  }
+
+  String getPropertyAsStringTrimLC(String key, [String def]) {
+    var val = getPropertyAsStringTrim(key , def);
+    return val != null ? val.toLowerCase() : null ;
+  }
+
+  String findPropertyAsStringTrimLC(List<String> keys, [String def]) {
+    var val = findPropertyAsStringTrim(keys , def);
+    return val != null ? val.toLowerCase() : null ;
+  }
+
+  String getPropertyAsStringTrimUC(String key, [String def]) {
+    var val = getPropertyAsStringTrim(key , def);
+    return val != null ? val.toUpperCase() : null ;
+  }
+
+  String findPropertyAsStringTrimUC(List<String> keys, [String def]) {
+    var val = findPropertyAsStringTrim(keys , def);
+    return val != null ? val.toUpperCase() : null ;
+  }
+
+  String getPropertyAsStringTrim(String key, [String def]) {
+    var val = getPropertyAsString(key , def);
+    return val != null ? val.trim() : null ;
+  }
+
+  String findPropertyAsStringTrim(List<String> keys, [String def]) {
+    var val = findPropertyAsString(keys , def);
+    return val != null ? val.trim() : null ;
+  }
+
+  String getPropertyAsString(String key, [String def]) => getPropertyAs(key , parseString, def);
+  int getPropertyAsInt(String key, [int def]) => getPropertyAs(key , parseInt, def);
+  double getPropertyAsDouble(String key, [double def]) => getPropertyAs(key , parseDouble, def);
+  num getPropertyAsNum(String key, [num def]) => getPropertyAs(key , parseNum, def);
+  bool getPropertyAsBool(String key, [bool def]) => getPropertyAs(key , parseBool, def);
+
+  String findPropertyAsString(List<String> keys, [String def]) => findPropertyAs(keys , parseString, def);
+  int findPropertyAsInt(List<String> keys, [int def]) => findPropertyAs(keys , parseInt, def);
+  double findPropertyAsDouble(List<String> keys, [double def]) => findPropertyAs(keys , parseDouble, def);
+  num findPropertyAsNum(List<String> keys, [num def]) => findPropertyAs(keys , parseNum, def);
+  bool findPropertyAsBool(List<String> keys, [bool def]) => findPropertyAs(keys , parseBool, def);
+
+  List<String> getPropertyAsStringList(String key, [List<String> def]) => getPropertyAs(key , (v) => parseStringFromInlineList(v, ',', def), def);
+  List<int> getPropertyAsIntList(String key, [List<int> def]) => getPropertyAs(key , (v) => parseIntsFromInlineList(v, ',', def), def);
+  List<double> getPropertyAsDoubleList(String key, [List<double> def]) => getPropertyAs(key , (v) => parseDoublesFromInlineList(v, ',', def), def);
+  List<num> getPropertyAsNumList(String key, [List<num> def]) => getPropertyAs(key , (v) => parseNumsFromInlineList(v, ',', def), def);
+  List<bool> getPropertyAsBoolList(String key, [List<bool> def]) => getPropertyAs(key , (v) => parseBoolsFromInlineList(v, ',', def), def);
+
+  List<String> findPropertyAsStringList(List<String> keys, [List<String> def]) => findPropertyAs(keys, (v) => parseStringFromInlineList(v, ',', def), def);
+  List<int> findPropertyAsIntList(List<String> keys, [List<int> def]) => findPropertyAs(keys , (v) => parseIntsFromInlineList(v, ',', def), def);
+  List<double> findPropertyAsDoubleList(List<String> keys, [List<double> def]) => findPropertyAs(keys , (v) => parseDoublesFromInlineList(v, ',', def), def);
+  List<num> findPropertyAsNumList(List<String> keys, [List<num> def]) => findPropertyAs(keys , (v) => parseNumsFromInlineList(v, ',', def), def);
+  List<bool> findPropertyAsBoolList(List<String> keys, [List<bool> def]) => findPropertyAs(keys , (v) => parseBoolsFromInlineList(v, ',', def), def);
+
+  Map<String,dynamic> toProperties() {
+    return Map.from(_map).cast();
+  }
+
+  Map<String,String> toStringProperties() {
+    return _map.map( (k,v) => MapEntry( k , parseString(v) ) ) ;
+  }
+
+}
+
