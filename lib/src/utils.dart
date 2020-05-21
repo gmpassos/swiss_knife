@@ -3,12 +3,14 @@ import 'dart:async';
 
 import 'package:swiss_knife/src/collections.dart';
 
-Future callAsync(int delayMs, function()) {
+import 'events.dart';
+
+Future callAsync(int delayMs, Function() function) {
   return Future.delayed(Duration(milliseconds: delayMs), function) ;
 }
 
 String encodeQueryString(Map<String,String> parameters) {
-  if (parameters == null || parameters.isEmpty) return "" ;
+  if (parameters == null || parameters.isEmpty) return '' ;
 
   var pairs = [];
 
@@ -26,14 +28,14 @@ Map<String,String> decodeQueryString(String queryString) {
 
   var pairs = queryString.split('&');
 
-  Map<String,String> parameters = {} ;
+  var parameters = <String,String>{} ;
 
   for (var pair in pairs) {
     if (pair.isEmpty) continue ;
     var kv = pair.split('=');
 
-    String k = kv[0];
-    String v = kv.length > 1 ? kv[1] : '' ;
+    var k = kv[0];
+    var v = kv.length > 1 ? kv[1] : '' ;
 
     k = Uri.decodeQueryComponent(k);
     v = Uri.decodeQueryComponent(v);
@@ -46,28 +48,32 @@ Map<String,String> decodeQueryString(String queryString) {
 
 String toUpperCaseInitials(String s) {
   if (s == null || s.isEmpty) return s ;
-  return s.toLowerCase().replaceAllMapped(RegExp("(\\s|^)(\\w)"), (m) => "${m[1]}${m[2].toUpperCase()}") ;
+  return s.toLowerCase().replaceAllMapped(RegExp(r'(\s|^)(\S)'), (m) => '${ m[1] }${ m[2].toUpperCase() }') ;
+}
+
+String toCamelCase(String s) {
+  return toUpperCaseInitials(s).replaceAll(RegExp(r'\s+'), '') ;
 }
 
 List<String> split(String s, String delimiter, [int limit]) {
   if (limit == null) return s.split(delimiter) ;
   if (limit == 1) return [s] ;
 
-  int delimiterSz = delimiter.length ;
+  var delimiterSz = delimiter.length ;
 
   if (limit == 2) {
-    int idx = s.indexOf(delimiter) ;
+    var idx = s.indexOf(delimiter) ;
     return idx >= 0 ? [ s.substring(0,idx) , s.substring(idx+delimiterSz) ] : [s] ;
   }
 
   if (limit <= 0) limit = s.length ;
 
-  List<String> parts = [] ;
+  var parts = <String>[] ;
 
   limit-- ;
 
-  for (int i = 0; i < limit; i++) {
-    int idx = s.indexOf(delimiter) ;
+  for (var i = 0; i < limit; i++) {
+    var idx = s.indexOf(delimiter) ;
 
     if (idx >= 0) {
       var s1 = s.substring(0, idx) ;
@@ -100,9 +106,9 @@ List<String> splitRegExp(String s, Pattern delimiter, [int limit]) {
 
   if (limit <= 0) limit = s.length ;
 
-  List<String> parts = [] ;
+  var parts = <String>[] ;
 
-  int sOffset = 0 ;
+  var sOffset = 0 ;
 
   --limit ;
 
@@ -141,10 +147,10 @@ class RegExpReplacer {
 
     _parts = [] ;
 
-    int cursor = 0 ;
+    var cursor = 0 ;
     for (var match in matches) {
       if ( match.start > cursor ) {
-        String sPrev = replace.substring(cursor , match.start) ;
+        var sPrev = replace.substring(cursor , match.start) ;
         _parts.add(sPrev) ;
       }
 
@@ -153,7 +159,7 @@ class RegExpReplacer {
 
       var id = g1 ?? g2 ;
 
-      int groupID = int.parse(id) ;
+      var groupID = int.parse(id) ;
 
       _parts.add(groupID) ;
 
@@ -167,7 +173,7 @@ class RegExpReplacer {
   }
 
   String replaceMatch( Match match ) {
-    String s = '';
+    var s = '';
 
     for (var part in _parts) {
       if (part is int) {
@@ -195,7 +201,7 @@ String regExpReplaceAll(dynamic regExp, String s, String replace) {
   return RegExpReplacer( replace ).replaceAll(regExp, s) ;
 }
 
-String regExpReplaceAllMapped(dynamic regExp, String s, String replace(Match match)) {
+String regExpReplaceAllMapped(dynamic regExp, String s, String Function(Match match) replace) {
   return s.replaceAllMapped(regExp, replace) ;
 }
 
@@ -220,25 +226,6 @@ RegExp _regExpDialectImpl( Map<String,String> words , String pattern , { bool mu
   });
   return RegExp(translated, multiLine: multiLine, caseSensitive: caseSensitive);
 }
-
-bool isHttpURL(String s) {
-  if (s == null) return false ;
-  s = s.trim() ;
-  if (s.isEmpty) return false ;
-  return s.startsWith("http") && ( s.startsWith("http://") || s.startsWith("https://") ) ;
-}
-
-String getPathExtension(String path) {
-  if (path == null) return null ;
-  path = path.trim() ;
-  if (path.isEmpty) return null ;
-
-  int idx = path.lastIndexOf('.') ;
-  if (idx < 0) return null ;
-  var ext = path.substring(idx+1) ;
-  return ext.isNotEmpty ? ext : null ;
-}
-
 
 String buildStringPattern(String pattern, Map parameters, [ List<Map> extraParameters ]) {
   if (pattern == null) return null ;

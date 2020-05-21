@@ -1,3 +1,34 @@
+## 2.4.0
+
+- date.dart:
+  - parseDateTime(...), parseDateTimeFromInlineList(...)
+  - formatTimeMillis() change form to be ISO compliant.
+  - DateTimeWeekDay: getDateTimeWeekDay(), getDateTimeWeekDay_from_ISO_8601_index().
+  - getDateTimeDayStart(), getDateTimeDayEnd(), getDateTimeYesterday(), getDateTimeLastNDays(), getDateTimeThisWeek().
+  - getDateTimeLastWeek(), getDateTimeThisMonth(), getDateTimeLastMonth(), getDateTimePreviousMonth(), getDateTimeWeekStart(), getDateTimeWeekEnd().
+  - DateRangeType: getDateTimeRange(rangeType, ...)
+- uri.dart:
+  - getUriBase(), getUriRoot(), getUriBaseScheme(), getUriBaseHost(), getUriBasePort(),
+  - getUriBaseHostAndPort(suppressPort80), getUriBaseURL(), buildUri(), resolveUri(), removeUriFragment().
+  - removeUriQueryString(), isUriBaseLocalhost(), isUriBaseIP(), isIPv4Address(), getPathFileName().
+- utils.dart: toCamelCase()
+- math.dart: 
+- events.dart: EventStream.isUsed: non used EventStream won't broadcast events (add() and addError() suppressed for optimization).
+- data.dart:
+  - MimeType
+  - Base64: encodeArrayBuffer(), decodeAsArrayBuffer()
+  - DataURLBase64: parsePayloadAsBase64(), parsePayloadAsArrayBuffer(), parsePayloadAsString(), DataURLBase64.mimeType.
+- collections.dart:
+  - Pair<T>
+  - MapProperties: getPropertyAsDateTime(), findPropertyAsDateTime(), getPropertyAsDateTimeList(), findPropertyAsDateTimeList(), getPropertyAsStringMap(), findPropertyAsStringMap().
+  - sortMapEntries()
+  - toFlatListOfStrings()
+  - isListOfNum(), isListOfType<T>(...), isListOfTypes<A,V>(...), listContainsType<T>(...)
+  - parseListOf(...), parseListOfList(...)
+  - isMapOfStringKeysAndListValues(), isMapOfStringKeysAndNumValues().
+  - isEmptyValue(val).
+- loader.dart: LoadController
+
 ## 2.3.10
 
 - MapDelegate ; MapProperties

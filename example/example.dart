@@ -3,14 +3,13 @@ import 'package:swiss_knife/swiss_knife.dart';
 
 class Sys {
 
-  final EventStream<bool> onLoad = new EventStream() ;
+  final EventStream<bool> onLoad = EventStream() ;
 
   void initialize() {
-    // ...
     onLoad.add(true) ;
 
     for (var user in users) {
-      user.notify("Sys loaded!") ;
+      user.notify('System initialized!') ;
     }
   }
 
@@ -24,7 +23,7 @@ class Sys {
 
 class User {
 
-  final EventStream<String> onNotification = new EventStream() ;
+  final EventStream<String> onNotification = EventStream() ;
 
   void notify(String msg) {
     onNotification.add(msg) ;
@@ -35,17 +34,17 @@ class User {
 
 void main() {
 
-  Sys sys = new Sys() ;
+  var sys = Sys() ;
 
   sys.onLoad.listenAsFuture().then((loaded) {
-    print("${ dateFormat_YYYY_MM_dd_HH_mm_ss() }> System loaded: $loaded") ;
+    print('${ dateFormat_YYYY_MM_dd_HH_mm_ss() }> System loaded: $loaded') ;
   }) ;
 
-  User user = new User() ;
+  var user = User() ;
   sys.addUser(user) ;
 
   user.onNotification.listen((msg) {
-    print("${ getCurrentTimeMillis() } ${ getDateAmPm() }> NOTIFICATION> $msg") ;
+    print('${ getCurrentTimeMillis() }[${ getDateAmPm() }]> NOTIFICATION> $msg') ;
   });
 
   sys.initialize();

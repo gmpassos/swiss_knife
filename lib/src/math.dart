@@ -56,7 +56,7 @@ class Math {
       if ( a.isNaN || a.isInfinite ) return a ;
     }
 
-    int n = a.toInt() ;
+    var n = a.toInt() ;
     if (n == a) return n ;
     return n+1 ;
   }
@@ -68,7 +68,7 @@ class Math {
       if ( a.isNaN || a.isInfinite ) return a ;
     }
 
-    int n = a.toInt() ;
+    var n = a.toInt() ;
     return n ;
   }
 
@@ -80,10 +80,10 @@ class Math {
       if ( a.isNaN || a.isInfinite ) return a ;
     }
 
-    int n = a.toInt() ;
+    var n = a.toInt() ;
     if ( a == n ) return n ;
 
-    num diff = a-n ;
+    var diff = a-n ;
     return (diff >= 0.5)  ? n+1 : n ;
   }
 
@@ -100,7 +100,7 @@ class Math {
   }
 
   static double mean( List<num> ns ) {
-    double total = 0 ;
+    var total = 0.0 ;
     for (var n in ns) {
       total += n ;
     }
@@ -112,11 +112,9 @@ class Math {
       return 0.0 ;
     }
     else {
-      if (mean == null) {
-        mean = Math.mean(ns) ;
-      }
+      mean ??= Math.mean(ns);
 
-      double sum = 0 ;
+      var sum = 0.0 ;
 
       for (var n in ns) {
         double v = (n - mean);
@@ -124,8 +122,8 @@ class Math {
         sum += v;
       }
 
-      double variation = sum / (ns.length - 1);
-      double deviation = Math.sqrt(variation);
+      var variation = sum / (ns.length - 1);
+      var deviation = Math.sqrt(variation);
 
       return deviation;
     }
@@ -167,33 +165,6 @@ class Math {
     }
 
     return max ;
-  }
-
-}
-
-class Pair<T> {
-
-  final T a ;
-  final T b ;
-
-  Pair(this.a, this.b);
-
-  dart_math.Point<num> get asPoint => dart_math.Point<num>( parseNum(a) , parseNum(b) ) ;
-  
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Pair &&
-          runtimeType == other.runtimeType &&
-          a == other.a &&
-          b == other.b;
-
-  @override
-  int get hashCode => a.hashCode ^ b.hashCode;
-
-  @override
-  String toString() {
-    return '[$a, $b]';
   }
 
 }
@@ -370,7 +341,7 @@ String formatDecimal(dynamic percent, [int precision = 2, String decimalSeparato
 
   var pStr = p.toString() ;
 
-  int idx = pStr.indexOf('.') ;
+  var idx = pStr.indexOf('.') ;
 
   if (idx < 0) return p.toInt().toString() ;
 
@@ -410,7 +381,7 @@ String formatPercent(dynamic percent, [int precision = 2, bool isRatio]) {
 
   var pStr = p.toString() ;
 
-  int idx = pStr.indexOf('.') ;
+  var idx = pStr.indexOf('.') ;
 
   if (idx < 0) return '${p.toInt()}%' ;
 

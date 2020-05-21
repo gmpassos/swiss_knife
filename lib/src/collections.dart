@@ -1,5 +1,52 @@
 
+import 'dart:collection';
+import 'dart:math' as dart_math ;
+
+import 'date.dart';
 import 'math.dart';
+
+class Pair<T> {
+
+  final T a ;
+  final T b ;
+
+  Pair(this.a, this.b);
+
+  Pair.fromList( List<T> list ) : this( list[0] , list.length > 1 ? list[1] : list[0] ) ;
+
+  dart_math.Point<num> get asPoint => dart_math.Point<num>( parseNum(a) , parseNum(b) ) ;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is Pair &&
+              runtimeType == other.runtimeType &&
+              a == other.a &&
+              b == other.b;
+
+  @override
+  int get hashCode => a.hashCode ^ b.hashCode;
+
+  bool get aNotNull => a != null ;
+  bool get bNotNull => b != null ;
+
+  String get aAsString => aNotNull ? a.toString() : '' ;
+  String get bAsString => bNotNull ? b.toString() : '' ;
+
+  @override
+  String toString() {
+    return '[$a, $b]';
+  }
+
+  String join(String delimiter) {
+    return '$a$delimiter$b';
+  }
+
+  MapEntry<T,T> get asMapEntry => MapEntry(a,b) ;
+
+  List<T> get asList => [a,b] ;
+
+}
 
 bool isEquals( dynamic o1, dynamic o2 , [bool deep = false]) {
   if ( deep != null && deep ) {
@@ -75,7 +122,7 @@ bool isEquivalentIterator(Iterable it1, Iterable it2, { bool deep = false } ) {
 
   deep ??= false ;
 
-  for (int i = 0 ; i < length; i++) {
+  for (var i = 0 ; i < length; i++) {
     var v1 = it1.elementAt(i) ;
     var v2 = it2.elementAt(i) ;
 
@@ -176,7 +223,7 @@ void addAllToList(List l, dynamic v) {
 }
 
 List joinLists(List l1, [List l2, List l3, List l4, List l5, List l6, List l7, List l8, List l9]) {
-  List l = [] ;
+  var l = [] ;
 
   if (l1 != null) l.addAll(l1) ;
   if (l2 != null) l.addAll(l2) ;
@@ -250,12 +297,12 @@ Map asMap(dynamic o) {
   if (o == null) return null ;
   if (o is Map) return o ;
 
-  Map m = {} ;
+  var m = {} ;
 
   if (o is List) {
-    int sz = o.length ;
+    var sz = o.length ;
 
-    for (int i = 0 ; i < sz ; i+=2) {
+    for (var i = 0 ; i < sz ; i+=2) {
       dynamic key = o[i] ;
       dynamic val = o[i+1] ;
       m[key] = val ;
@@ -270,11 +317,24 @@ Map asMap(dynamic o) {
 
 List<Map> asListOfMap( dynamic o ) {
   if (o == null) return null ;
-  List<dynamic> l = o as List<dynamic> ;
+  var l = o as List<dynamic> ;
   return l.map( (e) => asMap(e) ).toList() ;
 }
 
-bool isListOfStrings(List list) {
+
+Map<K,V> sortMapEntries<K,V>(Map map , [int Function(MapEntry<K,V> entry1, MapEntry<K,V> entry2) compare] ) {
+  // ignore: omit_local_variable_types
+  Map<K,V> mapSorted = LinkedHashMap.fromEntries(
+      map.entries.toList()
+        ..sort( compare ?? (a,b) => a.key.compareTo(b.key) )
+  ).cast() ;
+
+  return mapSorted ;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+bool isListOfStrings(Iterable list) {
   if (list == null || list.isEmpty) return false ;
 
   for (var value in list) {
@@ -286,17 +346,73 @@ bool isListOfStrings(List list) {
 
 List<String> asListOfString( dynamic o ) {
   if (o == null) return null ;
-  List<dynamic> l = o as List<dynamic> ;
+  var l = o as List<dynamic> ;
   return l.map( (e) => e.toString() ).toList() ;
 }
 
 Map<String,String> asMapOfString( dynamic o ) {
   if (o == null) return null ;
-  Map<dynamic,dynamic> m = o as Map<dynamic,dynamic> ;
+  var m = o as Map<dynamic,dynamic> ;
   return m.map( (k,v) => MapEntry('$k','$v') ) ;
 }
 
-bool isListOfString(List list) {
+final RegExp _toListOfStrings_delimiter = RegExp(r'\s+') ;
+
+List<String> toFlatListOfStrings(dynamic s, { Pattern delimiter , bool trim , bool ignoreEmpty }) {
+  if (s == null) return [] ;
+
+  delimiter ??= _toListOfStrings_delimiter ;
+  trim ??= true ;
+  ignoreEmpty ??= true ;
+
+  List<String> list ;
+
+  if ( s is String ) {
+    list = s.split(delimiter) ;
+  }
+  else if ( s is Iterable ) {
+    list = [] ;
+
+    for (var e in s) {
+      if (e == null) continue ;
+
+      if (e is String) {
+        var l2 = toFlatListOfStrings(e, delimiter: delimiter, trim: trim, ignoreEmpty: ignoreEmpty) ;
+        list.addAll( l2 ) ;
+      }
+      else if ( e is Iterable ) {
+        var l2 = toFlatListOfStrings(e, delimiter: delimiter, trim: trim, ignoreEmpty: ignoreEmpty) ;
+        list.addAll( l2 ) ;
+      }
+      else {
+        var str = '$e' ;
+        var l2 = toFlatListOfStrings(str, delimiter: delimiter, trim: trim, ignoreEmpty: ignoreEmpty) ;
+        list.addAll( l2 ) ;
+      }
+    }
+  }
+  else {
+    list = [] ;
+  }
+
+  if (trim) {
+    for (var i = 0; i < list.length; ++i) {
+      var e = list[i];
+      if (e != null) {
+        var e2 = e.trim();
+        if ( e2.length != e.length ) {
+          list[i] = e2;
+        }
+      }
+    }
+  }
+
+  list.removeWhere( (e) => e == null || ( ignoreEmpty && e.isEmpty ) ) ;
+
+  return list ;
+}
+
+bool isListOfString(Iterable list) {
   if (list == null) return false ;
   if ( list is List<String> ) return true ;
   if (list.isEmpty) return false ;
@@ -305,6 +421,118 @@ bool isListOfString(List list) {
 
   return true ;
 }
+
+bool isListOfNum(Iterable list) {
+  if (list == null) return false ;
+  if ( list is List<num> ) return true ;
+  if (list.isEmpty) return false ;
+
+  if ( listNotMatchesAll( list , (e) => (e is num)) ) return false ;
+
+  return true ;
+}
+
+typedef TypeTester<T> = bool Function(T value) ;
+
+bool isListOfType<T>(Iterable list) {
+  if (list == null) return false ;
+  if ( list is List<T> ) return true ;
+  if (list.isEmpty) return false ;
+
+  if ( listNotMatchesAll( list , (e) => (e is T)) ) return false ;
+
+  return true ;
+}
+
+bool isListOfTypes<A,B>(Iterable list) {
+  if (list == null) return false ;
+  if ( list is List<A> ) return true ;
+  if ( list is List<B> ) return true ;
+  if (list.isEmpty) return false ;
+
+  if ( listNotMatchesAll( list , (e) => (e is A) || (e is B) ) ) return false ;
+
+  return true ;
+}
+
+bool listContainsType<T>(Iterable list) {
+  if (list == null) return false ;
+  if ( list is List<T> ) return true ;
+  if (list.isEmpty) return false ;
+
+  var found = list.firstWhere( (l) => l is T , orElse: () => null ) ;
+
+  return found != null ;
+}
+
+bool isListOfList(Iterable list) {
+  if (list == null) return false ;
+  if ( list is List<List> ) return true ;
+  if (list.isEmpty) return false ;
+
+  if ( listNotMatchesAll( list , (e) => (e is List)) ) return false ;
+
+  return true ;
+}
+
+bool isListOfListOfList(Iterable list) {
+  if (list == null) return false ;
+  if ( list is List<List<List>> ) return true ;
+  if (list.isEmpty) return false ;
+
+  if ( listNotMatchesAll( list , (e) => isListOfList(e) ) ) return false ;
+
+  return true ;
+}
+
+bool isListOfMap(Iterable list) {
+  if (list == null) return false ;
+  if ( list is List<Map> ) return true ;
+  if (list.isEmpty) return false ;
+
+  if ( listNotMatchesAll( list , (e) => (e is Map)) ) return false ;
+
+  return true ;
+}
+
+bool isAllListValuesEquals(Iterable list, [value]) {
+  if (list == null) return false ;
+  if (list.isEmpty) return false ;
+
+  value ??= list.first ;
+
+  return listMatchesAll(list, (v) => v == value ) ;
+}
+
+bool isAllListOfListValuesEquals(Iterable list, { value , int valueIndex } ) {
+  if (list == null) return false ;
+  if (list.isEmpty) return false ;
+
+  value ??= valueIndex != null ? list.first[valueIndex] : list.first ;
+
+  if (valueIndex != null) {
+    return listMatchesAll(list, (v) => v[valueIndex] == value ) ;
+  }
+  else {
+    return listMatchesAll(list, (v) => v == value ) ;
+  }
+}
+
+typedef ParserFunction<T,R> = R Function(T value) ;
+
+List<R> parseListOf<T,R>(dynamic s, [ ParserFunction<T,R> parser , List<R> def]) {
+  if (s == null) return def ;
+  if (s is List) return s.map( (e) => parser(e) ).toList() ;
+  return [ parser(s) ] ;
+}
+
+List<List<R>> parseListOfList<T,R>(dynamic s, [ ParserFunction<T,R> parser , List<List<R>> def]) {
+  if (s == null) return def ;
+  if (s is List) return s.map( (e) => parseListOf(e, parser) ).toList() ;
+  return [ parseListOf(s, parser) ] ;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 bool isMapOfString(Map map) {
   if (map == null) return false ;
@@ -328,6 +556,31 @@ bool isMapOfStringKeys(Map map) {
   return true ;
 }
 
+bool isMapOfStringKeysAndListValues(Map map) {
+  if (map == null) return false ;
+  if ( map is Map<String,List> ) return true ;
+  if ( map is Map<String,List<String>> ) return true ;
+  if ( map is Map<String,List<num>> ) return true ;
+  if ( map is Map<String,List<dynamic>> ) return true ;
+  if (map.isEmpty) return false ;
+
+  if ( listNotMatchesAll<MapEntry>( map.entries , (e) => (e.key is String) && (e.value is List) ) ) return false ;
+
+  return true ;
+}
+
+bool isMapOfStringKeysAndNumValues(Map map) {
+  if (map == null) return false ;
+  if ( map is Map<String,num> ) return true ;
+  if (map.isEmpty) return false ;
+
+  if ( listNotMatchesAll<MapEntry>( map.entries , (e) => (e.key is String) && (e.value is num) ) ) return false ;
+
+  return true ;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 MapEntry<K,V> findKeyEntry<K,V>(Map<K,V> map, List<K> keys, [bool ignoreCase]) {
   if (map == null || keys == null) return null ;
 
@@ -337,7 +590,7 @@ MapEntry<K,V> findKeyEntry<K,V>(Map<K,V> map, List<K> keys, [bool ignoreCase]) {
     for (var key in keys) {
       if ( map.containsKey(key) ) return MapEntry(key, map[key]) ;
 
-      String keyLC = key.toString().toLowerCase() ;
+      var keyLC = key.toString().toLowerCase() ;
 
       for (var k in map.keys) {
         if ( k.toString().toLowerCase() == keyLC ) {
@@ -366,7 +619,7 @@ K findKeyName<K,V>(Map<K,V> map, List<K> keys, [bool ignoreCase]) {
   return entry != null ? entry.key : null ;
 }
 
-V findKeyPathValue<V>(Map map, String keyPath, { String keyDelimiter = '/' , bool isValidValue(dynamic value) } ) {
+V findKeyPathValue<V>(Map map, String keyPath, { String keyDelimiter = '/' , bool Function(dynamic value) isValidValue } ) {
   if (map.isEmpty || keyPath == null || keyPath.isEmpty) return null ;
   keyDelimiter ??= '/' ;
 
@@ -405,6 +658,29 @@ V findKeyPathValue<V>(Map map, String keyPath, { String keyDelimiter = '/' , boo
 
 ////////////////////////////////////////////////////////////////////////////////
 
+bool isEmptyValue<T>( T value ) {
+  if ( value == null ) return true ;
+
+  if ( value is String && value.isEmpty ) return true ;
+  if ( value is List && value.isEmpty ) return true ;
+  if ( value is Map && value.isEmpty ) return true ;
+  if ( value is Iterable && value.isEmpty ) return true ;
+  if ( value is Set && value.isEmpty ) return true ;
+
+  return false ;
+}
+
+typedef ValueValidator<V> = bool Function(V value) ;
+
+T resolveValue<T>(T value, T def, [ ValueValidator valueValidator ]) {
+  if ( value == null ) return def ;
+  if ( def == null ) return value ;
+
+  valueValidator ??= isEmptyValue ;
+  var valid = valueValidator(value) ?? true ;
+  return valid ? value : def ;
+}
+
 typedef StringMapper<T> = T Function(String s) ;
 
 Map<K,V> parseFromInlineMap<K,V>(String s, Pattern delimiterPairs, Pattern delimiterKeyValue, StringMapper mapperKey, StringMapper mapperValue, [Map<K,V> def]) {
@@ -414,7 +690,7 @@ Map<K,V> parseFromInlineMap<K,V>(String s, Pattern delimiterPairs, Pattern delim
 
   var pairs = s.split(delimiterPairs) ;
 
-  Map<K,V> map = {} ;
+  var map = <K,V>{} ;
 
   for (var pair in pairs) {
     var entry = pair.split(delimiterKeyValue) ;
@@ -433,7 +709,7 @@ List<T> parseFromInlineList<T>(String s, Pattern delimiter, StringMapper mapper,
 
   var parts = s.split(delimiter) ;
 
-  List<T> list = [] ;
+  var list = <T>[] ;
 
   for (var n in parts) {
     list.add( mapper(n) ) ;
@@ -447,7 +723,7 @@ String parseString(dynamic v, [String def]) {
 
   if (v is String) return v ;
 
-  String s = v.toString().trim() ;
+  var s = v.toString().trim() ;
 
   if (s.isEmpty) return def ;
 
@@ -483,7 +759,7 @@ int deepHashCode(dynamic o) {
 int deepHashCodeList(List l) {
   if (l == null) return 0 ;
 
-  int h = 1 ;
+  var h = 1 ;
 
   for(var e in l) {
     h ^= deepHashCode(e) ;
@@ -495,7 +771,7 @@ int deepHashCodeList(List l) {
 int deepHashCodeMap(Map m) {
   if (m == null) return 0 ;
 
-  int h = 1 ;
+  var h = 1 ;
 
   for(var e in m.entries) {
     h ^= deepHashCode( e.key ) ^ deepHashCode( e.value ) ;
@@ -642,6 +918,7 @@ class MapProperties extends MapDelegate<String, dynamic> {
     return stringProperties.map( (k,v) => MapEntry(k, parseValue(v) ) ) ;
   }
 
+  MapProperties() : super( {} ) ;
 
   MapProperties.fromProperties( Map<String,dynamic> properties ) : super( Map.from( ( properties ?? {} ) ).cast() ) ;
 
@@ -706,24 +983,31 @@ class MapProperties extends MapDelegate<String, dynamic> {
   double getPropertyAsDouble(String key, [double def]) => getPropertyAs(key , parseDouble, def);
   num getPropertyAsNum(String key, [num def]) => getPropertyAs(key , parseNum, def);
   bool getPropertyAsBool(String key, [bool def]) => getPropertyAs(key , parseBool, def);
+  DateTime getPropertyAsDateTime(String key, [DateTime def]) => getPropertyAs(key , parseDateTime, def);
 
   String findPropertyAsString(List<String> keys, [String def]) => findPropertyAs(keys , parseString, def);
   int findPropertyAsInt(List<String> keys, [int def]) => findPropertyAs(keys , parseInt, def);
   double findPropertyAsDouble(List<String> keys, [double def]) => findPropertyAs(keys , parseDouble, def);
   num findPropertyAsNum(List<String> keys, [num def]) => findPropertyAs(keys , parseNum, def);
   bool findPropertyAsBool(List<String> keys, [bool def]) => findPropertyAs(keys , parseBool, def);
+  DateTime findPropertyAsDateTime(List<String> keys, [DateTime def]) => findPropertyAs(keys , parseDateTime, def);
 
   List<String> getPropertyAsStringList(String key, [List<String> def]) => getPropertyAs(key , (v) => parseStringFromInlineList(v, ',', def), def);
   List<int> getPropertyAsIntList(String key, [List<int> def]) => getPropertyAs(key , (v) => parseIntsFromInlineList(v, ',', def), def);
   List<double> getPropertyAsDoubleList(String key, [List<double> def]) => getPropertyAs(key , (v) => parseDoublesFromInlineList(v, ',', def), def);
   List<num> getPropertyAsNumList(String key, [List<num> def]) => getPropertyAs(key , (v) => parseNumsFromInlineList(v, ',', def), def);
   List<bool> getPropertyAsBoolList(String key, [List<bool> def]) => getPropertyAs(key , (v) => parseBoolsFromInlineList(v, ',', def), def);
+  List<DateTime> getPropertyAsDateTimeList(String key, [List<DateTime> def]) => getPropertyAs(key , (v) => parseDateTimeFromInlineList(v, ',', def), def);
 
   List<String> findPropertyAsStringList(List<String> keys, [List<String> def]) => findPropertyAs(keys, (v) => parseStringFromInlineList(v, ',', def), def);
   List<int> findPropertyAsIntList(List<String> keys, [List<int> def]) => findPropertyAs(keys , (v) => parseIntsFromInlineList(v, ',', def), def);
   List<double> findPropertyAsDoubleList(List<String> keys, [List<double> def]) => findPropertyAs(keys , (v) => parseDoublesFromInlineList(v, ',', def), def);
   List<num> findPropertyAsNumList(List<String> keys, [List<num> def]) => findPropertyAs(keys , (v) => parseNumsFromInlineList(v, ',', def), def);
   List<bool> findPropertyAsBoolList(List<String> keys, [List<bool> def]) => findPropertyAs(keys , (v) => parseBoolsFromInlineList(v, ',', def), def);
+  List<DateTime> findPropertyAsDateTimeList(List<String> keys, [List<DateTime> def]) => findPropertyAs(keys , (v) => parseDateTimeFromInlineList(v, ',', def), def);
+
+  Map<String,String> getPropertyAsStringMap(String key, [Map<String,String> def]) => getPropertyAs(key , (v) => parseStringFromInlineMap(v, ';',':', def), def);
+  Map<String,String> findPropertyAsStringMap(List<String> keys, [Map<String,String> def]) => findPropertyAs(keys , (v) => parseStringFromInlineMap(v, ';',':', def), def);
 
   Map<String,dynamic> toProperties() {
     return Map.from(_map).cast();
@@ -733,5 +1017,73 @@ class MapProperties extends MapDelegate<String, dynamic> {
     return _map.map( (k,v) => MapEntry( k , parseString(v) ) ) ;
   }
 
+  dynamic put(String key, dynamic value) {
+    var valueStr = toStringValue(value);
+
+    var prev = this[key] ;
+    this[key] = valueStr ;
+    return prev ;
+  }
+
+  static String toStringValue(dynamic value) {
+    String valueStr ;
+
+    if (value is String) {
+      valueStr = value ;
+    }
+    else if (value is List) {
+      valueStr = value.map(toStringValue).join(',') ;
+    }
+    else if (value is Map) {
+      valueStr = value.entries.expand( (e) => ['${e.key}:${ toStringValue(e.value) }'] ).toList().join(';') ;
+    }
+    else if (value is Iterable) {
+      valueStr = value.map(toStringValue).join(',') ;
+    }
+    else if (value is Pair) {
+      valueStr = value.join(',') ;
+    }
+    else if (value is MapEntry) {
+      valueStr = '${ value.key },${ value.value }' ;
+    }
+    else {
+      valueStr = '$value' ;
+    }
+
+    return valueStr;
+  }
+
+  @override
+  String toString() {
+    var s = '{ \n' ;
+
+    for ( var entry in _map.entries ) {
+      var key = entry.key;
+      var value = entry.value ;
+
+      var sKey = '"$key"' ;
+
+      String sVal ;
+      if ( value == null ) {
+        sVal = 'null' ;
+      }
+      else if ( value is num ) {
+        sVal = '$value' ;
+      }
+      else if ( value is bool ) {
+        sVal = '$value' ;
+      }
+      else {
+        sVal = '"$value"' ;
+      }
+
+      if ( s.length > 3 ) s += ' , ' ;
+      s += '$sKey: $sVal' ;
+    }
+
+    s += ' }' ;
+
+    return s ;
+  }
 }
 

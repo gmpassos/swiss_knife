@@ -299,16 +299,16 @@ void main() {
 
     test('MimeType', () {
 
-      expect( MimeType.asMimeType('text/plain'), equals( MimeType.TEXT_PLAIN ));
-      expect( MimeType.asMimeType('image/jpeg'), equals( MimeType.IMAGE_JPEG ));
-      expect( MimeType.asMimeType('jpeg'), equals( MimeType.IMAGE_JPEG ));
-      expect( MimeType.asMimeType('image/png'), equals( MimeType.IMAGE_PNG ));
-      expect( MimeType.asMimeType('png'), equals( MimeType.IMAGE_PNG ));
-      expect( MimeType.asMimeType('text/html'), equals( MimeType.TEXT_HTML ));
-      expect( MimeType.asMimeType('html'), equals( MimeType.TEXT_HTML ));
+      expect( MimeType.parse('text/plain').toString(), equals( MimeType.TEXT_PLAIN ));
+      expect( MimeType.parse('image/jpeg').toString(), equals( MimeType.IMAGE_JPEG ));
+      expect( MimeType.parse('jpeg').toString(), equals( MimeType.IMAGE_JPEG ));
+      expect( MimeType.parse('image/png').toString(), equals( MimeType.IMAGE_PNG ));
+      expect( MimeType.parse('png').toString(), equals( MimeType.IMAGE_PNG ));
+      expect( MimeType.parse('text/html').toString(), equals( MimeType.TEXT_HTML ));
+      expect( MimeType.parse('html').toString(), equals( MimeType.TEXT_HTML ));
 
-      expect( MimeType.asMimeType('application/json'), equals( MimeType.APPLICATION_JSON ));
-      expect( MimeType.asMimeType('json'), equals( MimeType.APPLICATION_JSON ));
+      expect( MimeType.parse('application/json').toString(), equals( MimeType.APPLICATION_JSON ));
+      expect( MimeType.parse('json').toString(), equals( MimeType.APPLICATION_JSON ));
 
     });
 
@@ -341,12 +341,12 @@ void main() {
       expect( formatTimeMillis(2000), equals('2 sec'));
       expect( formatTimeMillis(1000*60), equals('1 min'));
       expect( formatTimeMillis(1000*60*2), equals('2 min'));
-      expect( formatTimeMillis( (1000*60*2.5).toInt() )  , equals('2.5 min'));
-      expect( formatTimeMillis(1000*60*60), equals('1 hr'));
-      expect( formatTimeMillis( (1000*60*60*2.5).toInt() )  , equals('2.5 hr'));
-      expect( formatTimeMillis(1000*60*60*24), equals('1 day'));
-      expect( formatTimeMillis(1000*60*60*24*2), equals('2 days'));
-      expect( formatTimeMillis( (1000*60*60*24*2.5).toInt() )  , equals('2.5 days'));
+      expect( formatTimeMillis( (1000*60*2.5).toInt() )  , equals('2 min 30 s'));
+      expect( formatTimeMillis(1000*60*60), equals('1 h'));
+      expect( formatTimeMillis( (1000*60*60*2.5).toInt() )  , equals('2 h 30 min'));
+      expect( formatTimeMillis(1000*60*60*24), equals('1 d'));
+      expect( formatTimeMillis(1000*60*60*24*2), equals('2 d'));
+      expect( formatTimeMillis( (1000*60*60*24*2.5).toInt() )  , equals('2 d 12 h'));
 
     });
   });
@@ -403,6 +403,107 @@ void main() {
 
       expect( regExpReplaceAll( pattern1,  'a ,b, c ,, d' , '\$1' ) , equals('a,b,c,,d'));
       expect( regExpReplaceAll( pattern1,  'a ,b, c ,, d' , '-\$1-' ) , equals('a-,-b-,-c-,,-d'));
+
+    });
+
+  });
+
+
+  group('Uri', ()
+  {
+    setUp(() {});
+
+    test('isIPv4Address', () {
+
+      expect( isIPv4Address('0.0.0.0') , equals(true));
+      expect( isIPv4Address('192.168.0.1') , equals(true));
+      expect( isIPv4Address('10.0.0.1') , equals(true));
+      expect( isIPv4Address('172.123.12.1') , equals(true));
+
+      expect( isIPv4Address('000.021.01.0') , equals(false));
+      expect( isIPv4Address('123.456.789.123') , equals(false));
+
+      expect( isIPv4Address('abc def') , equals(false));
+      expect( isIPv4Address('0.0.0') , equals(false));
+
+    });
+
+    test('isIPv6Address', () {
+
+      expect( isIPv6Address('::1') , equals(true));
+
+      expect( isIPv6Address('::') , equals(true));
+      expect( isIPv6Address('::/0') , equals(true));
+      expect( isIPv6Address('0000:0000:0000:0000:0000:0000:0000:0000') , equals(true));
+
+      expect( isIPv6Address('2001:db8:a0b:12f0::1') , equals(true));
+
+
+      expect( isIPv6Address('0.0.0.0') , equals(false));
+      expect( isIPv6Address('192.168.0.1') , equals(false));
+      expect( isIPv6Address('10.0.0.1') , equals(false));
+      expect( isIPv6Address('172.123.12.1') , equals(false));
+
+      expect( isIPv6Address('000.021.01.0') , equals(false));
+      expect( isIPv6Address('123.456.789.123') , equals(false));
+
+      expect( isIPv6Address('abc def') , equals(false));
+      expect( isIPv6Address('0.0.0') , equals(false));
+
+    });
+
+
+    test('UriBase', () {
+
+      expect( getUriBase().toString() , matches(r'^file:///.+'));
+      expect( getUriRoot().toString() , equals('file:///'));
+      expect( getUriBaseHost() , equals(''));
+      expect( getUriBasePort() , equals(0));
+      expect( getUriBaseScheme() , equals('file'));
+      expect( getUriBaseHostAndPort() , equals(''));
+      expect( getUriBaseURL() , equals('file:///'));
+
+      expect( isUriBaseLocalhost() , equals(true));
+
+      expect( isLocalhost('localhost') , equals(true));
+      expect( isLocalhost('127.0.0.1') , equals(true));
+      expect( isLocalhost('::1') , equals(true));
+      expect( isLocalhost('local') , equals(false));
+      expect( isLocalhost('www.foo.com') , equals(false));
+      expect( isLocalhost('0.0.0.0') , equals(false));
+
+    });
+
+
+    test('Uri', () {
+
+      expect( buildUri('http', 'foo', 80).toString() , equals('http://foo/'));
+      expect( buildUri('http', 'foo', 81).toString() , equals('http://foo:81/'));
+
+      expect( buildUri('http', 'foo', 81, path: 'path/x' , queryString: 'query=1', fragment: 'frag1').toString() , equals('http://foo:81/path/x?query=1#frag1'));
+
+      expect( buildUri('http', 'foo', 81, path: 'path/x' , path2: './y', queryString: 'query=1', fragment: 'frag1').toString() , equals('http://foo:81/path/y?query=1#frag1'));
+      expect( buildUri('http', 'foo', 81, path: 'path/x' , path2: 'y', queryString: 'query=1', fragment: 'frag1').toString() , equals('http://foo:81/path/y?query=1#frag1'));
+
+      expect( buildUri('http', 'foo', 81, path: 'path/x/' , path2: './y', queryString: 'query=1', fragment: 'frag1').toString() , equals('http://foo:81/path/x/y?query=1#frag1'));
+      expect( buildUri('http', 'foo', 81, path: 'path/x/' , path2: 'y', queryString: 'query=1', fragment: 'frag1').toString() , equals('http://foo:81/path/x/y?query=1#frag1'));
+
+      expect( buildUri('http', 'foo', 81, path: 'path/x' , path2: '/y', queryString: 'query=1', fragment: 'frag1').toString() , equals('http://foo:81/y?query=1#frag1'));
+
+      expect( resolveUri('/').toString() , equals('file:///'));
+      expect( resolveUri('/foo.txt').toString() , equals('file:///foo.txt'));
+
+      expect( resolveUri('./foo.txt').toString() , matches(r'^file:///.+?/foo\.txt$'));
+
+      expect( removeUriFragment('https://foo:81/path/x?query=1#section1').toString() , equals('https://foo:81/path/x?query=1'));
+      expect( removeUriQueryString('https://foo:81/path/x?query=1#section1').toString() , equals('https://foo:81/path/x#section1'));
+
+    });
+
+    test('Path', () {
+
+      expect( getPathFileName('/some/path/file-x.txt').toString() , equals('file-x.txt'));
+      expect( getPathExtension('/some/path/file-x.txt').toString() , equals('txt'));
 
     });
 
@@ -554,6 +655,31 @@ void main() {
       expect( isBoolList(false), equals(false));
     });
 
+    test('toFlatListOfStrings', () {
+      expect( toFlatListOfStrings(null), equals([]) );
+      expect( toFlatListOfStrings(''), equals([]) );
+      expect( toFlatListOfStrings(' '), equals([]) );
+
+      expect( toFlatListOfStrings('a'), equals(['a']) );
+      expect( toFlatListOfStrings('a b c'), equals(['a','b','c']) );
+
+      expect( toFlatListOfStrings( ['a b c', ['d e', ' f ','g']] ), equals(['a','b','c','d','e','f','g']) );
+
+      expect( toFlatListOfStrings( ['a b c', ['d e', [' f '],'g']] ), equals(['a','b','c','d','e','f','g']) );
+
+      expect( toFlatListOfStrings( ['   ', 'a b c  ', ['d e', null, '',  [' f ', 'g'], [],'h']] ), equals(['a','b','c','d','e','f','g','h']) );
+
+      expect( toFlatListOfStrings(['a',' b ','c']), equals(['a','b','c']) );
+      expect( toFlatListOfStrings(['a',' b ','c'], trim: true), equals(['a','b','c']) );
+      expect( toFlatListOfStrings(['a',' b ','c'], trim: false), equals(['a','b','c']) );
+
+      expect( toFlatListOfStrings(['a',' b ','c'], trim: null), equals(['a','b','c']) );
+
+      expect( toFlatListOfStrings([' a ',' b ','c_d'], delimiter: '_'), equals(['a','b','c','d']) );
+      expect( toFlatListOfStrings([' a ',' b ','c_d'], delimiter: '_', trim: true), equals(['a','b','c','d']) );
+      expect( toFlatListOfStrings([' a ',' b ','c_d'], delimiter: '_', trim: false), equals([' a ',' b ','c','d']) );
+
+    });
 
 
   });
