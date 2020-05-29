@@ -1,6 +1,6 @@
 # Swiss Knife
 
-Dart useful tools: collections, math, date, etc...
+Dart Useful Tools - collections, math, date, uri, json, events, resources, etc...
 
 ## Usage
 

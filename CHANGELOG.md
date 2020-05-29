@@ -1,3 +1,11 @@
+## 2.4.1
+
+- isIPAddress()
+- parseDateTime() accepts `int`: parsing with `DateTime.fromMillisecondsSinceEpoch(v)`.
+- parseDuration()
+- enum Unit: getUnitByIndex(), getUnitByName(), parseUnit(), getUnitAsMilliseconds(), getMillisecondsAsUnit()
+- getDateTimeWeekDayByName(), getDateTimeStartOf(), getDateTimeEndOf()
+
 ## 2.4.0
 
 - date.dart:

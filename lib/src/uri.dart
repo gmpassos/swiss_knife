@@ -239,11 +239,15 @@ bool isUriBaseLocalhost() {
 
 bool isUriBaseIP() {
   var host = getUriBaseHost();
-  return isIPv4Address( host ) || isIPv6Address( host ) ;
+  return isIPAddress( host ) ;
 }
 
 bool isLocalhost(String host) {
   return host.isEmpty || _REGEXP_localhost.hasMatch( host ) ;
+}
+
+bool isIPAddress(String host) {
+  return isIPv4Address( host ) || isIPv6Address( host ) ;
 }
 
 RegExp _REGEXP_IPv4 = RegExp(r'^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$') ;

@@ -685,4 +685,34 @@ void main() {
   });
 
 
-  }
+  group('Date', () {
+    setUp(() {});
+
+    test('getDateTimeStartOf/EndOf', () {
+
+      expect( getDateTimeStartOf( DateTime(2020, 03, 12, 10, 30, 59, 300) , Unit.Seconds ), equals( DateTime(2020, 03, 12, 10, 30, 59, 0) ));
+      expect( getDateTimeEndOf( DateTime(2020, 03, 12, 10, 30, 59, 300) , 'sec' ), equals( DateTime(2020, 03, 12, 10, 30, 59, 999) ));
+
+      expect( getDateTimeStartOf( DateTime(2020, 03, 12, 10, 30, 59, 300) , 'min' ), equals( DateTime(2020, 03, 12, 10, 30, 0, 0) ));
+      expect( getDateTimeEndOf( DateTime(2020, 03, 12, 10, 30, 59, 300) , 'min' ), equals( DateTime(2020, 03, 12, 10, 30, 59, 999) ));
+
+      expect( getDateTimeStartOf( DateTime(2020, 03, 12, 10, 30, 59, 300) , 'hour' ), equals( DateTime(2020, 03, 12, 10, 0, 0, 0) ));
+      expect( getDateTimeEndOf( DateTime(2020, 03, 12, 10, 30, 59, 300) , 'hour' ), equals( DateTime(2020, 03, 12, 10, 59, 59, 999) ));
+
+      expect( getDateTimeStartOf( DateTime(2020, 03, 12, 10, 30, 59, 300) , 'day' ), equals( DateTime(2020, 03, 12, 0, 0, 0, 0) ));
+      expect( getDateTimeEndOf( DateTime(2020, 03, 12, 10, 30, 59, 300) , 'day' ), equals( DateTime(2020, 03, 12, 23, 59, 59, 999) ));
+
+      expect( getDateTimeStartOf( DateTime(2020, 03, 12, 10, 30, 59, 300) , 'month' ), equals( DateTime(2020, 03, 1, 0, 0, 0, 0) ));
+      expect( getDateTimeEndOf( DateTime(2020, 03, 12, 10, 30, 59, 300) , Unit.Months ), equals( DateTime(2020, 03, 31, 23, 59, 59, 999) ));
+
+      expect( getDateTimeStartOf( DateTime(2020, 03, 12, 10, 30, 59, 300) , 'y' ), equals( DateTime(2020, 01, 1, 0, 0, 0, 0) ));
+      expect( getDateTimeEndOf( DateTime(2020, 03, 12, 10, 30, 59, 300) , Unit.Years ), equals( DateTime(2020, 12, 31, 23, 59, 59, 999) ));
+
+
+    });
+
+
+  });
+
+
+}
