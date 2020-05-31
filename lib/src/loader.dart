@@ -53,15 +53,17 @@ class LoadController {
     if (_loadFuture != null) return _loadFuture;
 
     if (loader != null) {
-      if (_loader != null)
+      if (_loader != null) {
         throw StateError(
             "LoadController[$id] already have a LoaderFunction: can't pass another as parameter.");
+      }
       _loader = loader;
     }
 
-    if (_loader == null)
+    if (_loader == null) {
       throw ArgumentError(
           'LoadController[$id] without LoaderFunction: required as parameter when calling load().');
+    }
 
     _loadFuture = _loader();
     _loadSuccessful = await _loadFuture;

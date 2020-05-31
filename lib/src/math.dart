@@ -420,8 +420,9 @@ String formatDecimal(dynamic value,
     decimal = decimal.substring(0, precision);
   }
 
-  if (decimalSeparator == null || decimalSeparator.isEmpty)
+  if (decimalSeparator == null || decimalSeparator.isEmpty) {
     decimalSeparator = '.';
+  }
 
   return '$integer$decimalSeparator$decimal';
 }

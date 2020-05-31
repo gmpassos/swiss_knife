@@ -103,8 +103,9 @@ class ResourceContent {
   String _content;
 
   ResourceContent(this.resource, [this._content]) {
-    if (resource == null && _content == null)
+    if (resource == null && _content == null) {
       throw StateError('Invalid arguments: resource and content are null');
+    }
   }
 
   /// Constructor with [Resource] from [uri].

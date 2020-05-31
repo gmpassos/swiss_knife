@@ -72,8 +72,9 @@ class MimeType {
 
     mimeType = mimeType.toLowerCase();
 
-    if (mimeType == 'json' || mimeType.endsWith('/json'))
+    if (mimeType == 'json' || mimeType.endsWith('/json')) {
       return MimeType('application', 'json');
+    }
     if (mimeType == 'javascript' ||
         mimeType == 'js' ||
         mimeType.endsWith('/javascript') ||
@@ -83,27 +84,34 @@ class MimeType {
         mimeType == 'jpg' ||
         mimeType.endsWith('/jpeg') ||
         mimeType.endsWith('/jpg')) return MimeType('image', 'jpeg');
-    if (mimeType == 'png' || mimeType.endsWith('/png'))
+    if (mimeType == 'png' || mimeType.endsWith('/png')) {
       return MimeType('image', 'png');
-    if (mimeType == 'png' || mimeType.endsWith('/gif'))
+    }
+    if (mimeType == 'png' || mimeType.endsWith('/gif')) {
       return MimeType('image', 'gif');
+    }
 
     if (mimeType == 'text') return MimeType('text', 'plain');
     if (mimeType == 'html' ||
         mimeType == 'htm' ||
         mimeType.endsWith('/html') ||
         mimeType.endsWith('/htm')) return MimeType('text', 'html');
-    if (mimeType == 'css' || mimeType.endsWith('/css'))
+    if (mimeType == 'css' || mimeType.endsWith('/css')) {
       return MimeType('text', 'css');
-    if (mimeType == 'xml' || mimeType.endsWith('/xml'))
+    }
+    if (mimeType == 'xml' || mimeType.endsWith('/xml')) {
       return MimeType('text', 'xml');
+    }
 
-    if (mimeType == 'zip' || mimeType.endsWith('/zip'))
+    if (mimeType == 'zip' || mimeType.endsWith('/zip')) {
       return MimeType('application', 'zip');
-    if (mimeType == 'gzip' || mimeType == 'gz' || mimeType.endsWith('/gzip'))
+    }
+    if (mimeType == 'gzip' || mimeType == 'gz' || mimeType.endsWith('/gzip')) {
       return MimeType('application', 'gzip');
-    if (mimeType == 'pdf' || mimeType.endsWith('/pdf'))
+    }
+    if (mimeType == 'pdf' || mimeType.endsWith('/pdf')) {
       return MimeType('application', 'pdf');
+    }
 
     var idx = mimeType.indexOf('/');
 
@@ -114,7 +122,7 @@ class MimeType {
       if (type.isNotEmpty && subType.isNotEmpty) {
         return MimeType(type, subType);
       } else {
-        throw ArgumentError('Invaliud MimeType: $mimeType');
+        throw ArgumentError('Invalid MimeType: $mimeType');
       }
     }
 
@@ -216,8 +224,9 @@ class Base64 {
 class DataURLBase64 {
   /// Parses the Data URL to a Base-64 string.
   static String parsePayloadAsBase64(String dataURL) {
-    if (dataURL == null || dataURL.length < 5 || !dataURL.startsWith('data:'))
+    if (dataURL == null || dataURL.length < 5 || !dataURL.startsWith('data:')) {
       return null;
+    }
     var idx = dataURL.indexOf(',');
     return dataURL.substring(idx + 1);
   }
@@ -408,8 +417,9 @@ class Geolocation {
   num _longitude;
 
   Geolocation(this._latitude, this._longitude) {
-    if (_latitude == null || _longitude == null)
+    if (_latitude == null || _longitude == null) {
       throw ArgumentError('Invalid coords: $_latitude $longitude');
+    }
   }
 
   factory Geolocation.fromCoords(String coords, [bool onlyWithCardinals]) {

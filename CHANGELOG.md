@@ -1,3 +1,7 @@
+## 2.5.0
+
+- dartfmt.
+
 ## 2.4.2
 
 - Added API Documentation.

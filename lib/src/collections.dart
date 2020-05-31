@@ -739,8 +739,9 @@ Map<String, String> parseStringFromInlineMap(dynamic s,
     Pattern delimiterKeyValue,
     Map<String, String> def]) {
   if (s == null) return def;
-  if (s is Map)
+  if (s is Map) {
     return s.map((k, v) => MapEntry(parseString(k), parseString(v)));
+  }
   return parseFromInlineMap(s.toString(), delimiterPairs, delimiterKeyValue,
       parseString, parseString, def);
 }
