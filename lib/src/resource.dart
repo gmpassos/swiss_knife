@@ -3,9 +3,10 @@
 import 'package:resource_portable/resource.dart';
 import 'package:swiss_knife/src/events.dart';
 
+/// A cache for [ResourceContent].
 class ResourceContentCache {
 
-  Map<String, ResourceContent> _resources = {} ;
+  final Map<String, ResourceContent> _resources = {} ;
 
   int get size => _resources.length ;
 
@@ -13,10 +14,16 @@ class ResourceContentCache {
     return get(resource) != null ;
   }
 
+  /// Returns a [ResourceContent] using [resource] as key.
+  ///
+  /// If the cache already have a resolved ResourceContent will
+  /// prioritize it and return it.
+  ///
+  /// [resource] can be of type [Resource], [ResourceContent], [Uri] or Uri string.
   ResourceContent get(dynamic resource) {
     if (resource == null) return null ;
 
-    ResourceContent resourceContent = ResourceContent.from(resource) ;
+    var resourceContent = ResourceContent.from(resource) ;
 
     var cacheKey = _cacheKey(resourceContent) ;
     if (cacheKey == null) return resourceContent ;
@@ -40,10 +47,12 @@ class ResourceContentCache {
     return resourceContent ;
   }
 
+  /// Remove a [ResourceContent] associated with [resource].
+  /// See [get] for [resource] description.
   ResourceContent remove(dynamic resource) {
     if (resource == null) return null ;
 
-    ResourceContent resourceContent = ResourceContent.from(resource) ;
+    var resourceContent = ResourceContent.from(resource) ;
 
     var cacheKey = _cacheKey(resourceContent) ;
     if (cacheKey == null) return resourceContent ;
@@ -85,22 +94,29 @@ class ResourceContentCache {
     return null ;
   }
 
+  /// Clears the cache.
   void clear() {
     _resources.clear() ;
   }
 
 }
 
-
+/// Represents a Resource Content
 class ResourceContent {
 
+  /// The resource (with [Uri]).
   final Resource resource ;
+
+  /// The resolved content/body.
   String _content ;
 
   ResourceContent(this.resource, [this._content]) {
-    if (resource == null && _content == null) throw StateError("Invalid arguments: resource and content are null") ;
+    if (resource == null && _content == null) throw StateError('Invalid arguments: resource and content are null') ;
   }
 
+  /// Constructor with [Resource] from [uri].
+  ///
+  /// [content] in case of content/body is already resolved.
   ResourceContent.fromURI(dynamic uri, [String content]) : this( Resource(uri) , content ) ;
 
   factory ResourceContent.from( dynamic rsc ) {
@@ -109,6 +125,7 @@ class ResourceContent {
     return ResourceContent.fromURI(rsc) ;
   }
 
+  /// Reset and disposes any loaded content.
   void reset() {
     _readFuture = null ;
     if (resource != null) {
@@ -119,16 +136,16 @@ class ResourceContent {
   }
   Future<String> _readFuture ;
 
+  /// Notifies events when load is completed.
   EventStream<String> onLoad = EventStream() ;
 
+  /// Returns the content after resolve it.
   Future<String> getContent() async {
     if ( hasContent ) return _content ;
 
     if (resource == null) return null ;
 
-    if ( _readFuture == null) {
-
-      _readFuture = resource.readAsString().then(
+    _readFuture ??= resource.readAsString().then(
         (c) {
           _onLoad(c, false);
           return c ;
@@ -137,13 +154,12 @@ class ResourceContent {
           _onLoad(null, true);
           return null ;
         }
-      ) ;
-
-    }
+      );
 
     return _readFuture ;
   }
 
+  /// Returns the content if [isLoaded].
   String getContentIfLoaded() => isLoaded ? _content : null ;
 
   bool _loaded = false ;
@@ -156,14 +172,20 @@ class ResourceContent {
     onLoad.add(content);
   }
 
+  /// Returns [true] if loaded.
   bool get isLoaded => _loaded ;
 
+  /// Returns [true] if loaded with error.
   bool get isLoadedWithError => _loadError ;
 
+  /// Returns [true] if has content/body.
   bool get hasContent => _content != null ;
 
+
+  /// The [Resource.uri].
   Uri get uri => resource.uri ;
 
+  /// Return resolved [Uri] from [Resource.uriResolved].
   Future<Uri> get uriResolved => resource.uriResolved ;
 
   @override
@@ -181,10 +203,12 @@ class ResourceContent {
     return 'ResourceContent{resource: ${ uri }';
   }
 
+  /// Resolves [url] using this [ResourceContent] as reference (base [Uri]).
   Future<Uri> resolveURL(String url) async {
     return resolveURLFromReference( this , url ) ;
   }
 
+  /// Resolves an [url] using another [ResourceContent] as [reference] (base [Uri]).
   static Future<Uri> resolveURLFromReference(ResourceContent reference, String url) async {
     url = url.trim();
 

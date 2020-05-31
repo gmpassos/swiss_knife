@@ -275,6 +275,38 @@ void main() {
 
     });
 
+
+
+    test('Scale', () {
+
+      var s1 = Scale.from([10,-10,20,5]) ;
+
+      expect( s1.minimum, equals(-10));
+      expect( s1.maximum, equals(20));
+      expect( s1.length, equals(30));
+
+
+      var s2 = ScaleNum.from([10,-10,20,5]) ;
+
+      expect( s2.minimum, equals(-10));
+      expect( s2.maximum, equals(20));
+      expect( s2.length, equals(30));
+
+      expect( s2.normalize(-10), equals(0.0));
+      expect( s2.normalize(0), equals(0.3333333333333333));
+      expect( s2.normalize(5), equals(0.5));
+      expect( s2.normalize(15), equals(0.8333333333333334));
+      expect( s2.normalize(20), equals(1));
+
+      expect( s2.denormalize(0.0), equals(-10));
+      expect( s2.denormalize(0.3333333333333333), equals(0));
+      expect( s2.denormalize(0.5), equals(5));
+      expect( s2.denormalize(0.8333333333333334), equals(15));
+      expect( s2.denormalize(1), equals(20));
+
+    });
+
+
   });
 
   group('Data', () {
@@ -306,22 +338,56 @@ void main() {
       expect( MimeType.parse('png').toString(), equals( MimeType.IMAGE_PNG ));
       expect( MimeType.parse('text/html').toString(), equals( MimeType.TEXT_HTML ));
       expect( MimeType.parse('html').toString(), equals( MimeType.TEXT_HTML ));
+      expect( MimeType.parse('text/css').toString(), equals( MimeType.TEXT_CSS ));
+      expect( MimeType.parse('css').toString(), equals( MimeType.TEXT_CSS ));
 
       expect( MimeType.parse('application/json').toString(), equals( MimeType.APPLICATION_JSON ));
       expect( MimeType.parse('json').toString(), equals( MimeType.APPLICATION_JSON ));
 
+      expect( MimeType.parse('javascript').toString(), equals( MimeType.APPLICATION_JAVASCRIPT ));
+      expect( MimeType.parse('js').toString(), equals( MimeType.APPLICATION_JAVASCRIPT ));
+
+      expect( MimeType.parse('zip').toString(), equals( 'application/zip' ));
+
+      expect( MimeType.parse('gzip').toString(), equals( 'application/gzip' ));
+      expect( MimeType.parse('gz').toString(), equals( 'application/gzip' ));
+
+      expect( MimeType.parse('pdf').toString(), equals( 'application/pdf' ));
+
+      expect( MimeType.parse('xml').toString(), equals( 'text/xml' ));
+
     });
 
-    test('dataSizeFormat()', () {
+    test('dataSizeFormat() decimal', () {
 
       expect( dataSizeFormat(100), equals('100 bytes'));
-      expect( dataSizeFormat(1024), equals('1 KB'));
-      expect( dataSizeFormat(1024*2), equals('2 KB'));
+      expect( dataSizeFormat(1000), equals('1 KB'));
+      expect( dataSizeFormat(1000*2), equals('2 KB'));
 
-      expect( dataSizeFormat(1024*1024), equals('1 MB'));
-      expect( dataSizeFormat(1024*1024*2), equals('2 MB'));
-      expect( dataSizeFormat( (1024*1024*2.5).toInt() ), equals('2.5 MB'));
-      expect( dataSizeFormat( (1024*1024*(2+1/3)).toInt() ), equals('2.33 MB'));
+      expect( dataSizeFormat(1000*1000), equals('1 MB'));
+      expect( dataSizeFormat(1000*1000*2), equals('2 MB'));
+      expect( dataSizeFormat( (1000*1000*2.5).toInt() ), equals('2.5 MB'));
+      expect( dataSizeFormat( (1000*1000*(2+1/3)).toInt() ), equals('2.33 MB'));
+
+      expect( dataSizeFormat(1000*2, decimalBase: true), equals('2 KB'));
+      expect( dataSizeFormat(1000*2, binaryBase: false), equals('2 KB'));
+      expect( dataSizeFormat(1000*2, decimalBase: true, binaryBase: false), equals('2 KB'));
+      expect( dataSizeFormat(1000*2, decimalBase: true, binaryBase: true), equals('2 KB'));
+
+    });
+
+    test('dataSizeFormat() binary', () {
+
+      expect( dataSizeFormat(100, binaryBase: true), equals('100 bytes'));
+      expect( dataSizeFormat(1024, binaryBase: true), equals('1 KiB'));
+      expect( dataSizeFormat(1024*2, binaryBase: true) , equals('2 KiB'));
+
+      expect( dataSizeFormat(1024*1024, binaryBase: true), equals('1 MiB'));
+      expect( dataSizeFormat(1024*1024*2, binaryBase: true), equals('2 MiB'));
+      expect( dataSizeFormat( (1024*1024*2.5).toInt(), binaryBase: true ), equals('2.5 MiB'));
+      expect( dataSizeFormat( (1024*1024*(2+1/3)).toInt() , binaryBase: true ), equals('2.33 MiB'));
+
+      expect( dataSizeFormat(1024*2, binaryBase: true, decimalBase: false) , equals('2 KiB'));
 
     });
 
@@ -461,7 +527,7 @@ void main() {
       expect( getUriBasePort() , equals(0));
       expect( getUriBaseScheme() , equals('file'));
       expect( getUriBaseHostAndPort() , equals(''));
-      expect( getUriBaseURL() , equals('file:///'));
+      expect( getUriRootURL() , equals('file:///'));
 
       expect( isUriBaseLocalhost() , equals(true));
 

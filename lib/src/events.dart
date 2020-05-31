@@ -29,6 +29,9 @@ class _ListenSignature {
 
 }
 
+/// Implements a Stream for events and additional features.
+///
+/// See [Stream] for more documentation of delegated methods.
 class EventStream<T> implements Stream<T> {
 
   StreamController<T> _controller ;
@@ -52,11 +55,13 @@ class EventStream<T> implements Stream<T> {
 
   /////////////////////////////////////////////////
 
+  /// Adds an event and notify it to listeners.
   void add(T value) {
     if (!_used) return ;
     _controller.add(value);
   }
 
+  /// Adds an error event and notify it to listeners.
   void addError(Object error, StackTrace stackTrace) {
     if (!_used) return ;
     _controller.addError(error, stackTrace) ;
@@ -66,11 +71,15 @@ class EventStream<T> implements Stream<T> {
     return _controller.addStream(source, cancelOnError: cancelOnError) ;
   }
 
+  /// Closes this stream.
   Future close() {
     return _controller.close() ;
   }
 
+  /// Returns [true] if this stream is closed.
   bool get isClosed => _controller.isClosed ;
+
+  /// Returns [true] if this stream is paused.
   bool get isPaused => _controller.isPaused ;
 
   /////////////////////////////////////////////////
@@ -177,6 +186,12 @@ class EventStream<T> implements Stream<T> {
 
   final Set<_ListenSignature> _listenSignatures = {} ;
 
+  /// Listen for events.
+  ///
+  /// [onData] on event data.
+  /// [onError] on error is added.
+  /// [singletonIdentifier] identifier to avoid multiple listeners with the same identifier.
+  /// [singletonIdentifyByInstance] if true uses `identical(...)` to compare the [singletonIdentifier].
   @override
   StreamSubscription<T> listen(void Function(T event) onData, {Function onError, void Function() onDone, bool cancelOnError, dynamic singletonIdentifier, bool singletonIdentifyByInstance = true}) {
     try {
@@ -200,10 +215,13 @@ class EventStream<T> implements Stream<T> {
     }
   }
 
+  /// Returns a future that completes when receives at least 1 event.
   Future<T> listenAsFuture() {
     var completer = Completer<T>() ;
     listen((e){
-      completer.complete(e) ;
+      if ( !completer.isCompleted ) {
+        completer.complete(e);
+      }
     });
     return completer.future ;
   }

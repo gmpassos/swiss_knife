@@ -1,3 +1,14 @@
+## 2.4.2
+
+- Added API Documentation.
+- dataSizeFormat() now accepts decimalBase and binaryBase parameters.
+- Pair.swapAB().
+- Scale and ScaleNum.
+- getPathWithoutFileName(...).
+- MimeType: added alias and file extension for gzip.
+- (FIX) LoadController: _idCounter to private.
+- (FIX) EventStream.listenAsFuture(): ensure that completer is called only once.
+
 ## 2.4.1
 
 - isIPAddress()

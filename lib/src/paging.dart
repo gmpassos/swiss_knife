@@ -5,8 +5,12 @@ import 'collections.dart';
 typedef PagingFormatMatcher = bool Function(dynamic json) ;
 typedef PagingFormatInstantiator = JSONPaging Function(dynamic json) ;
 
+/// A Function that performs a paging request.
+///
+/// [page] the page of the request.
 typedef PagingRequester = Future<JSONPaging> Function(int page) ;
 
+/// Generic representation of a paging result in JSON.
 abstract class JSONPaging extends MapDelegate<String, dynamic> {
 
   static final Map<PagingFormatMatcher, PagingFormatInstantiator> _pagingFormats = {} ;
@@ -44,41 +48,62 @@ abstract class JSONPaging extends MapDelegate<String, dynamic> {
 
   Map<String, dynamic> get json => mainMap ;
 
+  /// Total number of pages.
   int get totalPages ;
 
+  /// Total elements of request.
   int get totalElements ;
 
+  /// Current page index, starting from 0.
   int get currentPage ;
 
+  /// Elements in this page.
   List<dynamic> get elements ;
 
+  /// The json key for elements.
   String get elementsEntryKey ;
 
+  /// The offset of elements for the request.
   int get elementsOffset ;
 
+  /// Current page elements length.
   int get elementsLength ;
 
+  /// Number of elements used for paging.
   int get elementsPerPage ;
 
+  /// Returns [true] if this is the last page.
   bool get isLastPage => currentPage == totalPages-1 ;
 
+  /// Returns [true] if this is the first page.
   bool get isFirstPage => currentPage == 0 ;
 
+  /// The index of the previous page.
+  ///
+  /// If this is the first page, returns 0 (the current page index).
   int get previousPage {
     var page = currentPage ;
     return page > 0 ? page-1 : 0 ;
   }
 
+  /// Next page index.
+  ///
+  /// If this is the last page returns the last page index (the current page index).
   int get nextPage {
     var page = currentPage ;
     var lastPageIndex = totalPages-1;
     return page < lastPageIndex ? page+1 : lastPageIndex ;
   }
 
+  /// If needs a paging controller.
+  ///
+  /// If [totalPages] is 1, returns false.
   bool get needsPaging => totalPages != 1 ;
 
+  /// Paging implementation format/name.
   String get pagingFormat ;
 
+  /// Returns [true] if [format] is the same of current [pagingFormat].
   bool isOfPagingFormat(String format) {
     if (format == null || format.isEmpty) return false ;
     var myFormat = pagingFormat ;
@@ -87,12 +112,16 @@ abstract class JSONPaging extends MapDelegate<String, dynamic> {
 
   PagingRequester _pagingRequester ;
 
+  /// Requesting Function that is able to make new requests to a specific page.
+  /// See [PagingRequester].
   PagingRequester get pagingRequester => _pagingRequester ;
 
   set pagingRequester(PagingRequester value) {
     _pagingRequester = value;
   }
 
+
+  /// The url for a request using [url] and [page] to build.
   String pagingRequestURL(String url, int page) ;
 
   Future<JSONPaging> requestPage(int page) {
@@ -100,12 +129,15 @@ abstract class JSONPaging extends MapDelegate<String, dynamic> {
     return _pagingRequester(page) ;
   }
 
-
+  /// Requests next page.
+  /// If [isLastPage] returns [this].
   Future<JSONPaging> requestNextPage() async {
     if ( isLastPage ) return this ;
     return requestPage(nextPage) ;
   }
 
+  /// Requests the previous page.
+  /// If [isFirstPage] returns [this].
   Future<JSONPaging> requestPreviousPage() async {
     if ( isFirstPage ) return this ;
     return requestPage(previousPage) ;
@@ -113,6 +145,7 @@ abstract class JSONPaging extends MapDelegate<String, dynamic> {
 
 }
 
+/// Implementation for Colossus.services DB and Nodes.
 class ColossusPaging extends JSONPaging {
 
   static final PagingFormatMatcher MATCHER = matches ;
@@ -166,9 +199,9 @@ class ColossusPaging extends JSONPaging {
 
   @override
   String pagingRequestURL(String url, int page) {
-    Uri uri = Uri.parse(url) ;
+    var uri = Uri.parse(url) ;
 
-    Map<String,dynamic> queryParameters = ( Map.from(uri.queryParametersAll) ?? {} ).cast() ;
+    var queryParameters = ( Map.from(uri.queryParametersAll) ?? <String,dynamic>{} ).cast<String,dynamic>() ;
 
     var pageEntry = findKeyEntry(queryParameters, ['-PAGE','--PAGE']) ;
 
@@ -184,7 +217,7 @@ class ColossusPaging extends JSONPaging {
 
 }
 
-
+/// Implementation for Spring Boot.
 class SpringBootPaging extends JSONPaging {
 
   static final PagingFormatMatcher MATCHER = matches ;
@@ -241,7 +274,7 @@ class SpringBootPaging extends JSONPaging {
 
   @override
   String pagingRequestURL(String url, int page) {
-    Uri uri = Uri.parse(url) ;
+    var uri = Uri.parse(url) ;
 
     var queryParameters = ( uri.queryParametersAll ?? {} ).cast<String,dynamic>() ;
 

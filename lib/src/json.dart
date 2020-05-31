@@ -1,14 +1,17 @@
 
 import 'collections.dart';
 
-bool isJSON(dynamic json) {
-  return isJSONPrimitive(json) || isJSONList(json) || isJSONMap(json) ;
+/// Returns [true] if [value] is a JSON.
+bool isJSON(dynamic value) {
+  return isJSONPrimitive(value) || isJSONList(value) || isJSONMap(value) ;
 }
 
-bool isJSONPrimitive(dynamic json) {
-  return json == null || json is String || json is num || json is bool ;
+/// Returns [true] if [value] is a JSON primitive (String, bool, num, int, double, or null).
+bool isJSONPrimitive(dynamic value) {
+  return value == null || value is String || value is num || value is bool ;
 }
 
+/// Returns [true] if [value] is a JSON List.
 bool isJSONList(dynamic json) {
   if (json == null) return false ;
 
@@ -23,6 +26,7 @@ bool isJSONList(dynamic json) {
   return false ;
 }
 
+/// Returns [true] if [value] is a JSON Map<String,?>.
 bool isJSONMap(dynamic json) {
   if (json == null) return false ;
 

@@ -14,6 +14,10 @@ class Pair<T> {
 
   Pair.fromList( List<T> list ) : this( list[0] , list.length > 1 ? list[1] : list[0] ) ;
 
+  Pair<T> swapAB() {
+    return Pair(b,a) ;
+  }
+
   dart_math.Point<num> get asPoint => dart_math.Point<num>( parseNum(a) , parseNum(b) ) ;
 
   @override

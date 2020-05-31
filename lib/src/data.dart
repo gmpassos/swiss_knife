@@ -6,6 +6,20 @@ import 'dart:typed_data';
 import 'math.dart';
 import 'collections.dart';
 
+/// Represents MIME-Type. Useful for Content-Type and file handling.
+///
+/// Supported aliases:
+///   - json: application/javascript
+///   - javascript, js: application/javascript
+///   - jpeg: image/jpeg
+///   - png: image/png
+///   - text: text/plain
+///   - html: text/html
+///   - css: text/css
+///   - zip: application/zip
+///   - gzip, gz: application/gzip
+///   - pdf: application/pdf
+///
 class MimeType {
 
   static const APPLICATION_JSON = 'application/json' ;
@@ -23,14 +37,24 @@ class MimeType {
   static const TEXT_HTML = 'text/html' ;
   static const HTML = TEXT_HTML ;
 
+  static const TEXT_CSS = 'text/css' ;
+  static const CSS = TEXT_CSS ;
+
   static const TEXT_PLAIN = 'text/plain' ;
   static const TEXT = TEXT_PLAIN ;
 
+  /// Parses a [mimeType] string and returns as a normalized MIME-Type string.
+  /// Note that this can resolve aliases like `JSON`.
+  ///
+  /// [defaultMimeType] if [mimeType] is invalid.
   static String parseAsString(String mimeType, [String defaultMimeType]) {
     var m = MimeType.parse(mimeType, defaultMimeType) ;
     return m != null ? m.toString() : null ;
   }
 
+  /// Constructor that parses a [mimeType] string.
+  ///
+  /// [defaultMimeType] if [mimeType] is invalid.
   factory MimeType.parse(String mimeType, [String defaultMimeType]) {
     mimeType ??= defaultMimeType;
 
@@ -56,6 +80,7 @@ class MimeType {
     if (mimeType == 'xml' || mimeType.endsWith('/xml') ) return MimeType('text','xml') ;
 
     if (mimeType == 'zip' || mimeType.endsWith('/zip') ) return MimeType('application','zip') ;
+    if (mimeType == 'gzip' || mimeType == 'gz' || mimeType.endsWith('/gzip') ) return MimeType('application','gzip') ;
     if (mimeType == 'pdf' || mimeType.endsWith('/pdf') ) return MimeType('application','pdf') ;
 
     var idx = mimeType.indexOf('/') ;
@@ -80,28 +105,39 @@ class MimeType {
 
   MimeType(this.type, this.subType);
 
+  /// Returns [true] if this a image MIME-Type.
   bool get isImage => type == 'image' ;
+
+  /// Returns [true] if this a video MIME-Type.
   bool get isVideo => type == 'video' ;
 
+  /// Returns [true] if this is `image/jpeg`.
   bool get isImageJPEG => isImage && subType == 'jpeg' ;
+
+  /// Returns [true] if this is `image/png`.
   bool get isImagePNG => isImage && subType == 'png' ;
 
+  /// Returns the common file extension for the MIME-Type.
   String get fileExtension {
     switch (subType) {
       case 'javascript' : return 'js' ;
+      case 'gzip' : return 'gz' ;
       default: return subType ;
     }
   }
 
+  /// Generates a random file name for the type, with the corresponding [fileExtension].
   String fileNameRandom() {
     return fileName( Math.random().toString() ) ;
   }
 
+  /// Generates a file name for the type, using [timeMillis] as name and the corresponding [fileExtension].
   String fileNameTimeMillis( [int timeMillis] ) {
     timeMillis ??= DateTime.now().millisecondsSinceEpoch ;
     return fileName( timeMillis.toString() ) ;
   }
 
+  /// Generates a file name for the type, using [identifier] as name and the corresponding [fileExtension].
   String fileName( [String identifier , String delimiter = '-']) {
     if (identifier != null) identifier = identifier.trim() ;
 
@@ -125,6 +161,7 @@ class MimeType {
     return '$type/$subType';
   }
 
+  /// Parses a [mimeType] to a MIME-Type string.
   static String asString(dynamic mimeType , [String defaultMimeType]) {
     if (mimeType == null) return defaultMimeType ;
 
@@ -141,6 +178,7 @@ class MimeType {
 
 }
 
+/// Base-64 utils.
 class Base64 {
 
   static String encodeArrayBuffer(Uint8List a) => base64.encode(a) ;
@@ -151,19 +189,24 @@ class Base64 {
 
 }
 
+
+/// Represent a Data URL in Base-64
 class DataURLBase64 {
 
+  /// Parses the Data URL to a Base-64 string.
   static String parsePayloadAsBase64(String dataURL) {
     if (dataURL == null || dataURL.length < 5 || !dataURL.startsWith('data:')) return null ;
     var idx = dataURL.indexOf(',') ;
     return dataURL.substring(idx+1) ;
   }
 
+  /// Parses the Data URL to am array buffer.
   static Uint8List parsePayloadAsArrayBuffer(String dataURL) {
     var payload = parsePayloadAsBase64(dataURL) ;
     return payload != null ? base64.decode(payload) : null ;
   }
 
+  /// Parses the Data URL to decoded string.
   static String parsePayloadAsString(String dataURL) {
     var data = parsePayloadAsArrayBuffer(dataURL) ;
     return data != null ? latin1.decode(data) : null ;
@@ -171,17 +214,23 @@ class DataURLBase64 {
 
   //////////////////////////////////
 
+  /// Returns true if [s] is in Data URL (Base-64) format.
   static bool matches(String s) {
     return DataURLBase64.parse(s) != null ;
   }
 
+  /// The MIME-Type of parsed Data URL.
   final MimeType mimeType ;
+
+  /// Returns [mimeType] as [String]. Returns '' if null.
   String get mimeTypeAsString => mimeType != null ? mimeType.toString() : '' ;
 
+  /// The Base-64 paylod/content of the parsed Data URL.
   final String payloadBase64 ;
 
   String _payload ;
 
+  /// The decoded payload as [String].
   String get payload {
     _payload ??= Base64.decode(payloadBase64);
     return _payload ;
@@ -189,6 +238,7 @@ class DataURLBase64 {
 
   Uint8List _payloadArrayBuffer ;
 
+  /// The decoded payload as array buffer.
   Uint8List get payloadArrayBuffer {
     _payloadArrayBuffer ??= Base64.decodeAsArrayBuffer( payloadBase64 );
     return _payloadArrayBuffer ;
@@ -198,10 +248,14 @@ class DataURLBase64 {
       mimeType = MimeType.parse(mimeType)
   ;
 
+  /// Parses only the [MimeType] of the Data URL [s].
+  ///
+  /// [defaultMimeType] if [s] is invalid.
   static MimeType parseMimeType(String s, { String defaultMimeType }) {
     return MimeType.parse( parseMimeTypeAsString(s, defaultMimeType: defaultMimeType) , defaultMimeType ) ;
   }
 
+  /// Parses only the MIME-Type of the Data URL [s] as string.
   static String parseMimeTypeAsString(String s, { String defaultMimeType }) {
     if (s == null) return defaultMimeType ;
     s = s.trim() ;
@@ -218,6 +272,9 @@ class DataURLBase64 {
     return mimeType ;
   }
 
+  /// Constructor that parses a Data URL [s]
+  ///
+  /// [defaultMimeType] if [s] is invalid.
   factory DataURLBase64.parse(String s, { String defaultMimeType }) {
     if (s == null) return null ;
     s = s.trim() ;
@@ -246,6 +303,10 @@ class DataURLBase64 {
 
   String _dataURLString ;
 
+  /// Returns a Data URL string.
+  ///
+  /// Example: `data:text/plain;base64,SGVsbG8=`
+  /// that encodes `Hello` with MIME-Type `text/plain`.
   String asDataURLString() {
     _dataURLString ??= 'data:$mimeTypeAsString;base64,$payloadBase64}';
     return _dataURLString ;
@@ -258,19 +319,16 @@ class DataURLBase64 {
 
 }
 
-bool isHttpHURL(dynamic value) {
-  return value is String && ( value.startsWith('http://') || value.startsWith('https://') ) ;
-}
-
 final REGEXP_EMAIL = RegExp(r'''^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?)*$''');
 
+/// Returns [true] if [value] represents an e-mail address.
 bool isEmail(dynamic value) {
   return value is String && value.contains('@') && REGEXP_EMAIL.hasMatch(value) ;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-
+/// Represents a Geo Location in latitude and longitude.
 class Geolocation {
 
   static final RegExp GEOLOCATION_FORMAT = RegExp(r'([-=]?)(\d+[,.]?\d*)\s*[°o]?\s*(\w)') ;
@@ -337,9 +395,13 @@ class Geolocation {
     return lat != null && long != null ? Geolocation(lat, long) : null ;
   }
 
+  /// The latitude of the coordinate.
   num get latitude => _latitude;
+
+  /// The longitude of the coordinate.
   num get longitude => _longitude;
 
+  /// As Point([latitude] , [longitude]).
   Point<num> asPoint() => Point(_latitude, _longitude) ;
 
   @override
@@ -347,14 +409,17 @@ class Geolocation {
     return formatGeolocation( asPoint() ) ;
   }
 
+  /// Generates a browser windoe ID with coordinates.
   String windowID(String prefix) {
     return '${prefix}__${latitude}__${longitude}';
   }
 
+  /// Generates a Google Maps URL with coordinates.
   String googleMapsURL() {
     return 'https://www.google.com/maps/search/?api=1&query=$_latitude,$longitude' ;
   }
 
+  /// Generates a Google Maps Directions URL with coordinates.
   Future<String> googleMapsDirectionsURL( Geolocation currentGeo ) async {
     if (currentGeo == null) return null ;
     return 'https://www.google.com/maps/dir/?api=1&origin=${ currentGeo.latitude },${ currentGeo.longitude }&destination=$_latitude,$longitude' ;
@@ -364,6 +429,7 @@ class Geolocation {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+/// Parses [value] as a [Rectangle].
 Rectangle<num> parseRectangle(dynamic value) {
   if (value is List) return parseRectangleFromList(value) ;
   if (value is Map) return parseRectangleFromMap(value) ;
@@ -371,6 +437,7 @@ Rectangle<num> parseRectangle(dynamic value) {
   return null ;
 }
 
+/// Parses [list] as a [Rectangle].
 Rectangle<num> parseRectangleFromList(List list) {
   if (list.length < 4) return null ;
   list = list.map( (e) => parseNum(e) ).whereType<num>().toList() ;
@@ -378,6 +445,7 @@ Rectangle<num> parseRectangleFromList(List list) {
   return Rectangle( list[0], list[1], list[2], list[3] );
 }
 
+/// Parses [map] as a [Rectangle].
 Rectangle<num> parseRectangleFromMap(Map map) {
   if (map == null || map.isEmpty) return null ;
 
@@ -391,6 +459,7 @@ Rectangle<num> parseRectangleFromMap(Map map) {
   return Rectangle(x, y, w, h) ;
 }
 
+/// Parses [s] as a [Rectangle].
 Rectangle<num> parseRectangleFromString(String s) {
   if (s == null) return null ;
   s = s.trim() ;
@@ -407,6 +476,7 @@ Rectangle<num> parseRectangleFromString(String s) {
 
 //////////////////
 
+/// Parses [value] as a [Point].
 Point<num> parsePoint(dynamic value) {
   if (value is List) return parsePointFromList(value) ;
   if (value is Map) return parsePointFromMap(value) ;
@@ -414,11 +484,13 @@ Point<num> parsePoint(dynamic value) {
   return null ;
 }
 
-Point<num> parsePointFromList(List l) {
-  if (l == null || l.length < 2) return null ;
-  return Point<num>( parseNum(l[0]), parseNum(l[1]) ) ;
+/// Parses [list] as a [Point].
+Point<num> parsePointFromList(List list) {
+  if (list == null || list.length < 2) return null ;
+  return Point<num>( parseNum(list[0]), parseNum(list[1]) ) ;
 }
 
+/// Parses [map] as a [Point].
 Point<num> parsePointFromMap(Map map) {
   var x = parseNum( findKeyValue(map, ['x','left'] , true) );
   var y = parseNum( findKeyValue(map, ['y','top'] , true) );
@@ -426,6 +498,7 @@ Point<num> parsePointFromMap(Map map) {
   return Point<num>(x, y) ;
 }
 
+/// Parses [s] as a [Point].
 Point<num> parsePointFromString(String s) {
   if (s == null) return null ;
   s = s.trim() ;
@@ -438,16 +511,69 @@ Point<num> parsePointFromString(String s) {
   return Point<num>( nums[0] , nums[1] ) ;
 }
 
-String dataSizeFormat(int size) {
-  if (size < 1024) {
-    return '$size bytes' ;
+/// Formats [size] as a data format using binary of decimal base for sufixes.
+///
+/// - Decimal base: `bytes`, `KB`, `MB` and `GB`.
+/// - Binary base: `bytes`, `KiB`, `MiB` and `GiB`.
+///
+/// [decimalBase] Default [true]. If [true] uses a decimal base, if false uses
+/// decimal base.
+///
+/// [binaryBase] Default [false]. If [true] uses a binary base, if false uses
+/// decimal base.
+String dataSizeFormat(int size, { bool decimalBase , bool binaryBase } ) {
+  var baseDecimal ;
+
+  if ( decimalBase != null ) {
+    baseDecimal = decimalBase ;
   }
-  else if (size < 1024*1024) {
-    var s = '${size ~/ 1024} KB';
-    return s ;
+
+  if ( binaryBase != null ) {
+    if ( baseDecimal == null ) {
+      baseDecimal = !binaryBase ;
+    }
+    else if (baseDecimal) {
+      baseDecimal = true ;
+    }
+    else {
+      baseDecimal = !binaryBase ;
+    }
+  }
+
+  baseDecimal ??= true ;
+
+  if (baseDecimal) {
+    if (size < 1000) {
+      return '$size bytes' ;
+    }
+    else if (size < 1000*1000) {
+      var s = '${size ~/ 1000} KB';
+      return s ;
+    }
+    else if (size < 1000*1000*1000) {
+      return formatDecimal( size / (1000*1000) )+ ' MB' ;
+    }
+    else {
+      return formatDecimal( size / (1000*1000&1000) )+ ' GB' ;
+    }
   }
   else {
-    return formatDecimal( size / (1024*1024) )+ ' MB' ;
+    if (size < 1024) {
+      return '$size bytes' ;
+    }
+    else if (size < 1024*1024) {
+      var s = '${size ~/ 1024} KiB';
+      return s ;
+    }
+    else if (size < 1024*1024*1024) {
+      return formatDecimal( size / (1024*1024) )+ ' MiB' ;
+    }
+    else {
+      return formatDecimal( size / (1024*1024&1024) )+ ' GiB' ;
+    }
   }
+
+
+
 }
 

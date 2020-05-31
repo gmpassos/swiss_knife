@@ -328,6 +328,7 @@ String formatTimeMillis(int time) {
   }
 }
 
+/// Represents a Week day.
 enum DateTimeWeekDay {
   Monday,
   Tuesday,
@@ -338,6 +339,7 @@ enum DateTimeWeekDay {
   Sunday
 }
 
+/// Gets index of DateTimeWeekDay, starting from 1 (Monday) to 7 (Sunday), same range as [ DateTime.wednesday ].
 int getDateTimeWeekDayIndex( DateTimeWeekDay weekDay ) {
   if (weekDay == null) return null ;
 
@@ -353,6 +355,7 @@ int getDateTimeWeekDayIndex( DateTimeWeekDay weekDay ) {
   }
 }
 
+/// Returns enum [DateTimeWeekDay] by [weekDayIndex] (from 1 to 7). See [getDateTimeWeekDayIndex].
 DateTimeWeekDay getDateTimeWeekDay( int weekDayIndex ) {
   if (weekDayIndex == null) return null ;
 
@@ -368,6 +371,9 @@ DateTimeWeekDay getDateTimeWeekDay( int weekDayIndex ) {
   }
 }
 
+/// Returns enum [DateTimeWeekDay] using [weekDayIndex] compliant with ISO 8601.
+///
+/// [weekDayIndex] From 0 (Monday) to 6 (Sunday).
 DateTimeWeekDay getDateTimeWeekDay_from_ISO_8601_index( int weekDayIndex ) {
   if (weekDayIndex == null) return null ;
 
@@ -383,6 +389,7 @@ DateTimeWeekDay getDateTimeWeekDay_from_ISO_8601_index( int weekDayIndex ) {
   }
 }
 
+/// Returns enum [DateTimeWeekDay] by week day name in english
 DateTimeWeekDay getDateTimeWeekDayByName( String weekDayName ) {
   if (weekDayName == null) return null ;
   weekDayName = weekDayName.toLowerCase().trim() ;
@@ -400,33 +407,49 @@ DateTimeWeekDay getDateTimeWeekDayByName( String weekDayName ) {
   }
 }
 
+/// Same as `DateTime.now()`.
 DateTime getDateTimeNow() {
   return DateTime.now() ;
 }
 
-DateTime getDateTimeDayStart( [DateTime now] ) {
-  now ??= DateTime.now() ;
-  return DateTime( now.year , now.month , now.day , 0,0,0 , 0,0 ) ;
+/// Returns the start of the day for [time].
+///
+/// [time] if null uses [ DateTime.now ].
+DateTime getDateTimeDayStart( [DateTime time] ) {
+  time ??= DateTime.now() ;
+  return DateTime( time.year , time.month , time.day , 0,0,0 , 0,0 ) ;
 }
 
-DateTime getDateTimeDayEnd( [DateTime now] ) {
-  now ??= DateTime.now() ;
-  return DateTime( now.year , now.month , now.day , 23,59,59 , 999, 0 ) ;
+/// Returns the end of the day for [time].
+///
+/// [time] if null uses [ DateTime.now ].
+DateTime getDateTimeDayEnd( [DateTime time] ) {
+  time ??= DateTime.now() ;
+  return DateTime( time.year , time.month , time.day , 23,59,59 , 999, 0 ) ;
 }
 
-DateTime getDateTimeYesterday( [DateTime now] ) {
-  now ??= DateTime.now() ;
-  return getDateTimeDayStart( now.subtract( Duration(days: 1) ) ) ;
+/// Returns the start of yesterday from [time].
+///
+/// [time] if null uses [ DateTime.now ].
+DateTime getDateTimeYesterday( [DateTime time] ) {
+  time ??= DateTime.now() ;
+  return getDateTimeDayStart( time.subtract( Duration(days: 1) ) ) ;
 }
 
-Pair<DateTime> getDateTimeLastNDays( int nDays, [DateTime now] ) {
-  now ??= DateTime.now() ;
+/// Returns start and end of last [nDays] counting from [time].
+///
+/// [time] if null uses [ DateTime.now ].
+Pair<DateTime> getDateTimeLastNDays( int nDays, [DateTime time] ) {
+  time ??= DateTime.now() ;
   return Pair(
-      getDateTimeDayStart( now.subtract( Duration(days: nDays) ) ) ,
-      getDateTimeDayEnd( now )
+      getDateTimeDayStart( time.subtract( Duration(days: nDays) ) ) ,
+      getDateTimeDayEnd( time )
   );
 }
 
+/// Returns start and end of this week using [time] as reference.
+///
+/// [time] if null uses [ DateTime.now ].
 Pair<DateTime> getDateTimeThisWeek( [DateTimeWeekDay weekFirstDay, DateTime now] ) {
   now ??= DateTime.now() ;
 
@@ -439,10 +462,14 @@ Pair<DateTime> getDateTimeThisWeek( [DateTimeWeekDay weekFirstDay, DateTime now]
   ) ;
 }
 
-Pair<DateTime> getDateTimeLastWeek( [DateTimeWeekDay weekFirstDay, DateTime now] ) {
-  now ??= DateTime.now() ;
+/// Returns start and end of last week, before current week, using [time] as reference.
+///
+/// [weekFirstDay] the desired first day of week for computation behavior.
+/// [time] if null uses [ DateTime.now ].
+Pair<DateTime> getDateTimeLastWeek( [DateTimeWeekDay weekFirstDay, DateTime time] ) {
+  time ??= DateTime.now() ;
 
-  var weekStart = getDateTimeWeekStart(weekFirstDay, now).subtract(Duration(days: 7)) ;
+  var weekStart = getDateTimeWeekStart(weekFirstDay, time).subtract(Duration(days: 7)) ;
   var weekEnd = getDateTimeWeekEnd(weekFirstDay, weekStart) ;
 
   return Pair(
@@ -451,21 +478,27 @@ Pair<DateTime> getDateTimeLastWeek( [DateTimeWeekDay weekFirstDay, DateTime now]
   ) ;
 }
 
-Pair<DateTime> getDateTimeThisMonth( [DateTime now] ) {
-  now ??= DateTime.now() ;
+/// Returns start and end of this month, using [time] as reference.
+///
+/// [time] if null uses [ DateTime.now ].
+Pair<DateTime> getDateTimeThisMonth( [DateTime time] ) {
+  time ??= DateTime.now() ;
 
-  var y = now.year ;
-  var m = now.month ;
+  var y = time.year ;
+  var m = time.month ;
   return Pair(
       getDateTimeDayStart( DateTime( y , m , 1 , 0 , 0 ,0 , 0,0) ) ,
       getDateTimeDayEnd( DateTime( y , m , getLastDayOfMonth(m, year: y) , 23 , 59 , 59 , 0,0 ) )
   ) ;
 }
 
-Pair<DateTime> getDateTimeLastMonth( [DateTime now] ) {
-  now ??= DateTime.now() ;
+/// Returns start and end of last month, before current month, using [time] as reference.
+///
+/// [time] if null uses [ DateTime.now ].
+Pair<DateTime> getDateTimeLastMonth( [DateTime time] ) {
+  time ??= DateTime.now() ;
 
-  var prevMonth = getDateTimePreviousMonth(now.month , year: now.year) ;
+  var prevMonth = getDateTimePreviousMonth(time.month , year: time.year) ;
 
   var y = prevMonth.year ;
   var m = prevMonth.month ;
@@ -476,6 +509,10 @@ Pair<DateTime> getDateTimeLastMonth( [DateTime now] ) {
   ) ;
 }
 
+/// Returns start of previous month, using as reference [month] and [year].
+///
+/// [month] from 1 to 12.
+/// [year] if null uses year from [ DateTime.now ].
 DateTime getDateTimePreviousMonth(int month, { int year } ) {
   year ??= DateTime.now().year ;
   var cursor = DateTime( year , month , 1 , 0 , 0 , 0 , 0,0 ) ;
@@ -483,6 +520,10 @@ DateTime getDateTimePreviousMonth(int month, { int year } ) {
   return prev ;
 }
 
+/// Returns the last day of [month].
+///
+/// [month] from 1 to 12.
+/// [year] if null uses year from [ DateTime.now ].
 int getLastDayOfMonth(int month, {  int year }) {
   year ??= DateTime.now().year ;
 
@@ -497,19 +538,27 @@ int getLastDayOfMonth(int month, {  int year }) {
   }
 }
 
-DateTime getDateTimeWeekStart( [DateTimeWeekDay weekFirstDay , DateTime now] ) {
+/// Returns the start of the week using [time] as reference.
+///
+/// [weekFirstDay] the desired first day of week for computation behavior.
+/// [time] if null uses [ DateTime.now ].
+DateTime getDateTimeWeekStart( [DateTimeWeekDay weekFirstDay , DateTime time] ) {
   weekFirstDay ??= DateTimeWeekDay.Monday ;
-  now ??= DateTime.now() ;
+  time ??= DateTime.now() ;
 
   var weekFirstDayIndex = getDateTimeWeekDayIndex(weekFirstDay) ;
 
-  while ( now.weekday != weekFirstDayIndex ) {
-    now = now.subtract( Duration(days: 1) ) ;
+  while ( time.weekday != weekFirstDayIndex ) {
+    time = time.subtract( Duration(days: 1) ) ;
   }
 
-  return getDateTimeDayStart( now ) ;
+  return getDateTimeDayStart( time ) ;
 }
 
+/// Returns the end of the week using [time] as reference.
+///
+/// [weekFirstDay] the desired first day of week for computation behavior.
+/// [time] if null uses [ DateTime.now ].
 DateTime getDateTimeWeekEnd( [DateTimeWeekDay weekFirstDay , DateTime now] ) {
   weekFirstDay ??= DateTimeWeekDay.Monday ;
   now ??= DateTime.now() ;
@@ -521,29 +570,53 @@ DateTime getDateTimeWeekEnd( [DateTimeWeekDay weekFirstDay , DateTime now] ) {
   return getDateTimeDayEnd(weekEnd) ;
 }
 
+/// Enum for types of date ranges.
 enum DateRangeType {
+  /// Today.
   TODAY,
+
+  /// Yesterday.
   YESTERDAY,
+
+  /// Last 7 days.
   LAST_7_DAYS,
+
+  /// Current week.
   THIS_WEEK,
+
+  /// Previous week.
   LAST_WEEK,
+
+  /// Last 30 days.
   LAST_30_DAYS,
+
+  /// Last 60 days.
   LAST_60_DAYS,
+
+  /// Last 90 days.
   LAST_90_DAYS,
+
+  /// Previous month.
   LAST_MONTH,
+
+  /// Current month.
   THIS_MONTH,
 }
 
-Pair<DateTime> getDateTimeRange( DateRangeType rangeType , [DateTime now, DateTimeWeekDay weekFirstDay] ) {
-  now ??= getDateTimeNow() ;
+/// Returns start and end of date range [rangeType].
+///
+/// [weekFirstDay] the desired first day of week for computation behavior.
+/// [time] if null uses [ DateTime.now ].
+Pair<DateTime> getDateTimeRange( DateRangeType rangeType , [DateTime time, DateTimeWeekDay weekFirstDay] ) {
+  time ??= getDateTimeNow() ;
 
-  var nowStart = getDateTimeDayStart(now) ;
-  var nowEnd = getDateTimeDayEnd(now) ;
+  var nowStart = getDateTimeDayStart(time) ;
+  var nowEnd = getDateTimeDayEnd(time) ;
 
   switch(rangeType) {
     case DateRangeType.TODAY: return Pair( nowStart, nowEnd ) ;
     case DateRangeType.YESTERDAY: {
-      var timeYesterday = getDateTimeYesterday(now);
+      var timeYesterday = getDateTimeYesterday(time);
       return Pair( timeYesterday , getDateTimeDayEnd(timeYesterday) ) ;
     }
 
@@ -551,16 +624,20 @@ Pair<DateTime> getDateTimeRange( DateRangeType rangeType , [DateTime now, DateTi
     case DateRangeType.THIS_WEEK: return getDateTimeThisWeek(weekFirstDay, nowStart) ;
     case DateRangeType.LAST_WEEK: return getDateTimeLastWeek(weekFirstDay, nowStart) ;
 
-    case DateRangeType.LAST_30_DAYS: return getDateTimeLastNDays(29, now) ;
-    case DateRangeType.LAST_60_DAYS: return getDateTimeLastNDays(59, now) ;
-    case DateRangeType.LAST_90_DAYS: return getDateTimeLastNDays(89, now) ;
-    case DateRangeType.LAST_MONTH: return getDateTimeLastMonth(now) ;
-    case DateRangeType.THIS_MONTH: return getDateTimeThisMonth(now) ;
+    case DateRangeType.LAST_30_DAYS: return getDateTimeLastNDays(29, time) ;
+    case DateRangeType.LAST_60_DAYS: return getDateTimeLastNDays(59, time) ;
+    case DateRangeType.LAST_90_DAYS: return getDateTimeLastNDays(89, time) ;
+    case DateRangeType.LAST_MONTH: return getDateTimeLastMonth(time) ;
+    case DateRangeType.THIS_MONTH: return getDateTimeThisMonth(time) ;
     default: throw UnsupportedError("Can't handle: $rangeType") ;
   }
 
 }
 
+/// Returns the start of a time [unit] using [time] as reference.
+///
+/// [weekFirstDay] the desired first day of week for computation behavior.
+/// [locale] Locale code to use if [weekFirstDay] is null and need to be defined.
 DateTime getDateTimeStartOf(DateTime time, dynamic unit, { DateTimeWeekDay weekFirstDay , String locale } ) {
   var unitParsed = parseUnit(unit) ;
   if (unitParsed == null) return null ;
@@ -569,7 +646,7 @@ DateTime getDateTimeStartOf(DateTime time, dynamic unit, { DateTimeWeekDay weekF
     case Unit.Years: return DateTime( time.year ) ;
     case Unit.Quarters: return DateTime( time.year , (time.month~/3)*3 ) ;
     case Unit.Weeks: {
-      weekFirstDay ??= getWeekFirstDay() ;
+      weekFirstDay ??= getWeekFirstDay(locale) ;
       var dateTimeRange = getDateTimeRange( DateRangeType.THIS_WEEK , time, weekFirstDay ) ;
       return dateTimeRange.a ;
     }
@@ -588,6 +665,10 @@ DateTime getDateTimeStartOf(DateTime time, dynamic unit, { DateTimeWeekDay weekF
   throw ArgumentError("Can't handle unit: $unit") ;
 }
 
+/// Returns the end of a time [unit] using [time] as reference.
+///
+/// [weekFirstDay] the desired first day of week for computation behavior.
+/// [locale] Locale code to use if [weekFirstDay] is null and need to be defined.
 DateTime getDateTimeEndOf(DateTime time, dynamic unit, { DateTimeWeekDay weekFirstDay , String locale } ) {
   var unitParsed = parseUnit(unit) ;
   if (unitParsed == null) return null ;
@@ -596,7 +677,7 @@ DateTime getDateTimeEndOf(DateTime time, dynamic unit, { DateTimeWeekDay weekFir
     case Unit.Years: return DateTime( time.year , 12 , 31 , 23, 59, 59, 999 ) ;
     case Unit.Quarters: return getDateTimeThisMonth( getDateTimeStartOf(time, unit) ).b ;
     case Unit.Weeks: {
-      weekFirstDay ??= getWeekFirstDay() ;
+      weekFirstDay ??= getWeekFirstDay( locale ) ;
       var dateTimeRange = getDateTimeRange( DateRangeType.THIS_WEEK , time, weekFirstDay ) ;
       return dateTimeRange.b ;
     }
@@ -615,6 +696,9 @@ DateTime getDateTimeEndOf(DateTime time, dynamic unit, { DateTimeWeekDay weekFir
   throw ArgumentError("Can't handle unit: $unit") ;
 }
 
+/// Returns the first day of a week as enum [DateTimeWeekDay] for [locale].
+///
+/// [locale] if null uses system default.
 DateTimeWeekDay getWeekFirstDay( [String locale] ) {
   var dateSymbols = _getLocaleDateSymbols(locale) ;
   if (dateSymbols == null) return DateTimeWeekDay.Monday ;
