@@ -1,97 +1,104 @@
-
 import 'dart:async';
 
 class _ListenSignature {
-  final dynamic _identifier ;
-  bool _identifyByInstance ;
-  final bool _cancelOnError ;
+  final dynamic _identifier;
 
-  _ListenSignature(this._identifier, bool identifyByInstance, this._cancelOnError) {
-    _identifyByInstance = identifyByInstance ?? true ;
+  bool _identifyByInstance;
+
+  final bool _cancelOnError;
+
+  _ListenSignature(
+      this._identifier, bool identifyByInstance, this._cancelOnError) {
+    _identifyByInstance = identifyByInstance ?? true;
   }
 
   dynamic get identifier => _identifier;
+
   bool get identifyByInstance => _identifyByInstance;
+
   bool get cancelOnError => _cancelOnError;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is _ListenSignature &&
-              runtimeType == other.runtimeType &&
-              ( _identifyByInstance ? identical( _identifier , other._identifier ) : _identifier == other._identifier ) &&
-              _cancelOnError == other._cancelOnError ;
+      other is _ListenSignature &&
+          runtimeType == other.runtimeType &&
+          (_identifyByInstance
+              ? identical(_identifier, other._identifier)
+              : _identifier == other._identifier) &&
+          _cancelOnError == other._cancelOnError;
 
   @override
   int get hashCode =>
       _identifier.hashCode ^
-      ( _cancelOnError != null ? _cancelOnError.hashCode : 0 ) ;
-
+      (_cancelOnError != null ? _cancelOnError.hashCode : 0);
 }
 
 /// Implements a Stream for events and additional features.
 ///
 /// See [Stream] for more documentation of delegated methods.
 class EventStream<T> implements Stream<T> {
+  StreamController<T> _controller;
 
-  StreamController<T> _controller ;
-  Stream<T> _s ;
+  Stream<T> _s;
 
   EventStream() {
     _controller = StreamController();
-    _s = _controller.stream.asBroadcastStream() ;
+    _s = _controller.stream.asBroadcastStream();
   }
 
-  bool _used = false ;
+  bool _used = false;
 
   bool get isUsed => _used;
 
-  void _markUsed() => _used = true ;
+  void _markUsed() => _used = true;
 
   Stream<T> get _stream {
     _markUsed();
-    return _s ;
+    return _s;
   }
 
   /////////////////////////////////////////////////
 
   /// Adds an event and notify it to listeners.
   void add(T value) {
-    if (!_used) return ;
+    if (!_used) return;
     _controller.add(value);
   }
 
   /// Adds an error event and notify it to listeners.
   void addError(Object error, StackTrace stackTrace) {
-    if (!_used) return ;
-    _controller.addError(error, stackTrace) ;
+    if (!_used) return;
+    _controller.addError(error, stackTrace);
   }
 
   Future addStream(Stream<T> source, {bool cancelOnError}) {
-    return _controller.addStream(source, cancelOnError: cancelOnError) ;
+    return _controller.addStream(source, cancelOnError: cancelOnError);
   }
 
   /// Closes this stream.
   Future close() {
-    return _controller.close() ;
+    return _controller.close();
   }
 
   /// Returns [true] if this stream is closed.
-  bool get isClosed => _controller.isClosed ;
+  bool get isClosed => _controller.isClosed;
 
   /// Returns [true] if this stream is paused.
-  bool get isPaused => _controller.isPaused ;
+  bool get isPaused => _controller.isPaused;
 
   /////////////////////////////////////////////////
 
   @override
   Future<bool> any(bool Function(T element) test) {
-    return _stream.any(test) ;
+    return _stream.any(test);
   }
 
   @override
-  Stream<T> asBroadcastStream({void Function(StreamSubscription<T> subscription) onListen, void Function(StreamSubscription<T> subscription) onCancel}) {
-    return _stream.asBroadcastStream(onListen: onListen, onCancel: onCancel) ;
+  Stream<T> asBroadcastStream(
+      {void Function(StreamSubscription<T> subscription) onListen,
+      void Function(StreamSubscription<T> subscription) onCancel}) {
+    return _stream.asBroadcastStream(onListen: onListen, onCancel: onCancel);
   }
 
   @override
@@ -149,7 +156,7 @@ class EventStream<T> implements Stream<T> {
 
   @override
   Future<S> fold<S>(S initialValue, S Function(S previous, T element) combine) {
-    return _stream.fold(initialValue, combine) ;
+    return _stream.fold(initialValue, combine);
   }
 
   @override
@@ -184,7 +191,7 @@ class EventStream<T> implements Stream<T> {
   @override
   Future<int> get length => _stream.length;
 
-  final Set<_ListenSignature> _listenSignatures = {} ;
+  final Set<_ListenSignature> _listenSignatures = {};
 
   /// Listen for events.
   ///
@@ -193,37 +200,43 @@ class EventStream<T> implements Stream<T> {
   /// [singletonIdentifier] identifier to avoid multiple listeners with the same identifier.
   /// [singletonIdentifyByInstance] if true uses `identical(...)` to compare the [singletonIdentifier].
   @override
-  StreamSubscription<T> listen(void Function(T event) onData, {Function onError, void Function() onDone, bool cancelOnError, dynamic singletonIdentifier, bool singletonIdentifyByInstance = true}) {
+  StreamSubscription<T> listen(void Function(T event) onData,
+      {Function onError,
+      void Function() onDone,
+      bool cancelOnError,
+      dynamic singletonIdentifier,
+      bool singletonIdentifyByInstance = true}) {
     try {
       cancelOnError ??= false;
 
       if (singletonIdentifier != null) {
-        var listenSignature = _ListenSignature(singletonIdentifier, singletonIdentifyByInstance, cancelOnError);
+        var listenSignature = _ListenSignature(
+            singletonIdentifier, singletonIdentifyByInstance, cancelOnError);
 
-        if ( _listenSignatures.contains(listenSignature) ) {
-          return null ;
+        if (_listenSignatures.contains(listenSignature)) {
+          return null;
         }
-        _listenSignatures.add(listenSignature) ;
+        _listenSignatures.add(listenSignature);
       }
 
-      return _stream.listen(onData, onError: onError, onDone: onDone, cancelOnError: cancelOnError) ;
-    }
-    catch (e,s) {
+      return _stream.listen(onData,
+          onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+    } catch (e, s) {
       print(e);
       print(s);
-      return null ;
+      return null;
     }
   }
 
   /// Returns a future that completes when receives at least 1 event.
   Future<T> listenAsFuture() {
-    var completer = Completer<T>() ;
-    listen((e){
-      if ( !completer.isCompleted ) {
+    var completer = Completer<T>();
+    listen((e) {
+      if (!completer.isCompleted) {
         completer.complete(e);
       }
     });
-    return completer.future ;
+    return completer.future;
   }
 
   @override
@@ -270,7 +283,8 @@ class EventStream<T> implements Stream<T> {
   }
 
   @override
-  Stream<T> timeout(Duration timeLimit, {void Function(EventSink<T> sink) onTimeout}) {
+  Stream<T> timeout(Duration timeLimit,
+      {void Function(EventSink<T> sink) onTimeout}) {
     return _stream.timeout(timeLimit, onTimeout: onTimeout);
   }
 
@@ -293,6 +307,4 @@ class EventStream<T> implements Stream<T> {
   Stream<T> where(bool Function(T event) test) {
     return _stream.where(test);
   }
-
 }
-
