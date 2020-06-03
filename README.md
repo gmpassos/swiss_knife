@@ -1,11 +1,13 @@
 # Swiss Knife
 
 [![pub package](https://img.shields.io/pub/v/swiss_knife.svg)](https://pub.dartlang.org/packages/swiss_knife)
+[![License](https://img.shields.io/github/license/gmpassos/swiss_knife)](https://github.com/gmpassos/swiss_knife/blob/master/LICENSE)
 [![CI](https://img.shields.io/github/workflow/status/gmpassos/swiss_knife/Dart%20CI/master)](https://github.com/gmpassos/swiss_knife/actions)
 [![GitHub Tag](https://img.shields.io/github/v/tag/gmpassos/swiss_knife)](https://github.com/gmpassos/swiss_knife/releases)
+[![Funding](https://img.shields.io/github/commits-since/gmpassos/swiss_knife/latest)](https://github.com/gmpassos/swiss_knife/network)
 [![Code size](https://img.shields.io/github/languages/code-size/gmpassos/swiss_knife)](https://github.com/gmpassos/swiss_knife)
-[![License](https://img.shields.io/github/license/gmpassos/swiss_knife)](https://github.com/gmpassos/swiss_knife/blob/master/LICENSE)
-[![Funding](https://img.shields.io/liberapay/patrons/gmpassos)](https://en.liberapay.com/gmpassos/)
+[![Funding](https://img.shields.io/liberapay/patrons/gmpassos.svg?logo=liberapay)](https://liberapay.com/gmpassos/donate)
+[![Funding](https://img.shields.io/badge/Donate-gold?labelColor=666666&style=plastic&logo=liberapay)](https://liberapay.com/gmpassos/donate)
 
 
 Dart Useful Tools - collections, math, date, uri, json, events, resources, etc...
