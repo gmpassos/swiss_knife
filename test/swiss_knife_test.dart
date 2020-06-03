@@ -197,6 +197,7 @@ void main() {
     });
 
     test('statistics', () {
+      expect(Math.sum([2, 4]), equals(6));
       expect(Math.mean([2, 4]), equals(3));
     });
 
@@ -838,6 +839,23 @@ void main() {
               delimiter: '_', trim: false),
           equals([' a ', ' b ', 'c', 'd']));
     });
+
+
+    test('isBoolList', () {
+      expect( listMatchesAll([1,1,1] , (e) => e == 1), equals(true));
+      expect( listMatchesAll([1,0,1] , (e) => e == 1), equals(false));
+      expect( listMatchesAll([1,1,1] , (e) => e == 0), equals(false));
+
+      expect( listNotMatchesAll([1,1,1] , (e) => e == 1), equals(false));
+      expect( listNotMatchesAll([1,0,1] , (e) => e == 1), equals(true));
+      expect( listNotMatchesAll([1,1,1] , (e) => e == 0), equals(true));
+
+      expect( isListValuesAllEquals( [3,3,3,3,3] , 3) , equals(true));
+      expect( isListValuesAllEquals( [3,3,3,3,3]) , equals(true));
+      expect( isListValuesAllEquals( [3,3,3,2,3]) , equals(false));
+      expect( isListValuesAllEquals( [3,3,3,3,3], 2) , equals(false));
+    });
+
   });
 
   group('Date', () {
