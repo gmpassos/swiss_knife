@@ -1,3 +1,9 @@
+## 2.5.2
+
+- Math.mean() returns 0 on empty lists.
+- dartfmt.
+- Add badges to README.md
+
 ## 2.5.1
 
 - Math.sum()
