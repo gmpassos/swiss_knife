@@ -1,10 +1,11 @@
 # Swiss Knife
 
 [![pub package](https://img.shields.io/pub/v/swiss_knife.svg)](https://pub.dartlang.org/packages/swiss_knife)
-[![pub package](https://img.shields.io/github/v/tag/gmpassos/swiss_knife)](https://github.com/gmpassos/swiss_knife/releases)
-[![pub package](https://img.shields.io/github/languages/code-size/gmpassos/swiss_knife)](https://github.com/gmpassos/swiss_knife)
-[![license](https://img.shields.io/github/license/gmpassos/swiss_knife)](https://github.com/gmpassos/swiss_knife/blob/master/LICENSE)
-[![pub package](https://img.shields.io/liberapay/patrons/gmpassos)](https://en.liberapay.com/gmpassos/)
+[![CI](https://img.shields.io/github/workflow/status/gmpassos/swiss_knife/Dart%20CI/master)](https://github.com/gmpassos/swiss_knife/actions)
+[![GitHub Tag](https://img.shields.io/github/v/tag/gmpassos/swiss_knife)](https://github.com/gmpassos/swiss_knife/releases)
+[![Code size](https://img.shields.io/github/languages/code-size/gmpassos/swiss_knife)](https://github.com/gmpassos/swiss_knife)
+[![License](https://img.shields.io/github/license/gmpassos/swiss_knife)](https://github.com/gmpassos/swiss_knife/blob/master/LICENSE)
+[![Funding](https://img.shields.io/liberapay/patrons/gmpassos)](https://en.liberapay.com/gmpassos/)
 
 
 Dart Useful Tools - collections, math, date, uri, json, events, resources, etc...
