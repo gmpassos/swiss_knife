@@ -258,10 +258,10 @@ bool listMatchesAll<T>(Iterable<T> list, bool matcher(T entry)) {
 
 /// Returns [true] if all [list] elements are of the same type.
 bool isListEntriesAllOfSameType(Iterable list) {
-  if (list == null || list.isEmpty) return null ;
-  if (list.length == 1) return true ;
-  var t = list.first.runtimeType ;
-  return listMatchesAll(list, (e) => e.runtimeType == t) ;
+  if (list == null || list.isEmpty) return null;
+  if (list.length == 1) return true;
+  var t = list.first.runtimeType;
+  return listMatchesAll(list, (e) => e.runtimeType == t);
 }
 
 /// Adds all [values] to [list].
@@ -582,11 +582,14 @@ bool isListValuesAllEquals(Iterable list, [eqValue]) {
 
 /// Returns [true] if [list] elements are all equals to value
 /// at index [valueIndex].
-bool isListOfListValuesAllEquals(Iterable<List> list, {dynamic eqValue, int eqValueIndex}) {
+bool isListOfListValuesAllEquals(Iterable<List> list,
+    {dynamic eqValue, int eqValueIndex}) {
   if (list == null) return false;
   if (list.isEmpty) return false;
 
-  eqValue ??= eqValueIndex != null ? list.first[eqValueIndex] : list.firstWhere((e) => e.isNotEmpty).first ;
+  eqValue ??= eqValueIndex != null
+      ? list.first[eqValueIndex]
+      : list.firstWhere((e) => e.isNotEmpty).first;
 
   if (eqValueIndex != null) {
     return listMatchesAll(list, (v) => v[eqValueIndex] == eqValue);
@@ -1019,10 +1022,8 @@ class MapDelegate<K, V> implements Map<K, V> {
   Iterable<V> get values => _map.values;
 }
 
-
 /// A [Map] of properties.
 class MapProperties extends MapDelegate<String, dynamic> {
-
   /// Parses [value] to a valid property [value].
   static dynamic parseValue(dynamic value) {
     if (isInt(value)) {
@@ -1387,5 +1388,4 @@ class MapProperties extends MapDelegate<String, dynamic> {
 
     return s;
   }
-
 }

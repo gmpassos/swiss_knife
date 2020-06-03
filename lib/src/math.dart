@@ -121,7 +121,7 @@ class Math {
     for (var n in ns) {
       total += n;
     }
-    return total ;
+    return total;
   }
 
   /// Mean value of [ns] entries.
