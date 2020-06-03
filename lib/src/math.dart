@@ -115,13 +115,18 @@ class Math {
     return false;
   }
 
-  /// Mean value of [ns] entries.
-  static double mean(Iterable<num> ns) {
+  /// Sum value of [ns] entries.
+  static double sum(Iterable<num> ns) {
     var total = 0.0;
     for (var n in ns) {
       total += n;
     }
-    return total / ns.length;
+    return total ;
+  }
+
+  /// Mean value of [ns] entries.
+  static double mean(Iterable<num> ns) {
+    return sum(ns) / ns.length;
   }
 
   /// Standard deviation of [ns] entries.

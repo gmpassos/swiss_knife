@@ -1,5 +1,10 @@
 ## 2.5.0
 
+- Math.sum()
+- More API Documentation.
+
+## 2.5.0
+
 - dartfmt.
 
 ## 2.4.2

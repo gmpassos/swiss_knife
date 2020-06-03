@@ -4,6 +4,7 @@ import 'dart:math' as dart_math;
 import 'date.dart';
 import 'math.dart';
 
+/// Represents a pair with [a] and [b] of type [T].
 class Pair<T> {
   final T a;
 
@@ -18,6 +19,7 @@ class Pair<T> {
     return Pair(b, a);
   }
 
+  /// Returns a [Point] with [a] as [dart_math.Point.x] and [b] as [dart_math.Point.y].
   dart_math.Point<num> get asPoint =>
       dart_math.Point<num>(parseNum(a), parseNum(b));
 
@@ -32,12 +34,16 @@ class Pair<T> {
   @override
   int get hashCode => a.hashCode ^ b.hashCode;
 
+  /// Returns [true] if [a] not null.
   bool get aNotNull => a != null;
 
+  /// Returns [true] if [b] not null.
   bool get bNotNull => b != null;
 
+  /// Returns [a] as [String].
   String get aAsString => aNotNull ? a.toString() : '';
 
+  /// Returns [b] as [String].
   String get bAsString => bNotNull ? b.toString() : '';
 
   @override
@@ -45,15 +51,21 @@ class Pair<T> {
     return '[$a, $b]';
   }
 
+  /// Joins [a] and [b] with the [delimiter].
   String join(String delimiter) {
     return '$a$delimiter$b';
   }
 
+  /// Returns as a [MapEntry].
   MapEntry<T, T> get asMapEntry => MapEntry(a, b);
 
+  /// Returns as a List with [a,b].
   List<T> get asList => [a, b];
 }
 
+/// Returns [true] if [o1] and [o2] are equals.
+///
+/// [deep] If [true] checks the collections deeply.
 bool isEquals(dynamic o1, dynamic o2, [bool deep = false]) {
   if (deep != null && deep) {
     return isEqualsDeep(o1, o2);
@@ -62,6 +74,7 @@ bool isEquals(dynamic o1, dynamic o2, [bool deep = false]) {
   }
 }
 
+/// Returns [true] if [o1] and [o2] are equals deeply.
 bool isEqualsDeep(dynamic o1, dynamic o2) {
   if (identical(o1, o2)) return true;
 
@@ -80,6 +93,8 @@ bool isEqualsDeep(dynamic o1, dynamic o2) {
   return o1 == o2;
 }
 
+/// Returns [true] if [o1] and [o2] are equals as [String].
+/// Uses [String.toString] to check.
 bool isEqualsAsString(dynamic o1, dynamic o2) {
   if (identical(o1, o2)) return true;
   if (o1 == o2) return true;
@@ -89,6 +104,11 @@ bool isEqualsAsString(dynamic o1, dynamic o2) {
   return s1 == s2;
 }
 
+/// Returns [true] if [l1] and [l2] are equals, including the same position
+/// for the elements.
+///
+/// [sort] If [true] sorts [l1] and [l2] before check.
+/// [deep] If [true] checks deeply collections elements.
 bool isEquivalentList(List l1, List l2,
     {bool sort = false, bool deep = false}) {
   if (l1 == l2) return true;
@@ -116,6 +136,7 @@ bool isEquivalentList(List l1, List l2,
   return true;
 }
 
+/// Same as [isEquivalentList] but for [Iterable].
 bool isEquivalentIterator(Iterable it1, Iterable it2, {bool deep = false}) {
   if (it1 == it2) return true;
 
@@ -137,6 +158,9 @@ bool isEquivalentIterator(Iterable it1, Iterable it2, {bool deep = false}) {
   return true;
 }
 
+/// Returns [true] if [m1] and [m2] are equals.
+///
+/// [deep] IF [true] checks deeply collections values.
 bool isEquivalentMap(Map m1, Map m2, {bool deep = false}) {
   if (m1 == m2) return true;
 
@@ -162,6 +186,15 @@ bool isEquivalentMap(Map m1, Map m2, {bool deep = false}) {
   return true;
 }
 
+/// Returns [true] [element] is equals to [value].
+///
+/// If [element] is a [List] checks if all entries in the list are equals to
+/// [value].
+///
+/// If [element] is a [Map] checks if all [Map.values] are equals to
+/// [value].
+///
+/// [deep] IF [true] checks deeply collections values.
 bool isAllEquals(dynamic element, dynamic value, [bool deep = false]) {
   if (isEquals(element, value, deep)) {
     return true;
@@ -176,6 +209,9 @@ bool isAllEquals(dynamic element, dynamic value, [bool deep = false]) {
   return false;
 }
 
+/// Returns [true] if [list] elements are all equals to [value].
+///
+/// [deep] IF [true] checks deeply collections values.
 bool isAllEqualsInList(List list, dynamic value, [bool deep = false]) {
   if (list == null || list.isEmpty) return false;
 
@@ -190,6 +226,9 @@ bool isAllEqualsInList(List list, dynamic value, [bool deep = false]) {
   return true;
 }
 
+/// Returns [true] if [map] values are all equals to [value].
+///
+/// [deep] IF [true] checks deeply collections values.
 bool isAllEqualsInMap(Map map, dynamic value, [bool deep = false]) {
   if (map == null || map.isEmpty) return false;
 
@@ -204,27 +243,39 @@ bool isAllEqualsInMap(Map map, dynamic value, [bool deep = false]) {
   return true;
 }
 
+/// Returns [true] if at least ONE [list] element does NOT matches [matcher].
 // ignore: use_function_type_syntax_for_parameters
 bool listNotMatchesAll<T>(Iterable<T> list, bool matcher(T entry)) {
   var noMatch = list.firstWhere((e) => !matcher(e), orElse: () => null);
   return noMatch != null;
 }
 
+/// Returns [true] if all [list] elements matches [matcher].
 // ignore: use_function_type_syntax_for_parameters
 bool listMatchesAll<T>(Iterable<T> list, bool matcher(T entry)) {
   return !listNotMatchesAll(list, matcher);
 }
 
-void addAllToList(List l, dynamic v) {
-  if (v == null) return;
+/// Returns [true] if all [list] elements are of the same type.
+bool isListEntriesAllOfSameType(Iterable list) {
+  if (list == null || list.isEmpty) return null ;
+  if (list.length == 1) return true ;
+  var t = list.first.runtimeType ;
+  return listMatchesAll(list, (e) => e.runtimeType == t) ;
+}
 
-  if (v is List) {
-    l.addAll(v);
+/// Adds all [values] to [list].
+void addAllToList(List list, dynamic values) {
+  if (values == null) return;
+
+  if (values is List) {
+    list.addAll(values);
   } else {
-    l.add(v);
+    list.add(values);
   }
 }
 
+/// Joins all parameters to a single list.
 List joinLists(List l1,
     [List l2, List l3, List l4, List l5, List l6, List l7, List l8, List l9]) {
   var l = [];
@@ -242,26 +293,31 @@ List joinLists(List l1,
   return l;
 }
 
-List copyList(List l) {
-  if (l == null) return null;
-  return List.from(l);
+/// Copies [list].
+List copyList(List list) {
+  if (list == null) return null;
+  return List.from(list);
 }
 
-List<String> copyListString(List<String> l) {
-  if (l == null) return null;
-  return List<String>.from(l);
+/// Copies [list] as a [List<String>].
+List<String> copyListString(List<String> list) {
+  if (list == null) return null;
+  return List<String>.from(list);
 }
 
-Map copyMap(Map m) {
-  if (m == null) return null;
-  return Map.from(m);
+/// Copies [map].
+Map copyMap(Map map) {
+  if (map == null) return null;
+  return Map.from(map);
 }
 
+/// Copies [map] as a [Map<String,String>].
 Map<String, String> copyMapString(Map<String, String> m) {
   if (m == null) return null;
   return Map<String, String>.from(m);
 }
 
+/// Gets a [map] entry ignoring key case.
 MapEntry<String, V> getEntryIgnoreCase<V>(Map<String, V> map, String key) {
   var val = map[key];
   if (val != null) return MapEntry(key, val);
@@ -280,11 +336,13 @@ MapEntry<String, V> getEntryIgnoreCase<V>(Map<String, V> map, String key) {
   return null;
 }
 
+/// Gets a [map] value ignoring [key] case.
 V getIgnoreCase<V>(Map<String, V> map, String key) {
   var entry = getEntryIgnoreCase(map, key);
   return entry != null ? entry.value : null;
 }
 
+/// Puts a [map] value ignoring [key] case.
 V putIgnoreCase<V>(Map<String, V> map, String key, V value) {
   var entry = getEntryIgnoreCase(map, key);
   if (entry != null) {
@@ -296,6 +354,7 @@ V putIgnoreCase<V>(Map<String, V> map, String key, V value) {
   }
 }
 
+/// Returns [o] as [Map]. Converts it if needed.
 Map asMap(dynamic o) {
   if (o == null) return null;
   if (o is Map) return o;
@@ -317,12 +376,14 @@ Map asMap(dynamic o) {
   return m;
 }
 
+/// Returns [o] as a [List<Map>]. Converts it if needed.
 List<Map> asListOfMap(dynamic o) {
   if (o == null) return null;
   var l = o as List<dynamic>;
   return l.map((e) => asMap(e)).toList();
 }
 
+/// Returns a Map with sorted keys.
 Map<K, V> sortMapEntries<K, V>(Map map,
     [int Function(MapEntry<K, V> entry1, MapEntry<K, V> entry2) compare]) {
   // ignore: omit_local_variable_types
@@ -335,6 +396,7 @@ Map<K, V> sortMapEntries<K, V>(Map map,
 
 ////////////////////////////////////////////////////////////////////////////////
 
+/// Returns [true] if [list] is of [String].
 bool isListOfStrings(Iterable list) {
   if (list == null || list.isEmpty) return false;
 
@@ -345,12 +407,14 @@ bool isListOfStrings(Iterable list) {
   return true;
 }
 
+/// Returns [o] as a [List<String>]. Converts it if needed.
 List<String> asListOfString(dynamic o) {
   if (o == null) return null;
   var l = o as List<dynamic>;
   return l.map((e) => e.toString()).toList();
 }
 
+/// Returns [o] as a [Map<String,String>]. Converts it if needed.
 Map<String, String> asMapOfString(dynamic o) {
   if (o == null) return null;
   var m = o as Map<dynamic, dynamic>;
@@ -359,6 +423,8 @@ Map<String, String> asMapOfString(dynamic o) {
 
 final RegExp _toListOfStrings_delimiter = RegExp(r'\s+');
 
+/// Converts [s] to a [List<String>].
+/// Converts any collection to a flat list of strings.
 List<String> toFlatListOfStrings(dynamic s,
     {Pattern delimiter, bool trim, bool ignoreEmpty}) {
   if (s == null) return [];
@@ -413,6 +479,7 @@ List<String> toFlatListOfStrings(dynamic s,
   return list;
 }
 
+/// Returns [true] if [list] elements are all of type [String].
 bool isListOfString(Iterable list) {
   if (list == null) return false;
   if (list is List<String>) return true;
@@ -423,6 +490,7 @@ bool isListOfString(Iterable list) {
   return true;
 }
 
+/// Returns [true] if [list] elements are all of type [num].
 bool isListOfNum(Iterable list) {
   if (list == null) return false;
   if (list is List<num>) return true;
@@ -435,6 +503,7 @@ bool isListOfNum(Iterable list) {
 
 typedef TypeTester<T> = bool Function(T value);
 
+/// Returns [true] if [list] elements are all of type [T].
 bool isListOfType<T>(Iterable list) {
   if (list == null) return false;
   if (list is List<T>) return true;
@@ -445,6 +514,7 @@ bool isListOfType<T>(Iterable list) {
   return true;
 }
 
+/// Returns [true] if [list] elements are all of type [A] or [B].
 bool isListOfTypes<A, B>(Iterable list) {
   if (list == null) return false;
   if (list is List<A>) return true;
@@ -456,6 +526,7 @@ bool isListOfTypes<A, B>(Iterable list) {
   return true;
 }
 
+/// Returns [true] if [list] contains elements of type [T].
 bool listContainsType<T>(Iterable list) {
   if (list == null) return false;
   if (list is List<T>) return true;
@@ -466,6 +537,7 @@ bool listContainsType<T>(Iterable list) {
   return found != null;
 }
 
+/// Returns [true] if [list] elements are all of type [List].
 bool isListOfList(Iterable list) {
   if (list == null) return false;
   if (list is List<List>) return true;
@@ -476,6 +548,7 @@ bool isListOfList(Iterable list) {
   return true;
 }
 
+/// Returns [true] if [list] elements are all of type [List<List>].
 bool isListOfListOfList(Iterable list) {
   if (list == null) return false;
   if (list is List<List<List>>) return true;
@@ -486,6 +559,7 @@ bool isListOfListOfList(Iterable list) {
   return true;
 }
 
+/// Returns [true] if [list] elements are all of type [Map].
 bool isListOfMap(Iterable list) {
   if (list == null) return false;
   if (list is List<Map>) return true;
@@ -496,30 +570,36 @@ bool isListOfMap(Iterable list) {
   return true;
 }
 
-bool isAllListValuesEquals(Iterable list, [value]) {
+/// Returns [true] if [list] elements are all equals to [value].
+bool isListValuesAllEquals(Iterable list, [eqValue]) {
   if (list == null) return false;
   if (list.isEmpty) return false;
 
-  value ??= list.first;
+  eqValue ??= list.first;
 
-  return listMatchesAll(list, (v) => v == value);
+  return listMatchesAll(list, (v) => v == eqValue);
 }
 
-bool isAllListOfListValuesEquals(Iterable list, {value, int valueIndex}) {
+/// Returns [true] if [list] elements are all equals to value
+/// at index [valueIndex].
+bool isListOfListValuesAllEquals(Iterable<List> list, {dynamic eqValue, int eqValueIndex}) {
   if (list == null) return false;
   if (list.isEmpty) return false;
 
-  value ??= valueIndex != null ? list.first[valueIndex] : list.first;
+  eqValue ??= eqValueIndex != null ? list.first[eqValueIndex] : list.firstWhere((e) => e.isNotEmpty).first ;
 
-  if (valueIndex != null) {
-    return listMatchesAll(list, (v) => v[valueIndex] == value);
+  if (eqValueIndex != null) {
+    return listMatchesAll(list, (v) => v[eqValueIndex] == eqValue);
   } else {
-    return listMatchesAll(list, (v) => v == value);
+    return listMatchesAll(list, (v) => v == eqValue);
   }
 }
 
 typedef ParserFunction<T, R> = R Function(T value);
 
+/// Parses [s] to a [List<R>], where [R] is the result of [parse].
+///
+/// [def] The default value if [s] is invalid.
 List<R> parseListOf<T, R>(dynamic s,
     [ParserFunction<T, R> parser, List<R> def]) {
   if (s == null) return def;
@@ -527,6 +607,9 @@ List<R> parseListOf<T, R>(dynamic s,
   return [parser(s)];
 }
 
+/// Parses [s] to a [List<List<R>>], where [R] is the result of [parse].
+///
+/// [def] The default value if [s] is invalid.
 List<List<R>> parseListOfList<T, R>(dynamic s,
     [ParserFunction<T, R> parser, List<List<R>> def]) {
   if (s == null) return def;
@@ -536,6 +619,7 @@ List<List<R>> parseListOfList<T, R>(dynamic s,
 
 ////////////////////////////////////////////////////////////////////////////////
 
+/// Returns [true] if [map] is [Map<String,String>].
 bool isMapOfString(Map map) {
   if (map == null) return false;
   if (map is Map<String, String>) return true;
@@ -547,6 +631,7 @@ bool isMapOfString(Map map) {
   return true;
 }
 
+/// Returns [true] if [map] has [String] keys.
 bool isMapOfStringKeys(Map map) {
   if (map == null) return false;
   if (map is Map<String, String>) return true;
@@ -558,6 +643,7 @@ bool isMapOfStringKeys(Map map) {
   return true;
 }
 
+/// Returns [true] if [map] has [String] keys and [List] values.
 bool isMapOfStringKeysAndListValues(Map map) {
   if (map == null) return false;
   if (map is Map<String, List>) return true;
@@ -572,6 +658,7 @@ bool isMapOfStringKeysAndListValues(Map map) {
   return true;
 }
 
+/// Returns [true] if [map] has [String] keys and [num] values.
 bool isMapOfStringKeysAndNumValues(Map map) {
   if (map == null) return false;
   if (map is Map<String, num>) return true;
@@ -585,6 +672,9 @@ bool isMapOfStringKeysAndNumValues(Map map) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
+/// Finds in [map] a entry that has one of [keys].
+///
+/// [ignoreCase] If [true] ignores the case of the keys.
 MapEntry<K, V> findKeyEntry<K, V>(Map<K, V> map, List<K> keys,
     [bool ignoreCase]) {
   if (map == null || keys == null) return null;
@@ -613,16 +703,18 @@ MapEntry<K, V> findKeyEntry<K, V>(Map<K, V> map, List<K> keys,
   return null;
 }
 
+/// Finds in [map] a value that has one of [keys].
+///
+/// [ignoreCase] If [true] ignores the case of the keys.
 V findKeyValue<K, V>(Map<K, V> map, List<K> keys, [bool ignoreCase]) {
   var entry = findKeyEntry(map, keys, ignoreCase);
   return entry != null ? entry.value : null;
 }
 
-K findKeyName<K, V>(Map<K, V> map, List<K> keys, [bool ignoreCase]) {
-  var entry = findKeyEntry(map, keys, ignoreCase);
-  return entry != null ? entry.key : null;
-}
-
+/// Finds in [map] a value that is in key path [keyPath]
+///
+/// [keyDelimiter] The key path delimiter.
+/// [isValidValue] validates a matching value.
 V findKeyPathValue<V>(Map map, String keyPath,
     {String keyDelimiter = '/', bool Function(dynamic value) isValidValue}) {
   if (map.isEmpty || keyPath == null || keyPath.isEmpty) return null;
@@ -657,8 +749,16 @@ V findKeyPathValue<V>(Map map, String keyPath,
   }
 }
 
-////////////////////////////////////////////////////////////////////////////////
+/// Finds in [map] a key that has one of [keys].
+///
+/// [ignoreCase] If [true] ignores the case of the keys.
+K findKeyName<K, V>(Map<K, V> map, List<K> keys, [bool ignoreCase]) {
+  var entry = findKeyEntry(map, keys, ignoreCase);
+  return entry != null ? entry.key : null;
+}
 
+/// Returns [true] if [value] is empty. Checks for [String], [List], [Map]
+/// [Iterable] and [Set].
 bool isEmptyValue<T>(T value) {
   if (value == null) return true;
 
@@ -673,6 +773,7 @@ bool isEmptyValue<T>(T value) {
 
 typedef ValueValidator<V> = bool Function(V value);
 
+/// Validates [value] and returns [value] or [def].
 T resolveValue<T>(T value, T def, [ValueValidator valueValidator]) {
   if (value == null) return def;
   if (def == null) return value;
@@ -684,6 +785,12 @@ T resolveValue<T>(T value, T def, [ValueValidator valueValidator]) {
 
 typedef StringMapper<T> = T Function(String s);
 
+/// Parses [s] as a inline Map.
+///
+/// [delimiterPairs] The delimiter for pairs.
+/// [delimiterKeyValue] The delimiter for keys and values.
+/// [mapperKey] Maps keys to another type.
+/// [mapperValue] Maps values to another type.
 Map<K, V> parseFromInlineMap<K, V>(String s, Pattern delimiterPairs,
     Pattern delimiterKeyValue, StringMapper mapperKey, StringMapper mapperValue,
     [Map<K, V> def]) {
@@ -705,6 +812,10 @@ Map<K, V> parseFromInlineMap<K, V>(String s, Pattern delimiterPairs,
   return map;
 }
 
+/// Parses [s] as a inline list.
+///
+/// [delimiter] Elements delimiter.
+/// [mapper] Maps elements to another type.
 List<T> parseFromInlineList<T>(String s, Pattern delimiter, StringMapper mapper,
     [List<T> def]) {
   if (s == null) return def;
@@ -722,6 +833,9 @@ List<T> parseFromInlineList<T>(String s, Pattern delimiter, StringMapper mapper,
   return list;
 }
 
+/// Parses [v] as [String].
+///
+/// [def] Default value if [v] is invalid.
 String parseString(dynamic v, [String def]) {
   if (v == null) return def;
 
@@ -734,6 +848,11 @@ String parseString(dynamic v, [String def]) {
   return s;
 }
 
+/// Parses [s] as a inline [Map<String,String>].
+///
+/// [delimiterPairs] Delimiter for pairs.
+/// [delimiterKeyValue] Delimiter for keys and values.
+/// [def] Default map if [s] is invalid.
 Map<String, String> parseStringFromInlineMap(dynamic s,
     [Pattern delimiterPairs,
     Pattern delimiterKeyValue,
@@ -746,6 +865,11 @@ Map<String, String> parseStringFromInlineMap(dynamic s,
       parseString, parseString, def);
 }
 
+/// Parses [s] as inline [List<String>].
+///
+/// [delimiter] The delimiter of elements.
+///
+/// [def] The default value if [s] is invalid.
 List<String> parseStringFromInlineList(dynamic s,
     [Pattern delimiter, List<String> def]) {
   if (s == null) return def;
@@ -765,30 +889,33 @@ int deepHashCode(dynamic o) {
   }
 }
 
-int deepHashCodeList(List l) {
-  if (l == null) return 0;
+/// Computes a hash code inspecting deeply [list].
+int deepHashCodeList(List list) {
+  if (list == null) return 0;
 
   var h = 1;
 
-  for (var e in l) {
+  for (var e in list) {
     h ^= deepHashCode(e);
   }
 
   return h;
 }
 
-int deepHashCodeMap(Map m) {
-  if (m == null) return 0;
+/// Computes a hash code inspecting deeply [map].
+int deepHashCodeMap(Map map) {
+  if (map == null) return 0;
 
   var h = 1;
 
-  for (var e in m.entries) {
+  for (var e in map.entries) {
     h ^= deepHashCode(e.key) ^ deepHashCode(e.value);
   }
 
   return h;
 }
 
+/// Deeply copies [o].
 T deepCopy<T>(T o) {
   if (o == null) return null;
   if (o is String) return o;
@@ -801,18 +928,22 @@ T deepCopy<T>(T o) {
   return o;
 }
 
+/// Deeply copies [list].
 List deepCopyList(List l) {
   if (l == null) return null;
   if (l.isEmpty) return [];
   return l.map((e) => deepCopy(e)).toList();
 }
 
-Map deepCopyMap(Map m) {
-  if (m == null) return null;
-  if (m.isEmpty) return {};
-  return m.map((k, v) => MapEntry(deepCopy(k), deepCopy(v)));
+/// Deeply copies [map].
+Map deepCopyMap(Map map) {
+  if (map == null) return null;
+  if (map.isEmpty) return {};
+  return map.map((k, v) => MapEntry(deepCopy(k), deepCopy(v)));
 }
 
+/// A [Map] that delegates to another [_map].
+/// Useful to extend [Map] features.
 class MapDelegate<K, V> implements Map<K, V> {
   final Map<K, V> _map;
 
@@ -888,7 +1019,11 @@ class MapDelegate<K, V> implements Map<K, V> {
   Iterable<V> get values => _map.values;
 }
 
+
+/// A [Map] of properties.
 class MapProperties extends MapDelegate<String, dynamic> {
+
+  /// Parses [value] to a valid property [value].
   static dynamic parseValue(dynamic value) {
     if (isInt(value)) {
       return parseInt(value);
@@ -911,6 +1046,7 @@ class MapProperties extends MapDelegate<String, dynamic> {
     }
   }
 
+  /// Parse [stringProperties] to properties values.
   static Map<String, dynamic> parseStringProperties(
       Map<String, String> stringProperties) {
     if (stringProperties == null || stringProperties.isEmpty) return {};
@@ -929,152 +1065,265 @@ class MapProperties extends MapDelegate<String, dynamic> {
       : super((properties ?? {})
             .map((k, v) => MapEntry(parseString(k), parseString(v))));
 
+  /// Gets a property with [key].
+  ///
+  /// [def] The default value if [key] not found.
   T getProperty<T>(String key, [T def]) {
     var val = findKeyValue(_map, [key], true);
     return val != null ? val as T : def;
   }
 
+  /// Finds a property with [keys].
+  ///
+  /// [def] The default value if [keys] not found.
   T findProperty<T>(List<String> keys, [T def]) {
     var val = findKeyValue(_map, keys, true);
     return val != null ? val as T : def;
   }
 
+  /// Gets a property with [key].
+  ///
+  /// [mapper] Maps the value to [T].
+  /// [def] The default value if [key] not found.
   // ignore: use_function_type_syntax_for_parameters
   T getPropertyAs<T>(String key, T mapper(dynamic v), [T def]) {
     var val = findKeyValue(_map, [key], true);
     return val != null ? mapper(val) : def;
   }
 
+  /// Finds a property with [keys].
+  ///
+  /// [mapper] Maps the value to [T].
+  /// [def] The default value if [key] not found.
   // ignore: use_function_type_syntax_for_parameters
   T findPropertyAs<T>(List<String> keys, T mapper(dynamic v), [T def]) {
     var val = findKeyValue(_map, keys, true);
     return val != null ? mapper(val) : def;
   }
 
+  /// Gets a property with [key]. Returns the value in lower case and trimmed.
+  ///
+  /// [def] The default value if [key] not found.
   String getPropertyAsStringTrimLC(String key, [String def]) {
     var val = getPropertyAsStringTrim(key, def);
     return val != null ? val.toLowerCase() : null;
   }
 
+  /// Finds a property with [keys]. Returns the value in lower case and trimmed.
+  ///
+  /// [def] The default value if [keys] not found.
   String findPropertyAsStringTrimLC(List<String> keys, [String def]) {
     var val = findPropertyAsStringTrim(keys, def);
     return val != null ? val.toLowerCase() : null;
   }
 
+  /// Gets a property with [key]. Returns the value in upper case and trimmed.
+  ///
+  /// [def] The default value if [key] not found.
   String getPropertyAsStringTrimUC(String key, [String def]) {
     var val = getPropertyAsStringTrim(key, def);
     return val != null ? val.toUpperCase() : null;
   }
 
+  /// Finds a property with [keys]. Returns the value in upper case and trimmed.
+  ///
+  /// [def] The default value if [keys] not found.
   String findPropertyAsStringTrimUC(List<String> keys, [String def]) {
     var val = findPropertyAsStringTrim(keys, def);
     return val != null ? val.toUpperCase() : null;
   }
 
+  /// Gets a property with [key]. Returns the value trimmed.
+  ///
+  /// [def] The default value if [key] not found.
   String getPropertyAsStringTrim(String key, [String def]) {
     var val = getPropertyAsString(key, def);
     return val != null ? val.trim() : null;
   }
 
+  /// Finds a property with [keys]. Returns the value trimmed.
+  ///
+  /// [def] The default value if [keys] not found.
   String findPropertyAsStringTrim(List<String> keys, [String def]) {
     var val = findPropertyAsString(keys, def);
     return val != null ? val.trim() : null;
   }
 
+  /// Gets a property with [key]. Returns the value as [String].
+  ///
+  /// [def] The default value if [key] not found.
   String getPropertyAsString(String key, [String def]) =>
       getPropertyAs(key, parseString, def);
 
+  /// Gets a property with [key]. Returns the value as [int].
+  ///
+  /// [def] The default value if [key] not found.
   int getPropertyAsInt(String key, [int def]) =>
       getPropertyAs(key, parseInt, def);
 
+  /// Gets a property with [key]. Returns the value as [double].
+  ///
+  /// [def] The default value if [key] not found.
   double getPropertyAsDouble(String key, [double def]) =>
       getPropertyAs(key, parseDouble, def);
 
+  /// Gets a property with [key]. Returns the value as [num].
+  ///
+  /// [def] The default value if [key] not found.
   num getPropertyAsNum(String key, [num def]) =>
       getPropertyAs(key, parseNum, def);
 
+  /// Gets a property with [key]. Returns the value as [bool].
+  ///
+  /// [def] The default value if [key] not found.
   bool getPropertyAsBool(String key, [bool def]) =>
       getPropertyAs(key, parseBool, def);
 
+  /// Gets a property with [key]. Returns the value as [DateTime].
+  ///
+  /// [def] The default value if [key] not found.
   DateTime getPropertyAsDateTime(String key, [DateTime def]) =>
       getPropertyAs(key, parseDateTime, def);
 
+  /// Finds a property with [keys]. Returns the value as [String].
+  ///
+  /// [def] The default value if [keys] not found.
   String findPropertyAsString(List<String> keys, [String def]) =>
       findPropertyAs(keys, parseString, def);
 
+  /// Finds a property with [keys]. Returns the value as [int].
+  ///
+  /// [def] The default value if [keys] not found.
   int findPropertyAsInt(List<String> keys, [int def]) =>
       findPropertyAs(keys, parseInt, def);
 
+  /// Finds a property with [keys]. Returns the value as [double].
+  ///
+  /// [def] The default value if [keys] not found.
   double findPropertyAsDouble(List<String> keys, [double def]) =>
       findPropertyAs(keys, parseDouble, def);
 
+  /// Finds a property with [keys]. Returns the value as [num].
+  ///
+  /// [def] The default value if [keys] not found.
   num findPropertyAsNum(List<String> keys, [num def]) =>
       findPropertyAs(keys, parseNum, def);
 
+  /// Finds a property with [keys]. Returns the value as [bool].
+  ///
+  /// [def] The default value if [keys] not found.
   bool findPropertyAsBool(List<String> keys, [bool def]) =>
       findPropertyAs(keys, parseBool, def);
 
+  /// Finds a property with [keys]. Returns the value as [DateTime].
+  ///
+  /// [def] The default value if [keys] not found.
   DateTime findPropertyAsDateTime(List<String> keys, [DateTime def]) =>
       findPropertyAs(keys, parseDateTime, def);
 
+  /// Gets a property with [key] as [List<String>].
+  ///
+  /// [def] The default value if [key] not found.
   List<String> getPropertyAsStringList(String key, [List<String> def]) =>
       getPropertyAs(key, (v) => parseStringFromInlineList(v, ',', def), def);
 
+  /// Gets a property with [key] as [List<int>].
+  ///
+  /// [def] The default value if [key] not found.
   List<int> getPropertyAsIntList(String key, [List<int> def]) =>
       getPropertyAs(key, (v) => parseIntsFromInlineList(v, ',', def), def);
 
+  /// Gets a property with [key] as [List<double>].
+  ///
+  /// [def] The default value if [key] not found.
   List<double> getPropertyAsDoubleList(String key, [List<double> def]) =>
       getPropertyAs(key, (v) => parseDoublesFromInlineList(v, ',', def), def);
 
+  /// Gets a property with [key] as [List<num>].
+  ///
+  /// [def] The default value if [key] not found.
   List<num> getPropertyAsNumList(String key, [List<num> def]) =>
       getPropertyAs(key, (v) => parseNumsFromInlineList(v, ',', def), def);
 
+  /// Gets a property with [key] as [List<bool>].
+  ///
+  /// [def] The default value if [key] not found.
   List<bool> getPropertyAsBoolList(String key, [List<bool> def]) =>
       getPropertyAs(key, (v) => parseBoolsFromInlineList(v, ',', def), def);
 
+  /// Gets a property with [key] as [List<DateTime>].
+  ///
+  /// [def] The default value if [key] not found.
   List<DateTime> getPropertyAsDateTimeList(String key, [List<DateTime> def]) =>
       getPropertyAs(key, (v) => parseDateTimeFromInlineList(v, ',', def), def);
 
+  /// Finds a property with [keys] as [List<String>].
+  ///
+  /// [def] The default value if [keys] not found.
   List<String> findPropertyAsStringList(List<String> keys,
           [List<String> def]) =>
       findPropertyAs(keys, (v) => parseStringFromInlineList(v, ',', def), def);
 
+  /// Finds a property with [keys] as [List<int>].
+  ///
+  /// [def] The default value if [keys] not found.
   List<int> findPropertyAsIntList(List<String> keys, [List<int> def]) =>
       findPropertyAs(keys, (v) => parseIntsFromInlineList(v, ',', def), def);
 
+  /// Finds a property with [keys] as [List<int>].
+  ///
+  /// [def] The default value if [keys] not found.
   List<double> findPropertyAsDoubleList(List<String> keys,
           [List<double> def]) =>
       findPropertyAs(keys, (v) => parseDoublesFromInlineList(v, ',', def), def);
 
+  /// Finds a property with [keys] as [List<num>].
+  ///
+  /// [def] The default value if [keys] not found.
   List<num> findPropertyAsNumList(List<String> keys, [List<num> def]) =>
       findPropertyAs(keys, (v) => parseNumsFromInlineList(v, ',', def), def);
 
+  /// Finds a property with [keys] as [List<bool>].
+  ///
+  /// [def] The default value if [keys] not found.
   List<bool> findPropertyAsBoolList(List<String> keys, [List<bool> def]) =>
       findPropertyAs(keys, (v) => parseBoolsFromInlineList(v, ',', def), def);
 
+  /// Finds a property with [keys] as [List<DateTime>].
+  ///
+  /// [def] The default value if [keys] not found.
   List<DateTime> findPropertyAsDateTimeList(List<String> keys,
           [List<DateTime> def]) =>
       findPropertyAs(
           keys, (v) => parseDateTimeFromInlineList(v, ',', def), def);
 
+  /// Gets a property with [key] as [List<Map>].
+  ///
+  /// [def] The default value if [key] not found.
   Map<String, String> getPropertyAsStringMap(String key,
           [Map<String, String> def]) =>
       getPropertyAs(
           key, (v) => parseStringFromInlineMap(v, ';', ':', def), def);
 
+  /// Finds a property with [keys] as [List<Map>].
+  ///
+  /// [def] The default value if [keys] not found.
   Map<String, String> findPropertyAsStringMap(List<String> keys,
           [Map<String, String> def]) =>
       findPropertyAs(
           keys, (v) => parseStringFromInlineMap(v, ';', ':', def), def);
 
+  /// Returns this as a [Map<String,dynamic>].
   Map<String, dynamic> toProperties() {
     return Map.from(_map).cast();
   }
 
+  /// Returns this as a [Map<String,String>].
   Map<String, String> toStringProperties() {
     return _map.map((k, v) => MapEntry(k, parseString(v)));
   }
 
+  /// put property [value] to [key].
   dynamic put(String key, dynamic value) {
     var valueStr = toStringValue(value);
 
@@ -1083,6 +1332,7 @@ class MapProperties extends MapDelegate<String, dynamic> {
     return prev;
   }
 
+  /// Returns [value] as a [String].
   static String toStringValue(dynamic value) {
     String valueStr;
 
@@ -1137,4 +1387,5 @@ class MapProperties extends MapDelegate<String, dynamic> {
 
     return s;
   }
+
 }
