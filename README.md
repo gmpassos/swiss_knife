@@ -5,6 +5,7 @@
 [![GitHub Tag](https://img.shields.io/github/v/tag/gmpassos/swiss_knife)](https://github.com/gmpassos/swiss_knife/releases)
 [![New Commits](https://img.shields.io/github/commits-since/gmpassos/swiss_knife/latest)](https://github.com/gmpassos/swiss_knife/network)
 [![Last Commits](https://img.shields.io/github/last-commit/gmpassos/swiss_knife)](https://github.com/gmpassos/swiss_knife/commits/master)
+[![Pull Requests](https://img.shields.io/github/issues-pr/gmpassos/swiss_knife)](https://github.com/gmpassos/swiss_knife/pulls)
 [![Code size](https://img.shields.io/github/languages/code-size/gmpassos/swiss_knife)](https://github.com/gmpassos/swiss_knife)
 [![License](https://img.shields.io/github/license/gmpassos/swiss_knife)](https://github.com/gmpassos/swiss_knife/blob/master/LICENSE)
 
