@@ -117,6 +117,7 @@ class Math {
 
   /// Sum value of [ns] entries.
   static double sum(Iterable<num> ns) {
+    if (ns.isEmpty) return 0 ;
     var total = 0.0;
     for (var n in ns) {
       total += n;
@@ -126,6 +127,7 @@ class Math {
 
   /// Mean value of [ns] entries.
   static double mean(Iterable<num> ns) {
+    if (ns.isEmpty) return 0 ;
     return sum(ns) / ns.length;
   }
 
