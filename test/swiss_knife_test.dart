@@ -499,6 +499,17 @@ void main() {
       expect(regExpReplaceAll(pattern1, 'a ,b, c ,, d', '-\$1-'),
           equals('a-,-b-,-c-,,-d'));
     });
+
+    test('buildStringPattern', () {
+      expect(buildStringPattern('user: <{{username}}>' , {} ), equals('user: <null>'));
+      expect(buildStringPattern('user: <{{username}}>' , {'username': 'joe'} ), equals('user: <joe>'));
+      expect(buildStringPattern('user: {{username}}' , {'username': 'joe'} ), equals('user: joe'));
+      expect(buildStringPattern('{{username}}' , {'username': 'joe'} ), equals('joe'));
+      expect(buildStringPattern('{{username}}!' , {'username': 'joe'} ), equals('joe!'));
+      expect(buildStringPattern('user: <{{username}}> ; email: <{{email}}>' , {'username': 'joe'} , [ {'email': 'joe@mail.com'} ] ), equals('user: <joe> ; email: <joe@mail.com>'));
+      expect(buildStringPattern('user: <{{username}}> ; email: <{{email}}> ; id: #{{id}}' , {'username': 'joe'} , [ {'email': 'joe@mail.com'} , {'id': 123} ] ), equals('user: <joe> ; email: <joe@mail.com> ; id: #123'));
+
+    });
   });
 
   group('Uri', () {

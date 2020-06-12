@@ -1,3 +1,7 @@
+## 2.5.3 
+
+- fix buildStringPattern() extraParameters issue.
+
 ## 2.5.2
 
 - Math.mean() returns 0 on empty lists.

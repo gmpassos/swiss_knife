@@ -203,7 +203,10 @@ String buildStringPattern(String pattern, Map parameters,
 
     if (val == null && extraParameters != null) {
       for (var parameters2 in extraParameters) {
-        val = findKeyPathValue(parameters2, varName);
+        if (parameters2 != null && parameters2.isNotEmpty) {
+          val = findKeyPathValue(parameters2, varName);
+          if (val != null) break ;
+        }
       }
     }
 
