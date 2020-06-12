@@ -501,14 +501,32 @@ void main() {
     });
 
     test('buildStringPattern', () {
-      expect(buildStringPattern('user: <{{username}}>' , {} ), equals('user: <null>'));
-      expect(buildStringPattern('user: <{{username}}>' , {'username': 'joe'} ), equals('user: <joe>'));
-      expect(buildStringPattern('user: {{username}}' , {'username': 'joe'} ), equals('user: joe'));
-      expect(buildStringPattern('{{username}}' , {'username': 'joe'} ), equals('joe'));
-      expect(buildStringPattern('{{username}}!' , {'username': 'joe'} ), equals('joe!'));
-      expect(buildStringPattern('user: <{{username}}> ; email: <{{email}}>' , {'username': 'joe'} , [ {'email': 'joe@mail.com'} ] ), equals('user: <joe> ; email: <joe@mail.com>'));
-      expect(buildStringPattern('user: <{{username}}> ; email: <{{email}}> ; id: #{{id}}' , {'username': 'joe'} , [ {'email': 'joe@mail.com'} , {'id': 123} ] ), equals('user: <joe> ; email: <joe@mail.com> ; id: #123'));
-
+      expect(buildStringPattern('user: <{{username}}>', {}),
+          equals('user: <null>'));
+      expect(buildStringPattern('user: <{{username}}>', {'username': 'joe'}),
+          equals('user: <joe>'));
+      expect(buildStringPattern('user: {{username}}', {'username': 'joe'}),
+          equals('user: joe'));
+      expect(buildStringPattern('{{username}}', {'username': 'joe'}),
+          equals('joe'));
+      expect(buildStringPattern('{{username}}!', {'username': 'joe'}),
+          equals('joe!'));
+      expect(
+          buildStringPattern('user: <{{username}}> ; email: <{{email}}>', {
+            'username': 'joe'
+          }, [
+            {'email': 'joe@mail.com'}
+          ]),
+          equals('user: <joe> ; email: <joe@mail.com>'));
+      expect(
+          buildStringPattern(
+              'user: <{{username}}> ; email: <{{email}}> ; id: #{{id}}', {
+            'username': 'joe'
+          }, [
+            {'email': 'joe@mail.com'},
+            {'id': 123}
+          ]),
+          equals('user: <joe> ; email: <joe@mail.com> ; id: #123'));
     });
   });
 
@@ -851,22 +869,20 @@ void main() {
           equals([' a ', ' b ', 'c', 'd']));
     });
 
-
     test('isBoolList', () {
-      expect( listMatchesAll([1,1,1] , (e) => e == 1), equals(true));
-      expect( listMatchesAll([1,0,1] , (e) => e == 1), equals(false));
-      expect( listMatchesAll([1,1,1] , (e) => e == 0), equals(false));
+      expect(listMatchesAll([1, 1, 1], (e) => e == 1), equals(true));
+      expect(listMatchesAll([1, 0, 1], (e) => e == 1), equals(false));
+      expect(listMatchesAll([1, 1, 1], (e) => e == 0), equals(false));
 
-      expect( listNotMatchesAll([1,1,1] , (e) => e == 1), equals(false));
-      expect( listNotMatchesAll([1,0,1] , (e) => e == 1), equals(true));
-      expect( listNotMatchesAll([1,1,1] , (e) => e == 0), equals(true));
+      expect(listNotMatchesAll([1, 1, 1], (e) => e == 1), equals(false));
+      expect(listNotMatchesAll([1, 0, 1], (e) => e == 1), equals(true));
+      expect(listNotMatchesAll([1, 1, 1], (e) => e == 0), equals(true));
 
-      expect( isListValuesAllEquals( [3,3,3,3,3] , 3) , equals(true));
-      expect( isListValuesAllEquals( [3,3,3,3,3]) , equals(true));
-      expect( isListValuesAllEquals( [3,3,3,2,3]) , equals(false));
-      expect( isListValuesAllEquals( [3,3,3,3,3], 2) , equals(false));
+      expect(isListValuesAllEquals([3, 3, 3, 3, 3], 3), equals(true));
+      expect(isListValuesAllEquals([3, 3, 3, 3, 3]), equals(true));
+      expect(isListValuesAllEquals([3, 3, 3, 2, 3]), equals(false));
+      expect(isListValuesAllEquals([3, 3, 3, 3, 3], 2), equals(false));
     });
-
   });
 
   group('Date', () {

@@ -205,7 +205,7 @@ String buildStringPattern(String pattern, Map parameters,
       for (var parameters2 in extraParameters) {
         if (parameters2 != null && parameters2.isNotEmpty) {
           val = findKeyPathValue(parameters2, varName);
-          if (val != null) break ;
+          if (val != null) break;
         }
       }
     }
