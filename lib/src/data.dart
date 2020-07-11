@@ -64,10 +64,10 @@ class MimeType {
     mimeType ??= defaultMimeType;
 
     if (mimeType == null) return null;
-
     mimeType = mimeType.trim();
-
     if (mimeType.isEmpty) mimeType = defaultMimeType;
+    if (mimeType == null) return null;
+    mimeType = mimeType.trim();
     if (mimeType.isEmpty) return null;
 
     mimeType = mimeType.toLowerCase();
@@ -243,8 +243,6 @@ class DataURLBase64 {
     return data != null ? latin1.decode(data) : null;
   }
 
-  //////////////////////////////////
-
   /// Returns true if [s] is in Data URL (Base-64) format.
   static bool matches(String s) {
     return DataURLBase64.parse(s) != null;
@@ -340,7 +338,7 @@ class DataURLBase64 {
   /// Example: `data:text/plain;base64,SGVsbG8=`
   /// that encodes `Hello` with MIME-Type `text/plain`.
   String asDataURLString() {
-    _dataURLString ??= 'data:$mimeTypeAsString;base64,$payloadBase64}';
+    _dataURLString ??= 'data:$mimeTypeAsString;base64,$payloadBase64';
     return _dataURLString;
   }
 

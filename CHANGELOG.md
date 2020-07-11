@@ -1,3 +1,9 @@
+## 2.5.4
+
+- Fix `MimeType.parse` when parameter `mimeType` is empty and `defaultMimeType` is null.
+- Fix `DataURLBase64.asDataURLString`
+- dartfmt.
+
 ## 2.5.3 
 
 - fix buildStringPattern() extraParameters issue.
