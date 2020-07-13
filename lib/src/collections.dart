@@ -760,18 +760,33 @@ K findKeyName<K, V>(Map<K, V> map, List<K> keys, [bool ignoreCase]) {
   return entry != null ? entry.key : null;
 }
 
-/// Returns [true] if [value] is empty. Checks for [String], [List], [Map]
-/// [Iterable] and [Set].
-bool isEmptyValue<T>(T value) {
-  if (value == null) return true;
+/// Returns [true] if [o] is empty. Checks for [String], [List], [Map]
+/// [Iterable], [Set] or `o.toString()`.
+bool isEmptyObject<T>(T o) {
+  if (o == null) return true;
 
-  if (value is String && value.isEmpty) return true;
-  if (value is List && value.isEmpty) return true;
-  if (value is Map && value.isEmpty) return true;
-  if (value is Iterable && value.isEmpty) return true;
-  if (value is Set && value.isEmpty) return true;
+  if (o is String) {
+    return o.isEmpty;
+  }
+  else if (o is List) {
+    return o.isEmpty;
+  }
+  else if (o is Map) {
+    return o.isEmpty;
+  }
+  else if (o is Iterable) {
+    return o.isEmpty;
+  }
+  else if (o is Set) {
+    return o.isEmpty;
+  } else {
+    return o.toString().isEmpty ;
+  }
+}
 
-  return false;
+/// Returns ![isEmptyObject].
+bool isNotEmptyObject<T>(T value) {
+  return !isEmptyObject(value) ;
 }
 
 typedef ValueValidator<V> = bool Function(V value);
@@ -781,7 +796,7 @@ T resolveValue<T>(T value, T def, [ValueValidator valueValidator]) {
   if (value == null) return def;
   if (def == null) return value;
 
-  valueValidator ??= isEmptyValue;
+  valueValidator ??= isNotEmptyObject;
   var valid = valueValidator(value) ?? true;
   return valid ? value : def;
 }

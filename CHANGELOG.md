@@ -1,3 +1,8 @@
+## 2.5.5
+
+- Change `isEmptyValue` to is `isEmptyObject`.
+- Added `isNotEmptyObject`.
+
 ## 2.5.4
 
 - Fix `MimeType.parse` when parameter `mimeType` is empty and `defaultMimeType` is null.
