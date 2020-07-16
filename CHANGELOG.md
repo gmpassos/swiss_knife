@@ -1,3 +1,7 @@
+## 2.5.6
+
+- dartfmt
+
 ## 2.5.5
 
 - Change `isEmptyValue` to is `isEmptyObject`.

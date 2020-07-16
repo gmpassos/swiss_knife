@@ -767,26 +767,22 @@ bool isEmptyObject<T>(T o) {
 
   if (o is String) {
     return o.isEmpty;
-  }
-  else if (o is List) {
+  } else if (o is List) {
     return o.isEmpty;
-  }
-  else if (o is Map) {
+  } else if (o is Map) {
     return o.isEmpty;
-  }
-  else if (o is Iterable) {
+  } else if (o is Iterable) {
     return o.isEmpty;
-  }
-  else if (o is Set) {
+  } else if (o is Set) {
     return o.isEmpty;
   } else {
-    return o.toString().isEmpty ;
+    return o.toString().isEmpty;
   }
 }
 
 /// Returns ![isEmptyObject].
 bool isNotEmptyObject<T>(T value) {
-  return !isEmptyObject(value) ;
+  return !isEmptyObject(value);
 }
 
 typedef ValueValidator<V> = bool Function(V value);

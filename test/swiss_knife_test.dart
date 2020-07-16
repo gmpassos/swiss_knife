@@ -885,7 +885,6 @@ void main() {
     });
 
     test('isEmptyObject', () {
-
       expect(isEmptyObject(null), isTrue);
       expect(isEmptyObject([]), isTrue);
       expect(isEmptyObject({}), isTrue);
@@ -893,13 +892,13 @@ void main() {
       expect(isEmptyObject(''), isTrue);
 
       expect(isEmptyObject([1]), isFalse);
-      expect(isEmptyObject([1,2]), isFalse);
+      expect(isEmptyObject([1, 2]), isFalse);
 
-      expect(isEmptyObject({'a':1}), isFalse);
-      expect(isEmptyObject({'a':1,'b':2}), isFalse);
+      expect(isEmptyObject({'a': 1}), isFalse);
+      expect(isEmptyObject({'a': 1, 'b': 2}), isFalse);
 
       expect(isEmptyObject(Set.from([1])), isFalse);
-      expect(isEmptyObject(Set.from([1,2])), isFalse);
+      expect(isEmptyObject(Set.from([1, 2])), isFalse);
 
       expect(isEmptyObject('1'), isFalse);
       expect(isEmptyObject('12'), isFalse);
