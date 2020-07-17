@@ -201,10 +201,17 @@ class ResourceContent {
     return resolveURLFromReference(this, url);
   }
 
+  static final RegExp PATTERN_URL_INIT = RegExp(r'\w+://');
+
   /// Resolves an [url] using another [ResourceContent] as [reference] (base [Uri]).
   static Future<Uri> resolveURLFromReference(
       ResourceContent reference, String url) async {
+    if (url == null) return null ;
     url = url.trim();
+
+    if (url.startsWith(PATTERN_URL_INIT)) {
+      return Uri.parse(url);
+    }
 
     if (url.startsWith(RegExp(r'^[\w-]'))) {
       url = './$url';

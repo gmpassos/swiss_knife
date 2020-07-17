@@ -1,6 +1,7 @@
 ## 2.5.6
 
 - dartfmt
+- test_coverage: ^0.4.2
 
 ## 2.5.5
 

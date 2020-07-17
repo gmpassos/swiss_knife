@@ -44,6 +44,9 @@ class LoadController {
   /// Returns [true] if is loaded and successful.
   bool _loadSuccessful;
 
+  /// Returns [true] if load was successful.
+  ///
+  /// If load is not completed yet will return null.
   bool get loadSuccessful => _loadSuccessful;
 
   /// Does the load process.

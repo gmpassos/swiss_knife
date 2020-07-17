@@ -905,6 +905,126 @@ void main() {
     });
   });
 
+  group('JSON', () {
+    setUp(() {});
+
+    test('isJSONPrimitive', () {
+      expect(isJSONPrimitive('string'), isTrue);
+      expect(isJSONPrimitive(true), isTrue);
+      expect(isJSONPrimitive(123), isTrue);
+      expect(isJSONPrimitive(1.5), isTrue);
+
+      expect(isJSONPrimitive([]), isFalse);
+      expect(isJSONPrimitive({}), isFalse);
+    });
+
+    test('isJSONList', () {
+      expect(isJSONList([]), isTrue);
+      expect(isJSONList([1, 2]), isTrue);
+
+      expect(isJSONList({}), isFalse);
+
+      expect(isJSONList('string'), isFalse);
+      expect(isJSONList(true), isFalse);
+      expect(isJSONList(123), isFalse);
+      expect(isJSONList(1.5), isFalse);
+    });
+
+    test('isJSONMap', () {
+      expect(isJSONMap({'a': 1}), isTrue);
+      expect(isJSONMap({'b': 's'}), isTrue);
+
+      expect(isJSONMap([]), isFalse);
+      expect(isJSONMap([1, 2]), isFalse);
+
+      expect(isJSONMap('string'), isFalse);
+      expect(isJSONMap(true), isFalse);
+      expect(isJSONMap(123), isFalse);
+      expect(isJSONMap(1.5), isFalse);
+    });
+
+    test('isJSON', () {
+      expect(isJSON('string'), isTrue);
+      expect(isJSON(true), isTrue);
+      expect(isJSON(123), isTrue);
+      expect(isJSON(1.5), isTrue);
+
+      expect(isJSON([]), isTrue);
+      expect(isJSON([1, 2]), isTrue);
+
+      expect(isJSON({'a': 1}), isTrue);
+      expect(isJSON({'b': 's'}), isTrue);
+    });
+  });
+
+  group('MapDelegate', () {
+    setUp(() {});
+
+    test('MapDelegate basic', () {
+      var map1 = {'a': 1, 'b': 2};
+
+      var map2 = MapDelegate(map1);
+
+      expect(identical(map1, map2), isFalse);
+
+      expect(map1, equals(map2));
+
+      map1['c'] = 3;
+
+      expect(map1.length, equals(map2.length));
+      expect(map1['c'], equals(3));
+      expect(map2['c'], equals(3));
+      expect(map1, equals(map2));
+
+      map1.remove('b');
+
+      expect(map1.length, equals(map2.length));
+      expect(map1.containsKey('b'), isFalse);
+      expect(map2.containsKey('b'), isFalse);
+      expect(map1, equals(map2));
+    });
+  });
+
+  group('MapProperties', () {
+    setUp(() {});
+
+    test('MapProperties String', () {
+      var map = MapProperties.fromStringProperties({'a': '1', 'b': '2'});
+
+      expect(map.getPropertyAsInt('a'), equals(1));
+      expect(map.getPropertyAsInt('b'), equals(2));
+      expect(map.getPropertyAsInt('b', 20), equals(2));
+      expect(map.getPropertyAsInt('c', 30), equals(30));
+    });
+
+    test('MapProperties dynamic', () {
+      var map = MapProperties.fromProperties({
+        'a': 1,
+        'b': [20, 21],
+        'c': '30,31,32'
+      });
+
+      expect(map.getPropertyAsInt('a'), equals(1));
+      expect(map.getPropertyAsIntList('b'), equals([20, 21]));
+      expect(map.getPropertyAsIntList('b', [200, 201]), equals([20, 21]));
+      expect(map.getPropertyAsIntList('c'), equals([30, 31, 32]));
+
+      expect(map.getPropertyAsIntList('d', [40, 41]), equals([40, 41]));
+
+      var map2 = map.toStringProperties();
+      expect(map2, equals({'a': '1', 'b': '[20, 21]', 'c': '30,31,32'}));
+
+      var map3 = map.toProperties();
+      expect(
+          map3,
+          equals({
+            'a': 1,
+            'b': [20, 21],
+            'c': '30,31,32'
+          }));
+    });
+  });
+
   group('Date', () {
     setUp(() {});
 
