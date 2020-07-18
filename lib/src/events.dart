@@ -308,3 +308,119 @@ class EventStream<T> implements Stream<T> {
     return _stream.where(test);
   }
 }
+
+
+/// Tracks interactions and after a delay, without interaction, triggers
+/// [onComplete].
+class InteractionCompleter {
+  final String name;
+
+  final Duration triggerDelay;
+  Function functionToTrigger;
+
+  InteractionCompleter(String name,
+      {Duration triggerDelay, this.functionToTrigger})
+      : name = name ?? '',
+        triggerDelay = triggerDelay ?? Duration(milliseconds: 500);
+
+  int get now {
+    return DateTime.now().millisecondsSinceEpoch;
+  }
+
+  int get triggerDelayMs => triggerDelay.inMilliseconds;
+
+  int _lastInteractionTime;
+
+  int get lastInteractionTime => _lastInteractionTime;
+
+  bool _interactionNotTriggered = false;
+
+  bool get hasInteractionNotTriggered => _interactionNotTriggered;
+
+  void interact({noTriggering = false}) {
+    noTriggering ??= false;
+
+    log('interact', [noTriggering]);
+
+    _lastInteractionTime = now;
+    _interactionNotTriggered = true;
+
+    if (!noTriggering) {
+      _scheduleTrigger(triggerDelayMs);
+    }
+  }
+
+  int get interactionElapsedTime =>
+      _lastInteractionTime != null ? now - _lastInteractionTime : null;
+
+  bool _triggerScheduled = false;
+
+  bool get isTriggerScheduled => _triggerScheduled;
+
+  void _scheduleTrigger(int delay) {
+    if (_triggerScheduled) return;
+
+    log('_scheduleTrigger', [delay]);
+
+    _triggerScheduled = true;
+    Future.delayed(Duration(milliseconds: delay), () => _callTrigger());
+  }
+
+  void _callTrigger() {
+    if (!_triggerScheduled) return;
+
+    var timeUntilNextTrigger = triggerDelayMs - interactionElapsedTime;
+
+    log('_callTrigger', [timeUntilNextTrigger]);
+
+    if (timeUntilNextTrigger > 0) {
+      Future.delayed(
+          Duration(milliseconds: timeUntilNextTrigger), () => _callTrigger());
+      return;
+    } else {
+      triggerNow();
+    }
+  }
+
+  void triggerIfHasInteraction() {
+    if (hasInteractionNotTriggered) {
+      triggerNow();
+    }
+  }
+
+  final EventStream<InteractionCompleter> onComplete = EventStream();
+
+  void triggerNow() {
+    log('triggerNow');
+    _triggerScheduled = false;
+    _interactionNotTriggered = false;
+
+    if (functionToTrigger != null) {
+      try {
+        functionToTrigger();
+      } catch (e, s) {
+        print(e);
+        print(s);
+      }
+    }
+
+    onComplete.add(this);
+  }
+
+  void log(String method, [List parameters]) {
+    //print('InteractionCompleter[$name] $method> ${parameters ?? ''}');
+  }
+}
+
+class InteractionCompleterDummy extends InteractionCompleter {
+  InteractionCompleterDummy() : super('');
+
+  @override
+  void interact({noTriggering = false}) {}
+
+  @override
+  void triggerIfHasInteraction() {}
+
+  @override
+  void triggerNow() {}
+}

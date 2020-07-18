@@ -1,3 +1,8 @@
+## 2.5.7
+
+- Added: `isInUnixEpochRange`
+- New event handler: `InteractionCompleter`.
+
 ## 2.5.6
 
 - dartfmt

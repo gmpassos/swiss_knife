@@ -476,8 +476,6 @@ String formatPercent(dynamic percent, [int precision = 2, bool isRatio]) {
   return '$integer.$decimal%';
 }
 
-///////////////////////////////////
-
 final RegExp _REGEXP_int = RegExp(r'^-?\d+$');
 
 /// Returns true if [value] is [int]. Can be a int as string too.

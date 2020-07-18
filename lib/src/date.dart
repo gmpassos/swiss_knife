@@ -5,8 +5,25 @@ import 'package:swiss_knife/src/math.dart';
 
 import 'collections.dart';
 
+/// Returns the current time in milliseconds since epoch.
 int getCurrentTimeMillis() {
   return DateTime.now().millisecondsSinceEpoch;
+}
+
+/// Returns [true] if [n] is in range of a Unix epoch time.
+///
+/// [inMilliseconds] If true check range in milliseconds. Default: [true].
+bool isInUnixEpochRange(dynamic value, [bool inMilliseconds]) {
+  if (!isInt(value)) return false;
+  var n = parseInt(value);
+
+  inMilliseconds ??= true;
+
+  if (inMilliseconds) {
+    return n > 946692000000 && n < 32503690800000;
+  } else {
+    return n > 946692000 && n < 32503690800;
+  }
 }
 
 void _initializeDateFormatting() {
