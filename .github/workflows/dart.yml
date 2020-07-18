@@ -20,5 +20,7 @@ jobs:
       run: pub get
     - name: dartfmt
       run: dartfmt -n --set-exit-if-changed .
+    - name: dartanalyzer
+      run: dartanalyzer --fatal-infos --fatal-warnings .
     - name: Run tests
       run: pub run test

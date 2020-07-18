@@ -309,7 +309,6 @@ class EventStream<T> implements Stream<T> {
   }
 }
 
-
 /// Tracks interactions and after a delay, without interaction, triggers
 /// [onComplete].
 class InteractionCompleter {
