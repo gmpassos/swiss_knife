@@ -189,6 +189,17 @@ class MimeType {
   }
 
   @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is MimeType &&
+          runtimeType == other.runtimeType &&
+          type == other.type &&
+          subType == other.subType;
+
+  @override
+  int get hashCode => type.hashCode ^ subType.hashCode;
+
+  @override
   String toString() {
     return '$type/$subType';
   }

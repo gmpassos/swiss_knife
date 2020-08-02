@@ -312,8 +312,10 @@ class EventStream<T> implements Stream<T> {
 /// Tracks interactions and after a delay, without interaction, triggers
 /// [onComplete].
 class InteractionCompleter {
+  /// Name of this instance.
   final String name;
 
+  /// The delay of triggers, started after last interaction.
   final Duration triggerDelay;
   Function functionToTrigger;
 
@@ -336,6 +338,9 @@ class InteractionCompleter {
 
   bool get hasInteractionNotTriggered => _interactionNotTriggered;
 
+  /// Marks an interaction and schedules delayed trigger.
+  ///
+  /// [noTriggering] If [true] won't schedule trigger, only mark interaction.
   void interact({noTriggering = false}) {
     noTriggering ??= false;
 
@@ -381,6 +386,7 @@ class InteractionCompleter {
     }
   }
 
+  /// Triggers only if already has some interaction.
   void triggerIfHasInteraction() {
     if (hasInteractionNotTriggered) {
       triggerNow();
@@ -389,6 +395,7 @@ class InteractionCompleter {
 
   final EventStream<InteractionCompleter> onComplete = EventStream();
 
+  /// Triggers immediately.
   void triggerNow() {
     log('triggerNow');
     _triggerScheduled = false;
@@ -406,11 +413,18 @@ class InteractionCompleter {
     onComplete.add(this);
   }
 
+  /// Cancels any event scheduled to be triggered.
+  void cancel() {
+    _triggerScheduled = false;
+    _interactionNotTriggered = false;
+  }
+
   void log(String method, [List parameters]) {
     //print('InteractionCompleter[$name] $method> ${parameters ?? ''}');
   }
 }
 
+/// A dummy version of [InteractionCompleter].
 class InteractionCompleterDummy extends InteractionCompleter {
   InteractionCompleterDummy() : super('');
 

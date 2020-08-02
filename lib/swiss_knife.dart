@@ -10,5 +10,6 @@ export 'src/math.dart';
 export 'src/paging.dart';
 export 'src/regexp.dart';
 export 'src/resource.dart';
+export 'src/string.dart';
 export 'src/uri.dart';
 export 'src/utils.dart';

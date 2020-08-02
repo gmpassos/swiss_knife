@@ -1,3 +1,11 @@
+## 2.5.8
+
+- Added string helpers: `isBlankChar`, `isBlankCodeUnit`, `hasBlankChar`, `hasBlankCharInRange`.
+- IO: `catFile`, `catFileBytes`, `saveFile`, `saveFileBytes`.
+- `InteractionCompleter`: `cancel`
+- `MimeType``: equals and hashcode.
+- Added: `isEqualsList`, `isEqualsMap`.
+
 ## 2.5.7
 
 - Added: `isInUnixEpochRange`

@@ -126,7 +126,7 @@ bool isEquivalentList(List l1, List l2,
 
   deep ??= false;
 
-  for (var i = 0; i < l1.length; ++i) {
+  for (var i = 0; i < length; ++i) {
     var v1 = l1[i];
     var v2 = l2[i];
 
@@ -181,6 +181,53 @@ bool isEquivalentMap(Map m1, Map m2, {bool deep = false}) {
     var v2 = m2[k];
 
     if (!isEquals(v1, v2, deep)) return false;
+  }
+
+  return true;
+}
+
+/// Returns [true] if both lists, [l1] and [l2],
+/// have equals entries in the same order.
+bool isEqualsList<T>(List<T> l1, List<T> l2) {
+  if (identical(l1, l2)) return true;
+  if (l1 == null) return false;
+  if (l2 == null) return false;
+
+  var length = l1.length;
+  if (length != l2.length) return false;
+
+  for (var i = 0; i < length; ++i) {
+    var v1 = l1[i];
+    var v2 = l2[i];
+
+    if (v1 != v2) return false;
+  }
+
+  return true;
+}
+
+/// Returns [true] if both maps, [m1] and [m2],
+/// have equals entries in the same order.
+bool isEqualsMap<K, V>(Map<K, V> m1, Map<K, V> m2) {
+  if (identical(m1, m2)) return true;
+  if (m1 == null) return false;
+  if (m2 == null) return false;
+
+  var length = m1.length;
+  if (length != m2.length) return false;
+
+  var entries1 = m1.entries;
+  var entries2 = m2.entries;
+
+  for (var i = 0; i < length; ++i) {
+    var e1 = entries1.elementAt(i);
+    var e2 = entries2.elementAt(i);
+
+    if (e1 == e2) continue;
+    if (e1 == null || e2 == null) continue;
+
+    if (e1.key != e2.key) return false;
+    if (e1.value != e2.value) return false;
   }
 
   return true;
