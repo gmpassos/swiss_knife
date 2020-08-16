@@ -64,11 +64,23 @@ String toCamelCase(String s) {
 
 /// Splits [s] using [delimiter] and [limit].
 ///
-/// [delimiter] String to use to split [s].
+/// [delimiter] [Pattern] to use to split [s].
 /// [limit] The maximum elements to return.
 ///
 /// Note: Standard Dart split doesn't have [limit] parameter.
-List<String> split(String s, String delimiter, [int limit]) {
+List<String> split(String s, Pattern delimiter, [int limit]) {
+  if (delimiter == null) {
+    return [s];
+  } else if (delimiter is String) {
+    return _split(s, delimiter, limit);
+  } else if (delimiter is RegExp) {
+    return _split_RegExp(s, delimiter, limit);
+  } else {
+    throw ArgumentError('Invalid delimiter type: ${delimiter}');
+  }
+}
+
+List<String> _split(String s, String delimiter, int limit) {
   if (limit == null) return s.split(delimiter);
   if (limit == 1) return [s];
 
@@ -93,6 +105,43 @@ List<String> split(String s, String delimiter, [int limit]) {
     if (idx >= 0) {
       var s1 = s.substring(0, idx);
       var s2 = s.substring(idx + delimiterSz);
+
+      parts.add(s1);
+      s = s2;
+    } else {
+      break;
+    }
+  }
+
+  parts.add(s);
+  return parts;
+}
+
+List<String> _split_RegExp(String s, RegExp delimiter, int limit) {
+  if (limit == null) return s.split(delimiter);
+  if (limit == 1) return [s];
+
+  if (limit == 2) {
+    var match = delimiter.firstMatch(s);
+    if (match == null) return [s];
+
+    var init = s.substring(0, match.start);
+    var end = s.substring(match.end);
+    return [init, end];
+  }
+
+  if (limit <= 0) limit = s.length;
+
+  var parts = <String>[];
+
+  limit--;
+
+  for (var i = 0; i < limit; i++) {
+    var match = delimiter.firstMatch(s);
+
+    if (match != null) {
+      var s1 = s.substring(0, match.start);
+      var s2 = s.substring(match.end);
 
       parts.add(s1);
       s = s2;

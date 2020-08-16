@@ -1,3 +1,12 @@
+## 2.5.9
+
+- `MimeType`: Added `charset`.
+- Added: `parseJSON`, `isBlankString`, `isBlankStringInRange`, `isEqualsSet`, `isEqualsIterable`.
+- Added: `asTreeOfKeyString`, `parseMapEntry`, `groupIterableBy`, `sumIterable`, `averageIterable`.
+- Added: `parseJSON`, `encodeJSON`.
+- Removed `splitRegExp`. `split` now accepts `Pattern` (`String` and `RegExp`).
+- Optimized `isBlankCodeUnit`.
+
 ## 2.5.8
 
 - Added string helpers: `isBlankChar`, `isBlankCodeUnit`, `hasBlankChar`, `hasBlankCharInRange`.

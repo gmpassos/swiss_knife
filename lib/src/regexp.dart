@@ -1,54 +1,5 @@
 import 'package:swiss_knife/src/collections.dart';
 
-/// Splits [s] using [delimiter] and [limit].
-///
-/// [delimiter] RegExp to use to split [s].
-/// [limit] The maximum elements to return.
-///
-/// Note: Standard Dart split doesn't have [limit] parameter.
-List<String> splitRegExp(String s, Pattern delimiter, [int limit]) {
-  if (limit == null) return s.split(delimiter);
-  if (limit == 1) return [s];
-
-  if (limit == 2) {
-    for (var match in delimiter.allMatches(s)) {
-      var s1 = s.substring(0, match.start);
-      var s2 = s.substring(match.end);
-      return [s1, s2];
-    }
-    return [s];
-  }
-
-  if (limit <= 0) limit = s.length;
-
-  var parts = <String>[];
-
-  var sOffset = 0;
-
-  --limit;
-
-  for (var match in delimiter.allMatches(s)) {
-    var start = match.start - sOffset;
-    var end = match.end - sOffset;
-
-    var s1 = s.substring(0, start);
-    var s2 = s.substring(end);
-
-    parts.add(s1);
-
-    s = s2;
-    sOffset = match.end;
-
-    if (parts.length == limit) {
-      break;
-    }
-  }
-
-  parts.add(s);
-
-  return parts;
-}
-
 /// Returns [true] if [regExp] has any match at [s].
 ///
 /// [regExp] Uses [parseRegExp] to parse.
@@ -174,13 +125,15 @@ RegExp _regExpDialectImpl(Map<String, String> words, String pattern,
   return RegExp(translated, multiLine: multiLine, caseSensitive: caseSensitive);
 }
 
+final RegExp STRING_PLACEHOLDER_PATTERN = RegExp(r'{{(/?\w+(?:/\w+)*/?)}}');
+
 /// Builds a string using as place holders in the format `{{key}}`
 /// from [parameters] and [extraParameters].
 String buildStringPattern(String pattern, Map parameters,
     [List<Map> extraParameters]) {
   if (pattern == null) return null;
 
-  var matches = RegExp(r'{{(/?\w+(?:/\w+)*/?)}}').allMatches(pattern);
+  var matches = STRING_PLACEHOLDER_PATTERN.allMatches(pattern);
 
   var strFilled = '';
 

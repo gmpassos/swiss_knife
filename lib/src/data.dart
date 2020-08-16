@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'utils.dart';
+
 import 'collections.dart';
 import 'math.dart';
 
@@ -72,23 +74,32 @@ class MimeType {
 
     mimeType = mimeType.toLowerCase();
 
+    var parts = split(mimeType, ';', 2);
+
+    mimeType = parts[0];
+
+    var charset = (parts.length == 2 ? parts[1] : '').trim();
+    charset = normalizeCharset(charset);
+
     if (mimeType == 'json' || mimeType.endsWith('/json')) {
-      return MimeType('application', 'json');
+      return MimeType('application', 'json', charset);
     }
     if (mimeType == 'javascript' ||
         mimeType == 'js' ||
         mimeType.endsWith('/javascript') ||
-        mimeType.endsWith('/js')) return MimeType('application', 'javascript');
+        mimeType.endsWith('/js')) {
+      return MimeType('application', 'javascript', charset);
+    }
 
     if (mimeType == 'jpeg' ||
         mimeType == 'jpg' ||
         mimeType.endsWith('/jpeg') ||
         mimeType.endsWith('/jpg')) return MimeType('image', 'jpeg');
     if (mimeType == 'png' || mimeType.endsWith('/png')) {
-      return MimeType('image', 'png');
+      return MimeType('image', 'png', charset);
     }
     if (mimeType == 'png' || mimeType.endsWith('/gif')) {
-      return MimeType('image', 'gif');
+      return MimeType('image', 'gif', charset);
     }
 
     if (mimeType == 'text') return MimeType('text', 'plain');
@@ -97,20 +108,20 @@ class MimeType {
         mimeType.endsWith('/html') ||
         mimeType.endsWith('/htm')) return MimeType('text', 'html');
     if (mimeType == 'css' || mimeType.endsWith('/css')) {
-      return MimeType('text', 'css');
+      return MimeType('text', 'css', charset);
     }
     if (mimeType == 'xml' || mimeType.endsWith('/xml')) {
-      return MimeType('text', 'xml');
+      return MimeType('text', 'xml', charset);
     }
 
     if (mimeType == 'zip' || mimeType.endsWith('/zip')) {
-      return MimeType('application', 'zip');
+      return MimeType('application', 'zip', charset);
     }
     if (mimeType == 'gzip' || mimeType == 'gz' || mimeType.endsWith('/gzip')) {
-      return MimeType('application', 'gzip');
+      return MimeType('application', 'gzip', charset);
     }
     if (mimeType == 'pdf' || mimeType.endsWith('/pdf')) {
-      return MimeType('application', 'pdf');
+      return MimeType('application', 'pdf', charset);
     }
 
     var idx = mimeType.indexOf('/');
@@ -120,20 +131,46 @@ class MimeType {
       var subType = mimeType.substring(idx + 1).trim();
 
       if (type.isNotEmpty && subType.isNotEmpty) {
-        return MimeType(type, subType);
+        return MimeType(type, subType, charset);
       } else {
         throw ArgumentError('Invalid MimeType: $mimeType');
       }
     }
 
-    return MimeType('application', mimeType);
+    return MimeType('application', mimeType, charset);
+  }
+
+  static String normalizeCharset(String charset) {
+    if (charset == null) return null;
+    charset = charset.trim();
+    if (charset.isEmpty) return null;
+    charset = charset.toLowerCase();
+    charset = charset.replaceFirst('charset=', '').trim();
+    if (charset.isEmpty) return null;
+    return charset;
   }
 
   final String type;
 
   final String subType;
 
-  MimeType(this.type, this.subType);
+  final String charset;
+
+  MimeType(this.type, this.subType, [String charSet])
+      : charset = charSet != null ? charSet.trim() : null;
+
+  /// Returns [true] if [charset] is defined.
+  bool get hasCharset => charset != null && charset.isNotEmpty;
+
+  /// Returns [true] if [charset] is UTF-8.
+  bool get isCharsetUTF8 => charset == 'utf8' || charset == 'utf-8';
+
+  /// Returns [true] if [charset] is LATIN-1.
+  bool get isCharsetLATIN1 =>
+      charset == 'latin1' ||
+      charset == 'latin-1' ||
+      charset == 'iso-8859-1' ||
+      charset == 'iso88591';
 
   /// Returns [true] if this a image MIME-Type.
   bool get isImage => type == 'image';
@@ -146,6 +183,9 @@ class MimeType {
 
   /// Returns [true] if this is `image/png`.
   bool get isImagePNG => isImage && subType == 'png';
+
+  bool get isJavascript => subType == 'javascript';
+  bool get isJSON => subType == 'json';
 
   /// Returns the common file extension for the MIME-Type.
   String get fileExtension {
@@ -199,9 +239,16 @@ class MimeType {
   @override
   int get hashCode => type.hashCode ^ subType.hashCode;
 
+  /// Returns `$type/$subType`.
+  String get fullType => '$type/$subType';
+
   @override
-  String toString() {
-    return '$type/$subType';
+  String toString([bool withCharset]) {
+    if (hasCharset && (withCharset ?? true)) {
+      return '$fullType; charset=$charset';
+    } else {
+      return fullType;
+    }
   }
 
   /// Parses a [mimeType] to a MIME-Type string.

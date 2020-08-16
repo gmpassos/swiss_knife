@@ -3,6 +3,7 @@ import 'dart:math' as dart_math;
 
 import 'date.dart';
 import 'math.dart';
+import 'utils.dart';
 
 /// Represents a pair with [a] and [b] of type [T].
 class Pair<T> {
@@ -199,6 +200,60 @@ bool isEqualsList<T>(List<T> l1, List<T> l2) {
   for (var i = 0; i < length; ++i) {
     var v1 = l1[i];
     var v2 = l2[i];
+
+    if (v1 != v2) return false;
+  }
+
+  return true;
+}
+
+/// Returns [true] if both sets, [s1] and [s2],
+/// have equals entries in the same order.
+bool isEqualsSet<T>(Set<T> s1, Set<T> s2) {
+  if (identical(s1, s2)) return true;
+  if (s1 == null) return false;
+  if (s2 == null) return false;
+
+  var length = s1.length;
+  if (length != s2.length) return false;
+
+  var itr1 = s1.iterator;
+  var itr2 = s2.iterator;
+
+  while (itr1.moveNext()) {
+    if (!itr2.moveNext()) {
+      return false;
+    }
+
+    var v1 = itr1.current;
+    var v2 = itr2.current;
+
+    if (v1 != v2) return false;
+  }
+
+  return true;
+}
+
+/// Returns [true] if both iterable, [i1] and [i2],
+/// have equals entries in the same order.
+bool isEqualsIterable<T>(Iterable<T> i1, Iterable<T> i2) {
+  if (identical(i1, i2)) return true;
+  if (i1 == null) return false;
+  if (i2 == null) return false;
+
+  var length = i1.length;
+  if (length != i2.length) return false;
+
+  var itr1 = i1.iterator;
+  var itr2 = i2.iterator;
+
+  while (itr1.moveNext()) {
+    if (!itr2.moveNext()) {
+      return false;
+    }
+
+    var v1 = itr1.current;
+    var v2 = itr2.current;
 
     if (v1 != v2) return false;
   }
@@ -466,6 +521,23 @@ Map<String, String> asMapOfString(dynamic o) {
   if (o == null) return null;
   var m = o as Map<dynamic, dynamic>;
   return m.map((k, v) => MapEntry('$k', '$v'));
+}
+
+/// Maps [tree]:
+/// - If [tree] is a [Map] to a [Map<String,dynamic].
+/// - If [tree] is a [List] to a [List<Map<String,dynamic>].
+dynamic asTreeOfKeyString(dynamic tree) {
+  if (tree == null) return null;
+
+  if (tree is Map) {
+    return Map<String, dynamic>.fromEntries(tree.entries.map((e) {
+      return MapEntry<String, dynamic>('${e.key}', asTreeOfKeyString(e.value));
+    }));
+  } else if (tree is List) {
+    return tree.map(asTreeOfKeyString).toList();
+  } else {
+    return tree;
+  }
 }
 
 final RegExp _toListOfStrings_delimiter = RegExp(r'\s+');
@@ -864,7 +936,7 @@ Map<K, V> parseFromInlineMap<K, V>(String s, Pattern delimiterPairs,
   var map = <K, V>{};
 
   for (var pair in pairs) {
-    var entry = pair.split(delimiterKeyValue);
+    var entry = split(pair, delimiterKeyValue, 2);
     var k = mapperKey(entry[0]);
     var v = mapperValue(entry.length > 1 ? entry[1] : null);
     map[k] = v;
@@ -938,6 +1010,42 @@ List<String> parseStringFromInlineList(dynamic s,
   return parseFromInlineList(s.toString(), delimiter, parseString, def);
 }
 
+/// Parses [e] as a [MapEntry<String, String>]
+MapEntry<String, String> parseMapEntry<K, V>(dynamic e,
+    [Pattern delimiter, MapEntry<String, String> def]) {
+  if (e == null) return def;
+
+  if (e is Map) {
+    return e.isNotEmpty ? e.entries.first : def;
+  } else if (e is List) {
+    if (e.isEmpty) return def;
+    if (e.length == 1) {
+      return parseMapEntry(e.first, delimiter, def);
+    } else if (e.length == 2) {
+      return MapEntry('${e[0]}', '${e[1]}');
+    } else {
+      var values = e.sublist(1);
+      return MapEntry('${e[0]}', '${values.join(',')}');
+    }
+  } else {
+    delimiter ??= RegExp(r'\s*[,;:]\s*');
+    var s = parseString(e);
+    var list = split(s, delimiter, 2);
+    if (list.length == 2) {
+      return MapEntry('${list[0]}', '${list[1]}');
+    } else {
+      var first = list.first;
+      if (first.length < s.length) {
+        return MapEntry(first, '');
+      } else {
+        return def;
+      }
+    }
+  }
+}
+
+/// Calculate a hashcode over [o],
+/// iterating deeply over sub elements if is a [List] or [Map].
 int deepHashCode(dynamic o) {
   if (o == null) return 0;
 
@@ -1447,3 +1555,56 @@ class MapProperties extends MapDelegate<String, dynamic> {
     return s;
   }
 }
+
+/// Groups [interable] entries using [map] to generate a [MapEntry] for
+/// each entry, than uses [merge] to group entries of the same group (key).
+Map<K, V> groupIterableBy<K, V, I>(
+    Iterable<I> iterable,
+    MapEntry<K, V> Function(I entry) map,
+    V Function(K key, V value1, V value2) merge) {
+  if (iterable == null) return null;
+  if (iterable.isEmpty) return <K, V>{};
+
+  var groups = <K, V>{};
+
+  for (var entry in iterable) {
+    var e = map(entry);
+
+    var k = e.key;
+
+    var prev = groups[k];
+
+    if (prev == null) {
+      groups[k] = e.value;
+    } else {
+      var v2 = merge(k, prev, e.value);
+      groups[k] = v2;
+    }
+  }
+
+  return groups;
+}
+
+/// Merges all entries of [iterable] using [merge] function.
+///
+/// [init] The initial value of total.
+R mergeIterable<I, R>(
+    Iterable<I> iterable, R Function(R total, I value) merge, R init) {
+  if (iterable == null || iterable.isEmpty) return init;
+
+  var total = init;
+
+  for (var entry in iterable) {
+    total = merge(total, entry);
+  }
+
+  return total;
+}
+
+/// Uses [mergeIterable] to sum all [iterable] values.
+num sumIterable<I, R>(Iterable<num> iterable, {num init = 0}) =>
+    mergeIterable(iterable, (total, value) => total + value, init);
+
+/// Calculate the average value of [iterable].
+num averageIterable<I, R>(Iterable<num> iterable) =>
+    sumIterable(iterable) / iterable.length;
