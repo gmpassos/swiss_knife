@@ -21,22 +21,22 @@ dynamic parseJSON(dynamic json, [dynamic def]) {
 
 /// Encodes [json].
 String encodeJSON(dynamic json,
-    {String ident, bool withIdent, bool clearNullEntries}) {
+    {String indent, bool withIndent, bool clearNullEntries}) {
   clearNullEntries ??= false;
   if (clearNullEntries) {
     removeNullEntries(json);
   }
 
-  if (withIdent != null && withIdent) {
-    if (ident == null || ident.isEmpty) {
-      ident = '  ';
+  if (withIndent != null && withIndent) {
+    if (indent == null || indent.isEmpty) {
+      indent = '  ';
     }
   }
 
   dart_convert.JsonEncoder encoder;
 
-  if (ident != null && ident.isNotEmpty) {
-    encoder = dart_convert.JsonEncoder.withIndent(ident);
+  if (indent != null && indent.isNotEmpty) {
+    encoder = dart_convert.JsonEncoder.withIndent(indent);
   } else {
     encoder = dart_convert.JsonEncoder();
   }

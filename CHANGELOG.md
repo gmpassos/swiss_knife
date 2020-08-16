@@ -1,3 +1,7 @@
+## 2.5.10
+
+- Fix typo.
+
 ## 2.5.9
 
 - `MimeType`: Added `charset`.
