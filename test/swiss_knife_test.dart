@@ -172,6 +172,56 @@ void main() {
       expect(split('AA,,BB,,CC', ',,', 3), equals(['AA', 'BB', 'CC']));
       expect(split('AA,,BB,,CC,,', ',,', 3), equals(['AA', 'BB', 'CC,,']));
     });
+
+    test('NNField: String', () {
+      var field = NNField('def');
+      expect(field.get(), equals('def'));
+
+      field.set('abc');
+      expect(field.get(), equals('abc'));
+
+      field.set(null);
+      expect(field.get(), equals('def'));
+    });
+
+    test('NNField: num', () {
+      var field = NNField(100);
+      expect(field.get(), equals(100));
+
+      field.set(10);
+      expect(field.get(), equals(10));
+
+      field.set(null);
+      expect(field.get(), equals(100));
+
+      expect(field.asNum, equals(100));
+      expect(field.asInt, equals(100));
+      expect(field.asDouble, equals(100.0));
+      expect(field.asString, equals('100'));
+      expect(field.asBool, isTrue);
+
+      expect(field * 0.20, equals(20));
+      expect(field / 2, equals(50));
+
+      expect(field + 11, equals(111));
+      expect(field - 1, equals(99));
+
+      // ignore: unrelated_type_equality_checks
+      expect(field == 100, isTrue);
+      expect(field > 99, isTrue);
+      expect(field >= 100, isTrue);
+      expect(field < 101, isTrue);
+      expect(field <= 100, isTrue);
+
+      field.increment(11);
+      expect(field.value, equals(111));
+      field.decrement(1);
+      expect(field.value, equals(110));
+      field.multiply(2);
+      expect(field.value, equals(220));
+      field.divide(2);
+      expect(field.value, equals(110));
+    });
   });
 
   group('Math', () {
@@ -303,6 +353,15 @@ void main() {
       expect(formatDecimal(100 / 3), equals('33.33'));
 
       expect(formatDecimal(-100 / 3), equals('-33.33'));
+    });
+
+    test('clipNumber', () {
+      expect(clipNumber(12, 10, 20), equals(12));
+      expect(clipNumber(2, 10, 20), equals(10));
+      expect(clipNumber(30, 10, 20), equals(20));
+
+      expect(clipNumber(null, 10, 20, 15), equals(15));
+      expect(clipNumber(null, 10, 20, 150), equals(20));
     });
 
     test('Scale', () {

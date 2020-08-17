@@ -271,11 +271,17 @@ num parseNum(dynamic v, [num def]) {
 
 /// Parses [v] to [bool].
 ///
+/// if [v] is [num]: true when [v > 0]
+///
+/// if [v] is [String]: true when [v == "true"|"yes"|"ok"|"1"|"y"|"s"|"t"|"+"
+///
 /// [def] The default value if [v] is invalid.
 bool parseBool(dynamic v, [bool def]) {
   if (v == null) return def;
 
   if (v is bool) return v;
+
+  if (v is num) return v > 0;
 
   String s;
   if (v is String) {
@@ -290,10 +296,12 @@ bool parseBool(dynamic v, [bool def]) {
 
   return s == 'true' ||
       s == 'yes' ||
+      s == 'ok' ||
       s == '1' ||
       s == 'y' ||
       s == 's' ||
-      s == 't';
+      s == 't' ||
+      s == '+';
 }
 
 /// Parses [s] to a [List<int>].
@@ -810,4 +818,15 @@ class ScaleNum<N extends num> extends Scale<N> {
 
     return maximum + tolerance;
   }
+}
+
+/// Clips a number [n] into it's limits, [min] and [max].
+///
+/// [def] The default value if [n] is null.
+N clipNumber<N extends num>(N n, N min, N max, [N def]) {
+  n ??= def;
+  if (n == null) return null;
+  if (n < min) return min;
+  if (n > max) return max;
+  return n;
 }

@@ -1,3 +1,10 @@
+## 2.5.11
+
+- Added `NNField`.
+- Added `clipNumber`.
+- `parseBool`: if value is a num: true = v > 0
+- More tests.
+
 ## 2.5.10
 
 - Fix typo.

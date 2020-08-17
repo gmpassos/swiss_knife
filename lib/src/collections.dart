@@ -1608,3 +1608,153 @@ num sumIterable<I, R>(Iterable<num> iterable, {num init = 0}) =>
 /// Calculate the average value of [iterable].
 num averageIterable<I, R>(Iterable<num> iterable) =>
     sumIterable(iterable) / iterable.length;
+
+/// A field that can't be null. If a null value is set to it,
+/// a default value will be used.
+class NNField<T> {
+  final T defaultValue;
+
+  /// If [true], [hashCode] will use [deepHashCode] for calculation.
+  final bool deepHashcode;
+
+  /// Optional value filter to apply before set.
+  final T Function(dynamic value) filter;
+
+  T _value;
+
+  NNField(this.defaultValue, {bool deepHashcode, this.filter})
+      : deepHashcode = deepHashcode ?? false {
+    if (defaultValue == null) throw ArgumentError.notNull('defaultValue');
+    _value = defaultValue;
+  }
+
+  /// The filed value as [T].
+  T get value => _value;
+
+  /// Returns the current filed [value].
+  T get() => _value;
+
+  /// Sets the field [value].
+  ///
+  /// If [value] is null uses [defaultValue].
+  ///
+  /// Applies [filter] if exists and [value] is not null.
+  void set<V>(V value) {
+    if (value == null) {
+      _value = defaultValue;
+    } else {
+      if (filter != null) {
+        _value = filter(value ?? defaultValue) ?? defaultValue;
+      } else {
+        try {
+          _value = value as T;
+        } catch (e) {
+          if (_value is int) {
+            _value = parseInt(value) as T;
+          } else if (_value is double) {
+            _value = parseDouble(value) as T;
+          } else if (_value is num) {
+            _value = parseNum(value) as T;
+          } else if (_value is bool) {
+            _value = parseBool(value) as T;
+          } else if (_value is String) {
+            _value = parseString(value) as T;
+          } else {
+            rethrow;
+          }
+        }
+      }
+    }
+  }
+
+  /// Returns [true] if [other] is equals to [this.value].
+  ///
+  /// If [other] is a [NNField], compares with [other.value].
+  bool equals(dynamic other) {
+    if (other == null) return false;
+    if (other is NNField) {
+      return equals(other._value);
+    }
+    return _value == other;
+  }
+
+  /// Same as [equals] method.
+  @override
+  bool operator ==(dynamic value) => equals(value);
+
+  @override
+  int get hashCode => deepHashcode ? deepHashCode(value) : value.hashCode;
+
+  /// [value] as [String].
+  @override
+  String toString() => asString;
+
+  String get asString => parseString(_value);
+
+  /// [value] as [num].
+  num get asNum => parseNum(_value);
+
+  /// [value] as [int].
+  int get asInt => parseInt(_value);
+
+  /// [value] as [double].
+  double get asDouble => parseDouble(_value);
+
+  /// [value] as [bool].
+  bool get asBool => parseBool(_value);
+
+  /// Operator [*], using [asNum] for [this.value] and [parseNum(value)] for parameter.
+  num operator *(dynamic value) => asNum * parseNum(value);
+
+  /// Operator [/], using [asNum] for [this.value] and [parseNum(value)] for parameter.
+  num operator /(dynamic value) => asNum / parseNum(value);
+
+  /// Operator [+], using [asNum] for [this.value] and [parseNum(value)] for parameter.
+  num operator +(dynamic value) => asNum + parseNum(value);
+
+  /// Operator [-], using [asNum] for [this.value] and [parseNum(value)] for parameter.
+  num operator -(dynamic value) => asNum - parseNum(value);
+
+  /// Operator [^], using [asInt] for [this.value] and [parseInt(value)] for parameter.
+  num operator ^(dynamic value) => asInt ^ parseInt(value);
+
+  /// Operator [>], using [asNum] for [this.value] and [parseNum(value)] for parameter.
+  bool operator >(num value) => asNum > parseNum(value);
+
+  /// Operator [>=], using [asNum] for [this.value] and [parseNum(value)] for parameter.
+  bool operator >=(num value) => asNum >= parseNum(value);
+
+  /// Operator [<], using [asNum] for [this.value] and [parseNum(value)] for parameter.
+  bool operator <(num value) => asNum < parseNum(value);
+
+  /// Operator [<=], using [asNum] for [this.value] and [parseNum(value)] for parameter.
+  bool operator <=(num value) => asNum <= parseNum(value);
+
+  /// Increments: [this.value] + [value]
+  num increment(dynamic value) {
+    var result = parseNum(_value) + parseNum(value);
+    set(result);
+    return asNum;
+  }
+
+  /// Decrements: [this.value] - [value]
+  num decrement(dynamic value) {
+    var result = parseNum(_value) - parseNum(value);
+    set(result);
+    return asNum;
+  }
+
+  /// Multiply: [this.value] * [value]
+  num multiply(dynamic value) {
+    var result = parseNum(_value) * parseNum(value);
+    set(result);
+    return asNum;
+  }
+
+  /// Divide: [this.value] / [value]
+  num divide(dynamic value) {
+    var result = parseNum(_value) / parseNum(value);
+    set(result);
+    return asNum;
+  }
+}
