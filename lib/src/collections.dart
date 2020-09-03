@@ -485,20 +485,36 @@ List<Map> asListOfMap(dynamic o) {
   return l.map((e) => asMap(e)).toList();
 }
 
-/// Returns a Map with sorted keys.
-Map<K, V> sortMapEntries<K, V>(Map map,
-    [int Function(MapEntry<K, V> entry1, MapEntry<K, V> entry2) compare]) {
-  // ignore: omit_local_variable_types
-  Map<K, V> mapSorted = LinkedHashMap.fromEntries(map.entries.toList()
-        ..sort(compare ?? (a, b) => a.key.compareTo(b.key)))
-      .cast();
+typedef CompareMapEntryFunction<K, V> = int Function(
+    MapEntry<K, V> entry1, MapEntry<K, V> entry2);
+
+/// Returns a Map sorted by keys.
+Map<K, V> sortMapEntriesByKey<K, V>(Map<K, V> map, [bool reversed = false]) =>
+    sortMapEntries(
+        map, (a, b) => parseComparable(a.key).compareTo(b.key), reversed);
+
+/// Returns a Map sorted by keys.
+Map<K, V> sortMapEntriesByValue<K, V>(Map<K, V> map, [bool reversed = false]) =>
+    sortMapEntries(
+        map, (a, b) => parseComparable(a.value).compareTo(b.value), reversed);
+
+/// Returns a Map with sorted entries.
+Map<K, V> sortMapEntries<K, V>(Map<K, V> map,
+    [CompareMapEntryFunction<K, V> compare, bool reversed = false]) {
+  compare ??= (a, b) => parseComparable(a.key).compareTo(b.key);
+
+  if (reversed ?? false) {
+    var compareOriginal = compare;
+    compare = (a, b) => compareOriginal(b, a);
+  }
+
+  var mapSorted =
+      LinkedHashMap<K, V>.fromEntries(map.entries.toList()..sort(compare));
 
   return mapSorted;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-
-/// Returns [true] if [list] is of [String].
+/// Returns [true] if [list] values are of type [String].
 bool isListOfStrings(Iterable list) {
   if (list == null || list.isEmpty) return false;
 
@@ -904,6 +920,12 @@ bool isNotEmptyObject<T>(T value) {
   return !isEmptyObject(value);
 }
 
+/// Remove all entries of [list] that are true for [isEmptyObject].
+void removeEmptyEntries(List list) {
+  if (list == null || list.isEmpty) return;
+  list.removeWhere(isEmptyObject);
+}
+
 typedef ValueValidator<V> = bool Function(V value);
 
 /// Validates [value] and returns [value] or [def].
@@ -1010,6 +1032,16 @@ List<String> parseStringFromInlineList(dynamic s,
   return parseFromInlineList(s.toString(), delimiter, parseString, def);
 }
 
+/// Parses [v] as to a [Comparable] type.
+Comparable<T> parseComparable<T>(dynamic v) {
+  if (v == null) return null;
+  if (v is num) return v as Comparable<T>;
+
+  if (v is String) return v as Comparable<T>;
+
+  return parseString(v) as Comparable<T>;
+}
+
 /// Parses [e] as a [MapEntry<String, String>]
 MapEntry<String, String> parseMapEntry<K, V>(dynamic e,
     [Pattern delimiter, MapEntry<String, String> def]) {
@@ -1098,17 +1130,97 @@ T deepCopy<T>(T o) {
 }
 
 /// Deeply copies [list].
-List deepCopyList(List l) {
+List<T> deepCopyList<T>(List<T> l) {
   if (l == null) return null;
-  if (l.isEmpty) return [];
-  return l.map((e) => deepCopy(e)).toList();
+  if (l.isEmpty) return <T>[];
+  return l.map((T e) => deepCopy(e)).toList();
 }
 
+typedef ValueFilter = bool Function(
+    dynamic collection, dynamic key, dynamic value);
+
+typedef ValueReplacer = dynamic Function(
+    dynamic collection, dynamic key, dynamic value);
+
 /// Deeply copies [map].
-Map deepCopyMap(Map map) {
+Map<K, V> deepCopyMap<K, V>(Map<K, V> map) {
   if (map == null) return null;
-  if (map.isEmpty) return {};
-  return map.map((k, v) => MapEntry(deepCopy(k), deepCopy(v)));
+  if (map.isEmpty) return <K, V>{};
+  return map.map((K k, V v) => MapEntry<K, V>(deepCopy(k), deepCopy(v)));
+}
+
+/// Replaces values applying [replacer] to values that matches [filter].
+dynamic deepReplaceValues<T>(
+    dynamic o, ValueFilter filter, ValueReplacer replacer) {
+  if (o == null) return null;
+
+  if (filter(null, null, o)) {
+    return replacer(null, null, o);
+  } else if (o is List) {
+    deepReplaceListValues(o, filter, replacer);
+    return o;
+  } else if (o is Map) {
+    deepReplaceMapValues(o, filter, replacer);
+    return o;
+  } else if (o is Set) {
+    deepReplaceSetValues(o, filter, replacer);
+    return o;
+  } else {
+    return o;
+  }
+}
+
+/// Replaces values applying [replacer] to values that matches [filter].
+void deepReplaceListValues<T>(
+    List list, ValueFilter filter, ValueReplacer replacer) {
+  if (list == null || list.isEmpty) return;
+
+  for (var i = 0; i < list.length; ++i) {
+    var v = list[i];
+    if (filter(list, i, v)) {
+      list[i] = replacer(list, i, v);
+    } else {
+      list[i] = deepReplaceValues(v, filter, replacer);
+    }
+  }
+}
+
+/// Replaces values applying [replacer] to values that matches [filter].
+void deepReplaceMapValues<T>(
+    Map map, ValueFilter filter, ValueReplacer replacer) {
+  if (map == null || map.isEmpty) return;
+
+  for (var entry in map.entries) {
+    var k = entry.key;
+    var v = entry.value;
+    if (filter(map, k, v)) {
+      map[k] = replacer(map, k, v);
+    } else {
+      map[k] = deepReplaceValues(v, filter, replacer);
+    }
+  }
+}
+
+/// Replaces values applying [replacer] to values that matches [filter].
+void deepReplaceSetValues<T>(
+    Set set, ValueFilter filter, ValueReplacer replacer) {
+  if (set == null || set.isEmpty) return;
+
+  var entries = set.toList();
+
+  for (var val in entries) {
+    var val2;
+    if (filter(set, null, val)) {
+      val2 = replacer(set, null, val);
+    } else {
+      val2 = deepReplaceValues(val, filter, replacer);
+    }
+
+    if (!identical(val, val2)) {
+      set.remove(val);
+      set.add(val2);
+    }
+  }
 }
 
 /// A [Map] that delegates to another [_map].
@@ -1604,6 +1716,14 @@ R mergeIterable<I, R>(
 /// Uses [mergeIterable] to sum all [iterable] values.
 num sumIterable<I, R>(Iterable<num> iterable, {num init = 0}) =>
     mergeIterable(iterable, (total, value) => total + value, init);
+
+/// Uses [mergeIterable] to find maximum value in [iterable].
+num maxInIterable<I, R>(Iterable<num> iterable) =>
+    mergeIterable(iterable, (total, value) => value > total ? value : total, 0);
+
+/// Uses [mergeIterable] to find minimum value in [iterable].
+num minInIterable<I, R>(Iterable<num> iterable) =>
+    mergeIterable(iterable, (total, value) => value < total ? value : total, 0);
 
 /// Calculate the average value of [iterable].
 num averageIterable<I, R>(Iterable<num> iterable) =>

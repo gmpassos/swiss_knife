@@ -2,10 +2,9 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'utils.dart';
-
 import 'collections.dart';
 import 'math.dart';
+import 'utils.dart';
 
 /// Represents MIME-Type. Useful for Content-Type and file handling.
 ///
@@ -29,6 +28,10 @@ class MimeType {
   static const APPLICATION_JAVASCRIPT = 'application/javascript';
 
   static const JAVASCRIPT = APPLICATION_JAVASCRIPT;
+
+  static const APPLICATION_ZIP = 'application/zip';
+
+  static const ZIP = APPLICATION_ZIP;
 
   static const IMAGE_JPEG = 'image/jpeg';
 
@@ -185,6 +188,7 @@ class MimeType {
   bool get isImagePNG => isImage && subType == 'png';
 
   bool get isJavascript => subType == 'javascript';
+
   bool get isJSON => subType == 'json';
 
   /// Returns the common file extension for the MIME-Type.

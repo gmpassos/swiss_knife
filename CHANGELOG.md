@@ -1,3 +1,11 @@
+## 2.5.12
+
+- Added `isPositiveNumber`, `isNegativeNumber`.
+- Added `MimeType.APPLICATION_ZIP`.
+- Added `maxInIterable`, `minInIterable`.
+- Added `deepReplaceValues`, `deepReplaceListValues`, `deepReplaceMapValues`.
+- Added `parseComparable`, `removeEmptyEntries`, `sortMapEntries`, `sortMapEntriesByValue`, `sortMapEntriesByKey`.
+
 ## 2.5.11
 
 - Added `NNField`.

@@ -830,3 +830,9 @@ N clipNumber<N extends num>(N n, N min, N max, [N def]) {
   if (n > max) return max;
   return n;
 }
+
+/// Returns [true] if [n > 0]. If [n] is null returns false.
+bool isPositiveNumber(num n) => n != null && n > 0;
+
+/// Returns [true] if [n < 0]. If [n] is null returns false.
+bool isNegativeNumber(num n) => n != null && n < 0;

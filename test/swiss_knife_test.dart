@@ -1,8 +1,10 @@
+import 'dart:collection';
+
 import 'package:swiss_knife/swiss_knife.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('Math', () {
+  group('Collections', () {
     setUp(() {});
 
     test('Collections', () {
@@ -108,6 +110,54 @@ void main() {
             }
           }, deep: true),
           equals(false));
+
+      var deepObj = [
+        'a',
+        'b',
+        1,
+        2,
+        {
+          'a': 1,
+          'b': 2,
+          'c': [
+            {'id', 1},
+            {'id', 2}
+          ]
+        }
+      ];
+
+      expect(isEqualsDeep(deepObj, deepCopy(deepObj)), isTrue);
+
+      var deepObj2 = {
+        'list': [
+          {'id': 1},
+          {'id': 2}
+        ]
+      };
+
+      deepReplaceValues(deepObj2, (c, k, v) => k == 'id', (c, k, v) => v * 10);
+
+      expect(
+          isEqualsDeep(deepObj2, {
+            'list': [
+              {'id': 10},
+              {'id': 20}
+            ]
+          }),
+          isTrue);
+    });
+
+    test('sort', () {
+      // ignore: prefer_collection_literals
+      var map1 = LinkedHashMap<String, int>();
+      map1['c'] = 10;
+      map1['a'] = 30;
+      map1['b'] = 20;
+
+      expect(sortMapEntriesByKey(map1).keys.toList(), equals(['a', 'b', 'c']));
+
+      expect(
+          sortMapEntriesByValue(map1).keys.toList(), equals(['c', 'b', 'a']));
     });
   });
 
@@ -362,6 +412,24 @@ void main() {
 
       expect(clipNumber(null, 10, 20, 15), equals(15));
       expect(clipNumber(null, 10, 20, 150), equals(20));
+    });
+
+    test('isPositiveNumber', () {
+      expect(isPositiveNumber(1), isTrue);
+      expect(isPositiveNumber(2), isTrue);
+      expect(isPositiveNumber(1000), isTrue);
+      expect(isPositiveNumber(0), isFalse);
+      expect(isPositiveNumber(-1), isFalse);
+      expect(isPositiveNumber(-2), isFalse);
+    });
+
+    test('isNegativeNumber', () {
+      expect(isNegativeNumber(1), isFalse);
+      expect(isNegativeNumber(2), isFalse);
+      expect(isNegativeNumber(1000), isFalse);
+      expect(isNegativeNumber(0), isFalse);
+      expect(isNegativeNumber(-1), isTrue);
+      expect(isNegativeNumber(-2), isTrue);
     });
 
     test('Scale', () {
