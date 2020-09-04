@@ -1,3 +1,7 @@
+## 2.5.13
+
+- `removeUriQueryString`: avoid blank fragment in the URL.
+
 ## 2.5.12
 
 - Added `isPositiveNumber`, `isNegativeNumber`.

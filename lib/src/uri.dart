@@ -226,8 +226,13 @@ Uri buildUri(String scheme, String host, int port,
 /// Removes query string from [url] and returns an [Uri].
 Uri removeUriQueryString(String url) {
   var uri = Uri.parse(url);
+  var fragment = uri.fragment;
+  if (fragment != null && fragment.isEmpty) {
+    fragment = null;
+  }
+
   return buildUri(uri.scheme, uri.host, uri.port,
-      path: uri.path, fragment: uri.fragment);
+      path: uri.path, fragment: fragment);
 }
 
 /// Removes fragment from [url] and returns an [Uri].
