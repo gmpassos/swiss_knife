@@ -1,3 +1,12 @@
+## 2.5.14
+
+- `MimeType`: Added new types.
+- Added constructor `MimeType.byExtension`.
+- `MimeType`: Fixed parsing of `gif`.
+- `EventStream`: Added `cancelAllSingletonSubscriptions`, `cancelSingletonSubscription`, `getSingletonSubscription`.
+- Added `listenStreamWithInteractionCompleter`.
+- pedantic: ^1.9.2
+
 ## 2.5.13
 
 - `removeUriQueryString`: avoid blank fragment in the URL.

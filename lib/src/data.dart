@@ -33,6 +33,14 @@ class MimeType {
 
   static const ZIP = APPLICATION_ZIP;
 
+  static const APPLICATION_GZIP = 'application/gzip';
+
+  static const GZIP = APPLICATION_GZIP;
+
+  static const APPLICATION_PDF = 'application/pdf';
+
+  static const PDF = APPLICATION_PDF;
+
   static const IMAGE_JPEG = 'image/jpeg';
 
   static const JPEG = IMAGE_JPEG;
@@ -40,6 +48,14 @@ class MimeType {
   static const IMAGE_PNG = 'image/png';
 
   static const PNG = IMAGE_PNG;
+
+  static const IMAGE_GIF = 'image/gif';
+
+  static const GIF = IMAGE_GIF;
+
+  static const IMAGE_ICON = 'image/x-icon';
+
+  static const ICON = IMAGE_ICON;
 
   static const TEXT_HTML = 'text/html';
 
@@ -52,6 +68,22 @@ class MimeType {
   static const TEXT_PLAIN = 'text/plain';
 
   static const TEXT = TEXT_PLAIN;
+
+  static const APPLICATION_XML = 'application/xml';
+
+  static const XML = APPLICATION_XML;
+
+  static const APPLICATION_XHTML = 'application/xhtml+xml';
+
+  static const XHTML = APPLICATION_XHTML;
+
+  static const VIDEO_MPEG = 'video/mpeg';
+
+  static const MPEG = VIDEO_MPEG;
+
+  static const AUDIO_MPEG = 'audio/mpeg';
+
+  static const MP3 = AUDIO_MPEG;
 
   /// Parses a [mimeType] string and returns as a normalized MIME-Type string.
   /// Note that this can resolve aliases like `JSON`.
@@ -93,30 +125,36 @@ class MimeType {
         mimeType.endsWith('/js')) {
       return MimeType('application', 'javascript', charset);
     }
-
     if (mimeType == 'jpeg' ||
         mimeType == 'jpg' ||
         mimeType.endsWith('/jpeg') ||
-        mimeType.endsWith('/jpg')) return MimeType('image', 'jpeg');
+        mimeType.endsWith('/jpg')) {
+      return MimeType('image', 'jpeg');
+    }
     if (mimeType == 'png' || mimeType.endsWith('/png')) {
       return MimeType('image', 'png', charset);
     }
-    if (mimeType == 'png' || mimeType.endsWith('/gif')) {
+    if (mimeType == 'gif' || mimeType.endsWith('/gif')) {
       return MimeType('image', 'gif', charset);
     }
-
-    if (mimeType == 'text') return MimeType('text', 'plain');
+    if (mimeType == 'text') {
+      return MimeType('text', 'plain');
+    }
     if (mimeType == 'html' ||
         mimeType == 'htm' ||
         mimeType.endsWith('/html') ||
-        mimeType.endsWith('/htm')) return MimeType('text', 'html');
+        mimeType.endsWith('/htm')) {
+      return MimeType('text', 'html');
+    }
+    if (mimeType == 'xhtml' || mimeType.endsWith('/xhtml')) {
+      return MimeType('application', 'xhtml');
+    }
     if (mimeType == 'css' || mimeType.endsWith('/css')) {
       return MimeType('text', 'css', charset);
     }
     if (mimeType == 'xml' || mimeType.endsWith('/xml')) {
       return MimeType('text', 'xml', charset);
     }
-
     if (mimeType == 'zip' || mimeType.endsWith('/zip')) {
       return MimeType('application', 'zip', charset);
     }
@@ -125,6 +163,23 @@ class MimeType {
     }
     if (mimeType == 'pdf' || mimeType.endsWith('/pdf')) {
       return MimeType('application', 'pdf', charset);
+    }
+    if (mimeType == 'xml' || mimeType.endsWith('/xml')) {
+      return MimeType('application', 'xml', charset);
+    }
+    if (mimeType == 'mp3' ||
+        mimeType.endsWith('/mp3') ||
+        mimeType.endsWith('audio/mpeg')) {
+      return MimeType('audio', 'mp3', charset);
+    }
+    if (mimeType == 'mpeg' || mimeType.endsWith('video/mpeg')) {
+      return MimeType('video', 'mpeg', charset);
+    }
+    if (mimeType == 'icon' ||
+        mimeType == 'ico' ||
+        mimeType.endsWith('/x-icon') ||
+        mimeType.endsWith('/icon')) {
+      return MimeType('image', 'x-icon', charset);
     }
 
     var idx = mimeType.indexOf('/');
@@ -141,6 +196,59 @@ class MimeType {
     }
 
     return MimeType('application', mimeType, charset);
+  }
+
+  /// Creates an instance by file [extension].
+  factory MimeType.byExtension(String extension) {
+    if (extension == null) return null;
+    var idx = extension.lastIndexOf('.');
+    if (idx >= 0) {
+      extension = extension.substring(idx + 1);
+    }
+    extension = extension.trim().toLowerCase();
+
+    switch (extension) {
+      case 'zip':
+        return MimeType.parse(ZIP);
+      case 'gzip':
+      case 'gz':
+        return MimeType.parse(GZIP);
+      case 'png':
+        return MimeType.parse(PNG);
+      case 'jpeg':
+      case 'jpg':
+        return MimeType.parse(JPEG);
+      case 'gif':
+        return MimeType.parse(GIF);
+      case 'css':
+        return MimeType.parse(CSS);
+      case 'json':
+        return MimeType.parse(JSON);
+      case 'js':
+      case 'javascript':
+        return MimeType.parse(JAVASCRIPT);
+      case 'html':
+      case 'htm':
+        return MimeType.parse(HTML);
+      case 'xhtml':
+        return MimeType.parse(XHTML);
+      case 'text':
+      case 'txt':
+        return MimeType.parse(TEXT);
+      case 'pdf':
+        return MimeType.parse(PDF);
+      case 'mp3':
+        return MimeType.parse(MP3);
+      case 'mpeg':
+        return MimeType.parse(MPEG);
+      case 'xml':
+        return MimeType.parse(XML);
+      case 'icon':
+      case 'ico':
+        return MimeType.parse(ICON);
+      default:
+        return MimeType.parse('application/$extension');
+    }
   }
 
   static String normalizeCharset(String charset) {

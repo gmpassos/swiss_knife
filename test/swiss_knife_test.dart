@@ -3,6 +3,21 @@ import 'dart:collection';
 import 'package:swiss_knife/swiss_knife.dart';
 import 'package:test/test.dart';
 
+String uriRootScheme =
+    Uri.base.toString().startsWith('file:/') ? 'file' : 'http';
+
+String uriRootInit = uriRootScheme == 'file' ? 'file:///' : 'http://';
+
+String uriRootHost = uriRootScheme == 'file' ? '' : 'localhost';
+
+RegExp uriRootHostAndPort =
+    uriRootScheme == 'file' ? RegExp(r'^$') : RegExp(r'^localhost:\d+$');
+
+RegExp uriRootPort =
+    uriRootScheme == 'file' ? RegExp(r'^0$') : RegExp(r'^\d+$');
+
+String uriRoot = getUriRoot().toString();
+
 void main() {
   group('Collections', () {
     setUp(() {});
@@ -484,35 +499,72 @@ void main() {
       expect(
           MimeType.parse('text/plain').toString(), equals(MimeType.TEXT_PLAIN));
       expect(
+          MimeType.byExtension('txt').toString(), equals(MimeType.TEXT_PLAIN));
+      expect(
+          MimeType.byExtension('text').toString(), equals(MimeType.TEXT_PLAIN));
+      expect(MimeType.byExtension('foo.txt').toString(),
+          equals(MimeType.TEXT_PLAIN));
+
+      expect(
           MimeType.parse('image/jpeg').toString(), equals(MimeType.IMAGE_JPEG));
       expect(MimeType.parse('jpeg').toString(), equals(MimeType.IMAGE_JPEG));
+      expect(
+          MimeType.byExtension('jpeg').toString(), equals(MimeType.IMAGE_JPEG));
+      expect(
+          MimeType.byExtension('jpg').toString(), equals(MimeType.IMAGE_JPEG));
+
       expect(
           MimeType.parse('image/png').toString(), equals(MimeType.IMAGE_PNG));
       expect(MimeType.parse('png').toString(), equals(MimeType.IMAGE_PNG));
       expect(
+          MimeType.byExtension('png').toString(), equals(MimeType.IMAGE_PNG));
+
+      expect(
+          MimeType.parse('image/gif').toString(), equals(MimeType.IMAGE_GIF));
+      expect(MimeType.parse('gif').toString(), equals(MimeType.IMAGE_GIF));
+      expect(
+          MimeType.byExtension('gif').toString(), equals(MimeType.IMAGE_GIF));
+
+      expect(
           MimeType.parse('text/html').toString(), equals(MimeType.TEXT_HTML));
       expect(MimeType.parse('html').toString(), equals(MimeType.TEXT_HTML));
+      expect(
+          MimeType.byExtension('html').toString(), equals(MimeType.TEXT_HTML));
+      expect(
+          MimeType.byExtension('htm').toString(), equals(MimeType.TEXT_HTML));
+
       expect(MimeType.parse('text/css').toString(), equals(MimeType.TEXT_CSS));
       expect(MimeType.parse('css').toString(), equals(MimeType.TEXT_CSS));
+      expect(MimeType.byExtension('css').toString(), equals(MimeType.TEXT_CSS));
 
       expect(MimeType.parse('application/json').toString(),
           equals(MimeType.APPLICATION_JSON));
       expect(
           MimeType.parse('json').toString(), equals(MimeType.APPLICATION_JSON));
+      expect(MimeType.byExtension('json').toString(),
+          equals(MimeType.APPLICATION_JSON));
 
       expect(MimeType.parse('javascript').toString(),
           equals(MimeType.APPLICATION_JAVASCRIPT));
       expect(MimeType.parse('js').toString(),
           equals(MimeType.APPLICATION_JAVASCRIPT));
+      expect(MimeType.byExtension('js').toString(),
+          equals(MimeType.APPLICATION_JAVASCRIPT));
 
       expect(MimeType.parse('zip').toString(), equals('application/zip'));
+      expect(MimeType.byExtension('zip').toString(), equals('application/zip'));
 
       expect(MimeType.parse('gzip').toString(), equals('application/gzip'));
       expect(MimeType.parse('gz').toString(), equals('application/gzip'));
+      expect(
+          MimeType.byExtension('gzip').toString(), equals('application/gzip'));
+      expect(MimeType.byExtension('gz').toString(), equals('application/gzip'));
 
       expect(MimeType.parse('pdf').toString(), equals('application/pdf'));
+      expect(MimeType.byExtension('pdf').toString(), equals('application/pdf'));
 
       expect(MimeType.parse('xml').toString(), equals('text/xml'));
+      expect(MimeType.byExtension('xml').toString(), equals('text/xml'));
     });
 
     test('dataSizeFormat() decimal', () {
@@ -692,13 +744,13 @@ void main() {
     });
 
     test('UriBase', () {
-      expect(getUriBase().toString(), matches(r'^file:///.+'));
-      expect(getUriRoot().toString(), equals('file:///'));
-      expect(getUriBaseHost(), equals(''));
-      expect(getUriBasePort(), equals(0));
-      expect(getUriBaseScheme(), equals('file'));
-      expect(getUriBaseHostAndPort(), equals(''));
-      expect(getUriRootURL(), equals('file:///'));
+      expect(getUriBase().toString(), matches(r'^' + uriRootInit + r'.+'));
+      expect(getUriRoot().toString(), equals(uriRoot));
+      expect(getUriBaseHost(), equals(uriRootHost));
+      expect(getUriBasePort().toString(), matches(uriRootPort));
+      expect(getUriBaseScheme(), equals(uriRootScheme));
+      expect(getUriBaseHostAndPort(), matches(uriRootHostAndPort));
+      expect(getUriRootURL(), equals(uriRoot));
 
       expect(isUriBaseLocalhost(), equals(true));
 
@@ -763,11 +815,11 @@ void main() {
               .toString(),
           equals('http://foo:81/y?query=1#frag1'));
 
-      expect(resolveUri('/').toString(), equals('file:///'));
-      expect(resolveUri('/foo.txt').toString(), equals('file:///foo.txt'));
+      expect(resolveUri('/').toString(), equals(uriRoot));
+      expect(resolveUri('/foo.txt').toString(), equals('${uriRoot}foo.txt'));
 
       expect(resolveUri('./foo.txt').toString(),
-          matches(r'^file:///.+?/foo\.txt$'));
+          matches(r'^' + uriRootInit + r'.+?/foo\.txt$'));
 
       expect(
           removeUriFragment('https://foo:81/path/x?query=1#section1')

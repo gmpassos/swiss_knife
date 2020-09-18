@@ -25,13 +25,36 @@ class _ListenSignature {
           runtimeType == other.runtimeType &&
           (_identifyByInstance
               ? identical(_identifier, other._identifier)
-              : _identifier == other._identifier) &&
-          _cancelOnError == other._cancelOnError;
+              : _identifier == other._identifier);
 
   @override
-  int get hashCode =>
-      _identifier.hashCode ^
-      (_cancelOnError != null ? _cancelOnError.hashCode : 0);
+  int get hashCode => _identifier.hashCode;
+
+  StreamSubscription subscription;
+
+  bool _canceled = false;
+
+  bool get isCanceled => _canceled != null && _canceled;
+
+  void cancel() {
+    _cancel(true);
+  }
+
+  void _cancel(bool cancelSubscription) {
+    _canceled = true;
+
+    if (subscription != null) {
+      if (cancelSubscription) {
+        try {
+          subscription.cancel();
+        } catch (e, s) {
+          print(e);
+          print(s);
+        }
+      }
+      subscription = null;
+    }
+  }
 }
 
 /// Implements a Stream for events and additional features.
@@ -193,11 +216,58 @@ class EventStream<T> implements Stream<T> {
 
   final Set<_ListenSignature> _listenSignatures = {};
 
+  /// Cancels all [StreamSubscription] of singleton listeners.
+  void cancelAllSingletonSubscriptions() {
+    for (var signature in _listenSignatures) {
+      signature.cancel();
+    }
+    _listenSignatures.clear();
+  }
+
+  /// Cancels [StreamSubscription] associated with [singletonIdentifier].
+  bool cancelSingletonSubscription(dynamic singletonIdentifier,
+      [bool singletonIdentifyByInstance = true]) {
+    var signature =
+        _getListenSignature(singletonIdentifier, singletonIdentifyByInstance);
+
+    if (signature != null && !signature.isCanceled) {
+      signature.cancel();
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /// Returns a [StreamSubscription] associated with [singletonIdentifier].
+  StreamSubscription<T> getSingletonSubscription(dynamic singletonIdentifier,
+      [bool singletonIdentifyByInstance = true]) {
+    var signature =
+        _getListenSignature(singletonIdentifier, singletonIdentifyByInstance);
+    return signature != null ? signature.subscription : null;
+  }
+
+  _ListenSignature _getListenSignature(dynamic singletonIdentifier,
+      [bool singletonIdentifyByInstance = true]) {
+    if (singletonIdentifier == null) return null;
+    singletonIdentifyByInstance ??= true;
+
+    var listenSignature = _ListenSignature(
+        singletonIdentifier, singletonIdentifyByInstance, false);
+
+    for (var signature in _listenSignatures) {
+      if (signature == listenSignature) {
+        return signature;
+      }
+    }
+
+    return null;
+  }
+
   /// Listen for events.
   ///
   /// [onData] on event data.
   /// [onError] on error is added.
-  /// [singletonIdentifier] identifier to avoid multiple listeners with the same identifier.
+  /// [singletonIdentifier] identifier to avoid multiple listeners with the same identifier. This will register a singleton [StreamSubscription] associated with [singletonIdentifier].
   /// [singletonIdentifyByInstance] if true uses `identical(...)` to compare the [singletonIdentifier].
   @override
   StreamSubscription<T> listen(void Function(T event) onData,
@@ -217,10 +287,23 @@ class EventStream<T> implements Stream<T> {
           return null;
         }
         _listenSignatures.add(listenSignature);
-      }
 
-      return _stream.listen(onData,
-          onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+        var subscription = _stream.listen(onData, onError: onError, onDone: () {
+          listenSignature._cancel(false);
+          _listenSignatures.remove(listenSignature);
+
+          if (onDone != null) {
+            onDone();
+          }
+        }, cancelOnError: cancelOnError);
+
+        listenSignature.subscription = subscription;
+
+        return subscription;
+      } else {
+        return _stream.listen(onData,
+            onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+      }
     } catch (e, s) {
       print(e);
       print(s);
@@ -436,4 +519,32 @@ class InteractionCompleterDummy extends InteractionCompleter {
 
   @override
   void triggerNow() {}
+}
+
+/// Listen [stream], calling [onData] only after [triggerDelay] duration.
+///
+/// [onData] is only called when [stream] event is triggered and stays
+/// without any new event for [triggerDelay] duration.
+InteractionCompleter listenStreamWithInteractionCompleter<T>(
+    Stream<T> stream, Duration triggerDelay, void Function(T event) onData) {
+  if (stream == null) throw ArgumentError.notNull('stream');
+  if (triggerDelay == null) throw ArgumentError.notNull('triggerDelay');
+  if (onData == null) throw ArgumentError.notNull('onData');
+
+  var lastEvent = <T>[];
+
+  var interactionCompleter = InteractionCompleter(
+      'listenStreamWithInteractionCompleter[${stream}]',
+      triggerDelay: triggerDelay, functionToTrigger: () {
+    var event = lastEvent.isNotEmpty ? lastEvent.first : null;
+    onData(event);
+  });
+
+  stream.listen((event) {
+    lastEvent.clear();
+    lastEvent.add(event);
+    interactionCompleter.interact();
+  });
+
+  return interactionCompleter;
 }
