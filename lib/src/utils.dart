@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:swiss_knife/src/collections.dart';
+
 /// Calls a function with a [delayMs].
 ///
 /// [delayMs] is milliseconds. If null or <= 0 won't have a delay.
@@ -152,4 +154,115 @@ List<String> _split_RegExp(String s, RegExp delimiter, int limit) {
 
   parts.add(s);
   return parts;
+}
+
+class Parameter<A> {
+  final A a;
+
+  Parameter(this.a);
+
+  Parameter<A> copy() => Parameter(deepCopy(a));
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || other is Parameter && isEqualsDeep(a, other.a);
+
+  int _hashCode;
+
+  @override
+  int get hashCode {
+    _hashCode ??= computeHashCode;
+    return _hashCode;
+  }
+
+  int get computeHashCode => deepHashCode(a);
+}
+
+class Parameters2<A, B> extends Parameter<A> {
+  final B b;
+
+  Parameters2(A a, this.b) : super(a);
+
+  @override
+  Parameters2<A, B> copy() => Parameters2(deepCopy(a), deepCopy(b));
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Parameters2 && super == other && isEqualsDeep(b, other.b);
+
+  @override
+  int get computeHashCode => super.computeHashCode ^ deepHashCode(b);
+}
+
+class Parameters3<A, B, C> extends Parameters2<A, B> {
+  final C c;
+
+  Parameters3(A a, B b, this.c) : super(a, b);
+
+  @override
+  Parameters3<A, B, C> copy() =>
+      Parameters3(deepCopy(a), deepCopy(b), deepCopy(c));
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Parameters3 && super == other && isEqualsDeep(c, other.c);
+
+  @override
+  int get computeHashCode => super.computeHashCode ^ deepHashCode(c);
+}
+
+class Parameters4<A, B, C, D> extends Parameters3<A, B, C> {
+  final D d;
+
+  Parameters4(A a, B b, C c, this.d) : super(a, b, c);
+
+  @override
+  Parameters4<A, B, C, D> copy() =>
+      Parameters4(deepCopy(a), deepCopy(b), deepCopy(c), deepCopy(d));
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Parameters4 && super == other && isEqualsDeep(d, other.d);
+
+  @override
+  int get computeHashCode => super.computeHashCode ^ deepHashCode(d);
+}
+
+class CachedComputation<R, T, K> {
+  final R Function(T) function;
+
+  final K Function(T) keyGenerator;
+
+  CachedComputation(this.function, [K Function(T) keyGenerator])
+      : keyGenerator = keyGenerator ?? ((T value) => deepCopy(value as K));
+
+  final Map<K, R> _cache = {};
+
+  int get cacheSize => _cache.length;
+
+  void clear() {
+    _cache.clear();
+  }
+
+  K generateKey(T value) => keyGenerator(value);
+
+  int _computationCount = 0;
+
+  int get computationCount => _computationCount;
+
+  R compute(T value) {
+    var key = generateKey(value);
+
+    var prev = _cache[key];
+    if (prev != null) return prev;
+
+    ++_computationCount;
+    var result = function(value);
+
+    _cache[key] = result;
+    return result;
+  }
 }

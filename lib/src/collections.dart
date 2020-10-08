@@ -363,7 +363,13 @@ bool isListEntriesAllOfSameType(Iterable list) {
   if (list == null || list.isEmpty) return null;
   if (list.length == 1) return true;
   var t = list.first.runtimeType;
-  return listMatchesAll(list, (e) => e.runtimeType == t);
+  return listMatchesAll(list, (e) => e != null && e.runtimeType == t);
+}
+
+/// Returns [true] if all [list] elements are of [type].
+bool isListEntriesAllOfType(Iterable list, Type type) {
+  if (list == null || list.isEmpty) return null;
+  return listMatchesAll(list, (e) => e != null && e.runtimeType == type);
 }
 
 /// Adds all [values] to [list].
@@ -895,6 +901,20 @@ K findKeyName<K, V>(Map<K, V> map, List<K> keys, [bool ignoreCase]) {
   return entry != null ? entry.key : null;
 }
 
+/// Returns [true] if [s] is empty or null.
+bool isEmptyString(String s, {bool trim = false}) {
+  if (s == null) return true;
+  if (trim ?? false) {
+    s = s.trim();
+  }
+  return s.isEmpty;
+}
+
+/// Returns ![isEmptyString].
+bool isNotEmptyString(String s, {bool trim = false}) {
+  return !isEmptyString(s, trim: trim);
+}
+
 /// Returns [true] if [o] is empty. Checks for [String], [List], [Map]
 /// [Iterable], [Set] or `o.toString()`.
 bool isEmptyObject<T>(T o) {
@@ -1116,24 +1136,44 @@ int deepHashCodeMap(Map map) {
   return h;
 }
 
+typedef Copier = dynamic Function(dynamic o);
+
 /// Deeply copies [o].
-T deepCopy<T>(T o) {
+///
+/// [copier] Copy [Function] for non-primitive types.
+T deepCopy<T>(T o, {Copier copier}) {
   if (o == null) return null;
   if (o is String) return o;
   if (o is num) return o;
   if (o is bool) return o;
 
-  if (o is List) return deepCopyList(o) as T;
-  if (o is Map) return deepCopyMap(o) as T;
+  if (o is List) return deepCopyList(o, copier: copier) as T;
+  if (o is Map) return deepCopyMap(o, copier: copier) as T;
 
-  return o;
+  if (copier != null) {
+    return copier(o);
+  } else {
+    return o;
+  }
 }
 
 /// Deeply copies [list].
-List<T> deepCopyList<T>(List<T> l) {
+///
+/// [copier] Copy [Function] for non-primitive types.
+List<T> deepCopyList<T>(List<T> l, {Copier copier}) {
   if (l == null) return null;
   if (l.isEmpty) return <T>[];
-  return l.map((T e) => deepCopy(e)).toList();
+  return l.map((T e) => deepCopy(e, copier: copier)).toList();
+}
+
+/// Deeply copies [map].
+///
+/// [copier] Copy [Function] for non-primitive types.
+Map<K, V> deepCopyMap<K, V>(Map<K, V> map, {Copier copier}) {
+  if (map == null) return null;
+  if (map.isEmpty) return <K, V>{};
+  return map.map((K k, V v) =>
+      MapEntry<K, V>(deepCopy(k, copier: copier), deepCopy(v, copier: copier)));
 }
 
 typedef ValueFilter = bool Function(
@@ -1141,13 +1181,6 @@ typedef ValueFilter = bool Function(
 
 typedef ValueReplacer = dynamic Function(
     dynamic collection, dynamic key, dynamic value);
-
-/// Deeply copies [map].
-Map<K, V> deepCopyMap<K, V>(Map<K, V> map) {
-  if (map == null) return null;
-  if (map.isEmpty) return <K, V>{};
-  return map.map((K k, V v) => MapEntry<K, V>(deepCopy(k), deepCopy(v)));
-}
 
 /// Replaces values applying [replacer] to values that matches [filter].
 dynamic deepReplaceValues<T>(
@@ -1722,8 +1755,10 @@ num maxInIterable<I, R>(Iterable<num> iterable) =>
     mergeIterable(iterable, (total, value) => value > total ? value : total, 0);
 
 /// Uses [mergeIterable] to find minimum value in [iterable].
-num minInIterable<I, R>(Iterable<num> iterable) =>
-    mergeIterable(iterable, (total, value) => value < total ? value : total, 0);
+num minInIterable<I, R>(Iterable<num> iterable) => iterable.isEmpty
+    ? null
+    : mergeIterable(iterable, (total, value) => value < total ? value : total,
+        iterable.first);
 
 /// Calculate the average value of [iterable].
 num averageIterable<I, R>(Iterable<num> iterable) =>
@@ -1740,19 +1775,29 @@ class NNField<T> {
   /// Optional value filter to apply before set.
   final T Function(dynamic value) filter;
 
+  /// Optional value to apply before get.
+  final T Function(T value) resolver;
+
   T _value;
 
-  NNField(this.defaultValue, {bool deepHashcode, this.filter})
+  NNField(this.defaultValue, {bool deepHashcode, this.filter, this.resolver})
       : deepHashcode = deepHashcode ?? false {
     if (defaultValue == null) throw ArgumentError.notNull('defaultValue');
     _value = defaultValue;
   }
 
   /// The filed value as [T].
-  T get value => _value;
+  T get value => get();
+
+  set value(dynamic value) => set(value);
 
   /// Returns the current filed [value].
-  T get() => _value;
+  T get() {
+    if (resolver != null) {
+      return resolver(_value);
+    }
+    return _value;
+  }
 
   /// Sets the field [value].
   ///

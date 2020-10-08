@@ -57,6 +57,10 @@ class MimeType {
 
   static const ICON = IMAGE_ICON;
 
+  static const IMAGE_SVG = 'image/svg+xml';
+
+  static const SVG = IMAGE_SVG;
+
   static const TEXT_HTML = 'text/html';
 
   static const HTML = TEXT_HTML;
@@ -181,6 +185,11 @@ class MimeType {
         mimeType.endsWith('/icon')) {
       return MimeType('image', 'x-icon', charset);
     }
+    if (mimeType == 'svg' ||
+        mimeType.endsWith('/svg') ||
+        mimeType.endsWith('/svg+xml')) {
+      return MimeType('image', 'svg+xml', charset);
+    }
 
     var idx = mimeType.indexOf('/');
 
@@ -246,6 +255,8 @@ class MimeType {
       case 'icon':
       case 'ico':
         return MimeType.parse(ICON);
+      case 'svg':
+        return MimeType.parse(SVG);
       default:
         return MimeType.parse('application/$extension');
     }
@@ -294,6 +305,9 @@ class MimeType {
 
   /// Returns [true] if this is `image/png`.
   bool get isImagePNG => isImage && subType == 'png';
+
+  /// Returns [true] if this is `image/svg+xml`.
+  bool get isImageSVG => isImage && subType == 'svg';
 
   bool get isJavascript => subType == 'javascript';
 
@@ -728,6 +742,8 @@ Point<num> parsePointFromString(String s) {
 /// [binaryBase] Default [false]. If [true] uses a binary base, if false uses
 /// decimal base.
 String dataSizeFormat(int size, {bool decimalBase, bool binaryBase}) {
+  if (size == null) return null;
+
   var baseDecimal;
 
   if (decimalBase != null) {
@@ -755,7 +771,7 @@ String dataSizeFormat(int size, {bool decimalBase, bool binaryBase}) {
     } else if (size < 1000 * 1000 * 1000) {
       return formatDecimal(size / (1000 * 1000)) + ' MB';
     } else {
-      return formatDecimal(size / (1000 * 1000 & 1000)) + ' GB';
+      return formatDecimal(size / (1000 * 1000 * 1000)) + ' GB';
     }
   } else {
     if (size < 1024) {
@@ -766,7 +782,7 @@ String dataSizeFormat(int size, {bool decimalBase, bool binaryBase}) {
     } else if (size < 1024 * 1024 * 1024) {
       return formatDecimal(size / (1024 * 1024)) + ' MiB';
     } else {
-      return formatDecimal(size / (1024 * 1024 & 1024)) + ' GiB';
+      return formatDecimal(size / (1024 * 1024 * 1024)) + ' GiB';
     }
   }
 }

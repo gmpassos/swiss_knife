@@ -219,7 +219,11 @@ int parseInt(dynamic v, [int def]) {
 
   if (s.isEmpty) return def;
 
-  return num.parse(s).toInt();
+  try {
+    return num.parse(s).toInt();
+  } catch (e) {
+    return def;
+  }
 }
 
 /// Parses [v] to [double].
@@ -242,7 +246,11 @@ double parseDouble(dynamic v, [double def]) {
 
   if (s.isEmpty) return def;
 
-  return double.parse(s);
+  try {
+    return double.parse(s);
+  } catch (e) {
+    return def;
+  }
 }
 
 /// Parses [v] to [num].
@@ -266,7 +274,11 @@ num parseNum(dynamic v, [num def]) {
 
   if (s.isEmpty) return def;
 
-  return num.parse(s);
+  try {
+    return num.parse(s);
+  } catch (e) {
+    return def;
+  }
 }
 
 /// Parses [v] to [bool].
@@ -538,7 +550,7 @@ bool isNumList(dynamic value, [String delimiter = ',']) {
       .hasMatch(s);
 }
 
-final RegExp _REGEXP_double = RegExp(r'^-?\d+\.\d+$');
+final RegExp _REGEXP_double = RegExp(r'^(?:-?\d+\.\d+|-?\.\d+)$');
 
 /// Returns true if [value] is [double]. Can be a double as string too.
 bool isDouble(dynamic value) {

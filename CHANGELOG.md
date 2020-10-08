@@ -1,3 +1,19 @@
+## 2.5.15
+
+- Added: `isEmptyString`, `isNotEmptyString`, `isListEntriesAllOfType`.
+- Added `deepCopyMap`.
+- `deepCopy`: added parameter `copier`.
+- `NNField`: Added `resolver`.
+- `MimeType`: added SVG support.
+- `InteractionCompleter`:
+  - `interact`: Added parameters `interactionParameters` and `ignoreConsecutiveEqualsParameters`.
+  - Added `dispose`.
+- `encodeJSON`: Added parameter `toEncodable`.
+- Added: `toEncodableJSON`.
+- `parseInt`, `parseDouble` and `parseNum` now returns default value (`def`) in case of parsing error.
+- isDouble now can parse `.00` pattern.
+- Fix: `dataSizeFormat`.
+
 ## 2.5.14
 
 - `MimeType`: Added new types.

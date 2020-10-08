@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:swiss_knife/src/collections.dart';
+
 class _ListenSignature {
   final dynamic _identifier;
 
@@ -421,13 +423,37 @@ class InteractionCompleter {
 
   bool get hasInteractionNotTriggered => _interactionNotTriggered;
 
+  List _lastInteractionParameters;
+
+  List get lastInteractionParameters => _lastInteractionParameters;
+
+  void disposeLastInteractionParameters() {
+    _lastInteractionParameters = null;
+  }
+
   /// Marks an interaction and schedules delayed trigger.
   ///
   /// [noTriggering] If [true] won't schedule trigger, only mark interaction.
-  void interact({noTriggering = false}) {
+  /// [interactionParameters] Stores parameters that can be used while triggering, using [lastInteractionParameters].
+  void interact(
+      {noTriggering = false,
+      List interactionParameters,
+      bool ignoreConsecutiveEqualsParameters = false}) {
     noTriggering ??= false;
 
-    log('interact', [noTriggering]);
+    if (interactionParameters != null) {
+      if (ignoreConsecutiveEqualsParameters ?? false) {
+        if (_lastInteractionParameters != null &&
+            isEqualsDeep(_lastInteractionParameters, interactionParameters)) {
+          log('ignore interact', [noTriggering, interactionParameters]);
+          return;
+        }
+      }
+
+      _lastInteractionParameters = interactionParameters;
+    }
+
+    log('interact', [noTriggering, interactionParameters]);
 
     _lastInteractionTime = now;
     _interactionNotTriggered = true;
@@ -470,17 +496,22 @@ class InteractionCompleter {
   }
 
   /// Triggers only if already has some interaction.
-  void triggerIfHasInteraction() {
+  void triggerIfHasInteraction({List interactionParameters}) {
     if (hasInteractionNotTriggered) {
-      triggerNow();
+      triggerNow(interactionParameters: interactionParameters);
     }
   }
 
   final EventStream<InteractionCompleter> onComplete = EventStream();
 
   /// Triggers immediately.
-  void triggerNow() {
+  void triggerNow({List interactionParameters}) {
     log('triggerNow');
+
+    if (interactionParameters != null) {
+      _lastInteractionParameters = interactionParameters;
+    }
+
     _triggerScheduled = false;
     _interactionNotTriggered = false;
 
@@ -498,8 +529,18 @@ class InteractionCompleter {
 
   /// Cancels any event scheduled to be triggered.
   void cancel() {
+    log('cancel');
+
     _triggerScheduled = false;
     _interactionNotTriggered = false;
+  }
+
+  /// [cancel] this instance and dispose any resource.
+  void dispose() {
+    log('dispose');
+
+    cancel();
+    _lastInteractionParameters = null;
   }
 
   void log(String method, [List parameters]) {
@@ -512,13 +553,16 @@ class InteractionCompleterDummy extends InteractionCompleter {
   InteractionCompleterDummy() : super('');
 
   @override
-  void interact({noTriggering = false}) {}
+  void interact(
+      {noTriggering = false,
+      List interactionParameters,
+      bool ignoreConsecutiveEqualsParameters = false}) {}
 
   @override
-  void triggerIfHasInteraction() {}
+  void triggerIfHasInteraction({List interactionParameters}) {}
 
   @override
-  void triggerNow() {}
+  void triggerNow({List interactionParameters}) {}
 }
 
 /// Listen [stream], calling [onData] only after [triggerDelay] duration.

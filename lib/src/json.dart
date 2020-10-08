@@ -5,9 +5,9 @@ import 'package:swiss_knife/swiss_knife.dart';
 
 import 'collections.dart';
 
-/// Parses [json].
+/// Parses [json] to a JSON tree.
 ///
-/// [def] The default value if [json] is null, empty or blank String.
+/// [def] The default value if [json] is null, empty or a blank String.
 dynamic parseJSON(dynamic json, [dynamic def]) {
   if (json == null) return def;
 
@@ -19,9 +19,17 @@ dynamic parseJSON(dynamic json, [dynamic def]) {
   }
 }
 
-/// Encodes [json].
+/// Encodes [json] to a JSON string.
+///
+/// [withIndent] If true applies [ident].
+/// [indent] By default uses 2 spaces: `  `.
+/// [clearNullEntries] If true will apply [removeNullEntries] and remove any null entry in tree.
+/// [toEncodable] Function to transform an object to JSON.
 String encodeJSON(dynamic json,
-    {String indent, bool withIndent, bool clearNullEntries}) {
+    {String indent,
+    bool withIndent,
+    bool clearNullEntries,
+    Object Function(dynamic object) toEncodable}) {
   clearNullEntries ??= false;
   if (clearNullEntries) {
     removeNullEntries(json);
@@ -33,12 +41,14 @@ String encodeJSON(dynamic json,
     }
   }
 
+  toEncodable ??= toEncodableJSON;
+
   dart_convert.JsonEncoder encoder;
 
   if (indent != null && indent.isNotEmpty) {
-    encoder = dart_convert.JsonEncoder.withIndent(indent);
+    encoder = dart_convert.JsonEncoder.withIndent(indent, toEncodable);
   } else {
-    encoder = dart_convert.JsonEncoder();
+    encoder = dart_convert.JsonEncoder(toEncodable);
   }
 
   return encoder.convert(json);
@@ -98,4 +108,99 @@ bool isJSONMap(dynamic json) {
   }
 
   return false;
+}
+
+/// Ensures that [o] is an encodable JSON tree.
+dynamic toEncodableJSON(dynamic o) {
+  if (o == null) return null;
+  if (o is num) return o;
+  if (o is bool) return o;
+  if (o is String) return o;
+
+  if (o is List) return toEncodableJSONList(o);
+  if (o is Map) return toEncodableJSONMap(o);
+  if (o is Set) return toEncodableJSONList(o.toList());
+
+  dynamic encodable;
+  try {
+    if (o.toJson != null) {
+      encodable = o.toJson();
+    } else {
+      encodable = o.toString();
+    }
+  } catch (e) {
+    encodable = o.toString();
+  }
+
+  return toEncodableJSON(encodable);
+}
+
+/// Ensures that [list] is an encodable JSON tree.
+List toEncodableJSONList(List list) {
+  if (list == null) return null;
+
+  if (list is List<num>) return list;
+  if (list is List<int>) return list;
+  if (list is List<double>) return list;
+  if (list is List<bool>) return list;
+  if (list is List<String>) return list;
+
+  if (list is List<List<num>>) return list;
+  if (list is List<List<int>>) return list;
+  if (list is List<List<double>>) return list;
+  if (list is List<List<bool>>) return list;
+  if (list is List<List<String>>) return list;
+
+  if (list is List<Map<String, num>>) return list;
+  if (list is List<Map<String, int>>) return list;
+  if (list is List<Map<String, double>>) return list;
+  if (list is List<Map<String, bool>>) return list;
+  if (list is List<Map<String, String>>) return list;
+
+  if (list.isEmpty) return <dynamic>[];
+
+  if (isListEntriesAllOfType(list, num)) return List<num>.from(list);
+  if (isListEntriesAllOfType(list, int)) return List<int>.from(list);
+  if (isListEntriesAllOfType(list, double)) return List<double>.from(list);
+  if (isListEntriesAllOfType(list, bool)) return List<bool>.from(list);
+  if (isListEntriesAllOfType(list, String)) return List<String>.from(list);
+
+  return list.map((e) => toEncodableJSON(e)).toList();
+}
+
+/// Ensures that [map] is an encodable JSON tree.
+Map toEncodableJSONMap(Map map) {
+  if (map == null) return null;
+
+  if (map is Map<String, num>) return map;
+  if (map is Map<String, int>) return map;
+  if (map is Map<String, double>) return map;
+  if (map is Map<String, bool>) return map;
+  if (map is Map<String, String>) return map;
+
+  if (map.isEmpty) return <String, dynamic>{};
+
+  if (map is Map<String, List<num>>) return map;
+  if (map is Map<String, List<int>>) return map;
+  if (map is Map<String, List<double>>) return map;
+  if (map is Map<String, List<bool>>) return map;
+  if (map is Map<String, List<String>>) return map;
+
+  if (map is Map<String, Object> || map is Map<String, dynamic>) {
+    var values = map.values.toList();
+
+    if (isListEntriesAllOfType(values, num)) {
+      return map.map((key, value) => MapEntry(key, value as num));
+    } else if (isListEntriesAllOfType(values, int)) {
+      return map.map((key, value) => MapEntry(key, value as int));
+    } else if (isListEntriesAllOfType(values, double)) {
+      return map.map((key, value) => MapEntry(key, value as double));
+    } else if (isListEntriesAllOfType(values, bool)) {
+      return map.map((key, value) => MapEntry(key, value as bool));
+    } else if (isListEntriesAllOfType(values, String)) {
+      return map.map((key, value) => MapEntry(key, value as String));
+    }
+  }
+
+  return map.map((key, value) => MapEntry('$key', toEncodableJSON(value)));
 }

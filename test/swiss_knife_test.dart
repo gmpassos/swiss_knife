@@ -18,6 +18,36 @@ RegExp uriRootPort =
 
 String uriRoot = getUriRoot().toString();
 
+class Foo {
+  int id;
+
+  String name;
+
+  Foo(this.id, this.name);
+
+  Map<String, dynamic> toJson() {
+    return {'id': id, 'name': name};
+  }
+
+  @override
+  String toString() {
+    return 'Foo{id: $id, name: $name}';
+  }
+}
+
+class Bar {
+  int id;
+
+  String name;
+
+  Bar(this.id, this.name);
+
+  @override
+  String toString() {
+    return 'Bar{id: $id, name: $name}';
+  }
+}
+
 void main() {
   group('Collections', () {
     setUp(() {});
@@ -675,6 +705,37 @@ void main() {
           equals('a-,-b-,-c-,,-d'));
     });
 
+    test('RegExpDialect', () {
+      var dialect = RegExpDialect.from({
+        's': '[ \t]',
+        'commas': ',+',
+      }, multiLine: false, caseSensitive: false);
+
+      expect(dialect.hasErrors, isFalse);
+
+      var pattern1 = dialect.getPattern(r'$s*($commas)$s*');
+
+      expect(regExpReplaceAll(pattern1, 'a ,b, c ,, d', '\$1'),
+          equals('a,b,c,,d'));
+      expect(regExpReplaceAll(pattern1, 'a ,b, c ,, d', '-\$1-'),
+          equals('a-,-b-,-c-,,-d'));
+    });
+
+    test('RegExpDialect error', () {
+      var dialect = RegExpDialect.from({
+        's': '[ \t',
+        'commas': ',+',
+      }, multiLine: false, caseSensitive: false, throwCompilationErrors: false);
+
+      expect(dialect.hasErrors, isTrue);
+
+      var errorWords = dialect.errorWords;
+      expect(errorWords, equals(['s']));
+
+      expect(dialect.getWordErrorMessage('s'),
+          contains('FormatException: Unterminated character'));
+    });
+
     test('buildStringPattern', () {
       expect(buildStringPattern('user: <{{username}}>', {}),
           equals('user: <null>'));
@@ -1130,6 +1191,35 @@ void main() {
       expect(isJSON({'a': 1}), isTrue);
       expect(isJSON({'b': 's'}), isTrue);
     });
+
+    test('toEncodableJSON', () {
+      expect(toEncodableJSON('abc'), equals('abc'));
+      expect(toEncodableJSON(123), equals(123));
+      expect(toEncodableJSON(1.2), equals(1.2));
+      expect(toEncodableJSON(true), equals(true));
+      expect(toEncodableJSON(false), equals(false));
+      expect(toEncodableJSON(null), equals(null));
+
+      expect(toEncodableJSON(['a', 'b']), equals(['a', 'b']));
+      expect(toEncodableJSON([1, 2, 3]), equals([1, 2, 3]));
+      expect(
+          toEncodableJSON(['a', 2, Foo(2, 'b')]),
+          equals([
+            'a',
+            2,
+            {'id': 2, 'name': 'b'}
+          ]));
+
+      expect(
+          toEncodableJSON({'a': 'A', 'b': 'B'}), equals({'a': 'A', 'b': 'B'}));
+      expect(toEncodableJSON({'a': 1, 'b': 2}), equals({'a': 1, 'b': 2}));
+
+      expect(
+          toEncodableJSON(Foo(123, 'abc')), equals({'id': 123, 'name': 'abc'}));
+
+      expect(
+          toEncodableJSON(Bar(123, 'abc')), equals('Bar{id: 123, name: abc}'));
+    });
   });
 
   group('MapDelegate', () {
@@ -1240,6 +1330,30 @@ void main() {
       expect(
           getDateTimeEndOf(DateTime(2020, 03, 12, 10, 30, 59, 300), Unit.Years),
           equals(DateTime(2020, 12, 31, 23, 59, 59, 999)));
+    });
+  });
+
+  group('Date', () {
+    setUp(() {});
+
+    test('getDateTimeStartOf/EndOf', () {
+      var cachedComputation = CachedComputation<int,
+          Parameters2<List<int>, int>, Parameters2<List<int>, int>>((v) {
+        return sumIterable(v.a.map((n) => n * v.b));
+      });
+
+      expect(cachedComputation.cacheSize, equals(0));
+      expect(cachedComputation.computationCount, equals(0));
+
+      expect(cachedComputation.compute(Parameters2([1, 2], 3)), equals(9));
+
+      expect(cachedComputation.cacheSize, equals(1));
+      expect(cachedComputation.computationCount, equals(1));
+
+      expect(cachedComputation.compute(Parameters2([1, 2], 3)), equals(9));
+
+      expect(cachedComputation.cacheSize, equals(1));
+      expect(cachedComputation.computationCount, equals(1));
     });
   });
 }
