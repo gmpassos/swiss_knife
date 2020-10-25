@@ -260,15 +260,17 @@ Uri resolveUri(String url, {String baseURL, Uri baseUri}) {
   url = url.trim();
 
   var base = baseUri ??
-      (isNotEmptyString(baseURL) ? Uri.parse(baseURL) : getUriBase());
+      (isNotEmptyString(baseURL) ? Uri.parse(baseURL) : null);
 
   if (url.isEmpty) return base;
 
-  if (url == '/') return base;
+  if (url == '/') return base ?? getUriRoot() ;
 
-  if (url == './') return base;
+  if (url == './') return base ?? getUriBase() ;
 
   if (url.startsWith(RegExp(r'\w+://'))) return Uri.parse(url);
+
+  base ??= getUriBase() ;
 
   return buildUri(base.scheme, base.host, base.port,
       path: base.path, path2: url);
