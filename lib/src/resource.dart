@@ -1,5 +1,7 @@
 import 'package:resource_portable/resource.dart';
 import 'package:swiss_knife/src/events.dart';
+import 'package:swiss_knife/src/uri.dart';
+import 'package:swiss_knife/swiss_knife.dart';
 
 /// A cache for [ResourceContent].
 class ResourceContentCache {
@@ -111,13 +113,39 @@ class ResourceContent {
   /// Constructor with [Resource] from [uri].
   ///
   /// [content] in case of content/body is already resolved.
-  ResourceContent.fromURI(dynamic uri, [String content])
-      : this(Resource(uri), content);
+  factory ResourceContent.fromURI(dynamic uri, [String content]) {
+    if (uri == null && content == null) return null;
+
+    if (uri is Uri) {
+      return ResourceContent(Resource(uri), content);
+    } else if (uri is String) {
+      return ResourceContent(Resource(uri), content);
+    } else if (uri is ResourceContent) {
+      return ResourceContent(Resource(uri.uri), content);
+    } else {
+      var url = uri.toString();
+      return ResourceContent(Resource(url), content);
+    }
+  }
 
   factory ResourceContent.from(dynamic rsc) {
     if (rsc is ResourceContent) return rsc;
     if (rsc is Resource) return ResourceContent(rsc);
     return ResourceContent.fromURI(rsc);
+  }
+
+  /// Resolved [url] before instantiate [fromURI].
+  factory ResourceContent.fromResolvedUrl(String url,
+      {String baseURL, String content}) {
+    if (url == null) {
+      if (content != null) return ResourceContent(null, content);
+      return null;
+    }
+
+    var resolvedURL = resolveUri(url, baseURL: baseURL);
+    if (resolvedURL == null && content == null) return null;
+
+    return ResourceContent.fromURI(resolvedURL, content);
   }
 
   /// Reset and disposes any loaded content.
@@ -135,11 +163,20 @@ class ResourceContent {
   /// Notifies events when load is completed.
   EventStream<String> onLoad = EventStream();
 
+  /// Triggers content load.
+  void load() {
+    getContent();
+  }
+
   /// Returns the content after resolve it.
   Future<String> getContent() async {
     if (hasContent) return _content;
 
     if (resource == null) return null;
+
+    if (_readFuture == null) {
+      print('ResourceContent> LOAD> $resource');
+    }
 
     _readFuture ??= resource.readAsString().then((c) {
       _onLoad(c, false);
@@ -178,6 +215,20 @@ class ResourceContent {
   /// The [Resource.uri].
   Uri get uri => resource.uri;
 
+  /// Returns [uri] file extension.
+  String get uriFileExtension {
+    var uri = this.uri;
+    if (uri == null) return null;
+    return getPathExtension(uri.toString());
+  }
+
+  /// Returns a [MimeType] based into the [uri] file name extension.
+  MimeType get uriMimeType {
+    var uri = this.uri;
+    if (uri == null) return null;
+    return MimeType.byExtension(uri.toString());
+  }
+
   /// Return resolved [Uri] from [Resource.uriResolved].
   Future<Uri> get uriResolved => resource.uriResolved;
 
@@ -189,7 +240,7 @@ class ResourceContent {
           resource.uri == other.resource.uri;
 
   @override
-  int get hashCode => uri.hashCode;
+  int get hashCode => uri?.hashCode ?? 0;
 
   @override
   String toString() {

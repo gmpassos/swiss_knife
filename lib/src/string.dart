@@ -79,3 +79,72 @@ bool isBlankStringInRange(String s, int offset, int length) {
 
   return true;
 }
+
+final int _codeUnit__ = '_'.codeUnitAt(0);
+final int _codeUnit_0 = '0'.codeUnitAt(0);
+final int _codeUnit_9 = '9'.codeUnitAt(0);
+final int _codeUnit_a = 'a'.codeUnitAt(0);
+final int _codeUnit_z = 'z'.codeUnitAt(0);
+final int _codeUnit_A = 'A'.codeUnitAt(0);
+final int _codeUnit_Z = 'Z'.codeUnitAt(0);
+
+bool isDigit(int c) {
+  if (c < _codeUnit_0 || c > _codeUnit_9) return false;
+  return true;
+}
+
+bool isAlphaNumeric(int c) {
+  if (c < _codeUnit_0 ||
+      c > _codeUnit_z ||
+      ((c > _codeUnit_9 && c < _codeUnit_A) ||
+          (c > _codeUnit_Z && c < _codeUnit_a && c != _codeUnit__))) {
+    return false;
+  }
+  return true;
+}
+
+bool isDigitString(String s, [int offset]) {
+  if (s == null) return false;
+  offset ??= 0;
+  return isDigitStringInRange(s, offset, s.length - offset);
+}
+
+bool isDigitStringInRange(String s, int offset, int length) {
+  if (s == null) return false;
+
+  offset ??= 0;
+  length ??= s.length - offset;
+  if (length <= 0) return false;
+
+  var end = offset + length;
+
+  for (var i = offset; i < end; i++) {
+    var c = s.codeUnitAt(i);
+    if (!isDigit(c)) return false;
+  }
+
+  return true;
+}
+
+bool isAlphaNumericString(String s, [int offset]) {
+  if (s == null) return false;
+  offset ??= 0;
+  return isAlphaNumericStringInRange(s, offset, s.length - offset);
+}
+
+bool isAlphaNumericStringInRange(String s, int offset, int length) {
+  if (s == null) return false;
+
+  offset ??= 0;
+  length ??= s.length - offset;
+  if (length <= 0) return false;
+
+  var end = offset + length;
+
+  for (var i = offset; i < end; i++) {
+    var c = s.codeUnitAt(i);
+    if (!isAlphaNumeric(c)) return false;
+  }
+
+  return true;
+}

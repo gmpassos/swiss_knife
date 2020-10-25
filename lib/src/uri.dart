@@ -1,3 +1,5 @@
+import 'package:swiss_knife/src/collections.dart';
+
 /// Returns platform base Uri. See [ Uri.base ].
 ///
 /// - In the browser is the current window.location.href.
@@ -36,25 +38,29 @@ int getUriBasePort() {
 /// The host and port of base Uri.
 ///
 /// [suppressPort80] if true suppresses port 80 and returns only the host.
-String getUriBaseHostAndPort([bool suppressPort80 = true]) {
+String getUriBaseHostAndPort({bool suppressPort80 = true, int port}) {
   suppressPort80 ??= true;
 
   var uri = getUriBase();
+  port ??= uri.port;
 
-  if (suppressPort80 && uri.port == 80) {
+  if (suppressPort80 && port == 80) {
     return uri.host;
   }
 
-  if (uri.port == 0) {
+  if (port == 0) {
     return uri.host;
   }
 
-  return '${uri.host}:${uri.port}';
+  return '${uri.host}:${port}';
 }
 
 /// Returns base Uri as URL string.
-String getUriRootURL([bool ignorePort80 = true]) {
-  return getUriBaseScheme() + '://' + getUriBaseHostAndPort(ignorePort80) + '/';
+String getUriRootURL({bool suppressPort80 = true, int port}) {
+  return getUriBaseScheme() +
+      '://' +
+      getUriBaseHostAndPort(suppressPort80: suppressPort80, port: port) +
+      '/';
 }
 
 /// Builds an Uri with the parameters.
@@ -64,13 +70,14 @@ Uri buildUri(String scheme, String host, int port,
     {String path, String path2, String queryString, String fragment}) {
   var base = getUriBase();
 
-  scheme ??= base.scheme;
-  host ??= base.host;
-  port ??= base.port;
+  if (isEmptyString(scheme)) scheme = base.scheme;
+  if (isEmptyString(host)) host = base.host;
 
   var defaultPort = scheme == 'https' ? 443 : (scheme == 'http' ? 80 : 0);
 
-  port ??= scheme == base.scheme && host == base.host ? base.port : defaultPort;
+  if (port == null || port == 0) {
+    port = scheme == base.scheme && host == base.host ? base.port : defaultPort;
+  }
 
   path ??= '/';
   if (!path.startsWith('/')) path = '/$path';
@@ -245,18 +252,24 @@ Uri removeUriFragment(String url) {
 /// Resolves [url] and returns an [Uri].
 ///
 /// If [url] starts without a scheme, it will use base Uri (from [getUriBase]) as base.
-Uri resolveUri(String url) {
+///
+/// [baseURL] Base URL to use. If is null will use [baseUri] parameter or [getUriBase] result.
+/// [baseUri] Base URI to use. If is null will use [getUriBase] result.
+Uri resolveUri(String url, {String baseURL, Uri baseUri}) {
   if (url == null) return null;
   url = url.trim();
-  if (url.isEmpty) return getUriBase();
 
-  if (url == '/') return getUriRoot();
+  var base = baseUri ??
+      (isNotEmptyString(baseURL) ? Uri.parse(baseURL) : getUriBase());
 
-  if (url == './') return getUriBase();
+  if (url.isEmpty) return base;
+
+  if (url == '/') return base;
+
+  if (url == './') return base;
 
   if (url.startsWith(RegExp(r'\w+://'))) return Uri.parse(url);
 
-  var base = getUriBase();
   return buildUri(base.scheme, base.host, base.port,
       path: base.path, path2: url);
 }

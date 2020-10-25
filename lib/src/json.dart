@@ -204,3 +204,119 @@ Map toEncodableJSONMap(Map map) {
 
   return map.map((key, value) => MapEntry('$key', toEncodableJSON(value)));
 }
+
+/// Returns [true] if [s] is a encoded JSON String of a primitive value.
+bool isEncodedJSON(String s) {
+  if (s == null) return false;
+  s = s.trim();
+  if (s.isEmpty) return false;
+
+  return _isEncodedJSONPrimitive(s) ||
+      _isEncodedJSONList(s) ||
+      _isEncodedJSONMap(s);
+}
+
+/// Returns [true] if [s] is a encoded JSON String of a primitive value.
+bool isEncodedJSONPrimitive(String s) {
+  if (s == null) return false;
+  s = s.trim();
+  if (s.isEmpty) return false;
+
+  return _isEncodedJSONPrimitive(s);
+}
+
+bool _isEncodedJSONPrimitive(String s) {
+  return _isEncodedJSONString(s) ||
+      _isEncodedJSONBoolean(s) ||
+      _isEncodedJSONNumber(s) ||
+      _isEncodedJSONNull(s);
+}
+
+/// Returns [true] if [s] is a encoded JSON `null`.
+bool isEncodedJSONNull(String s) {
+  if (s == null) return false;
+  s = s.trim();
+  return _isEncodedJSONNull(s);
+}
+
+bool _isEncodedJSONNull(String s) => s == 'null';
+
+/// Returns [true] if [s] is a encoded JSON [bool].
+bool isEncodedJSONBoolean(String s) {
+  if (s == null) return false;
+  s = s.trim();
+  return _isEncodedJSONBoolean(s);
+}
+
+bool _isEncodedJSONBoolean(String s) => s == 'true' || s == 'false';
+
+/// Returns [true] if [s] is a encoded JSON [num].
+bool isEncodedJSONNumber(String s) {
+  if (s == null) return false;
+  s = s.trim();
+  if (s.isEmpty) return false;
+  return _isEncodedJSONNumber(s);
+}
+
+bool _isEncodedJSONNumber(String s) {
+  return isNum(s);
+}
+
+/// Returns [true] if [s] is a encoded JSON [String].
+bool isEncodedJSONString(String s) {
+  if (s == null) return false;
+  s = s.trim();
+  return _isEncodedJSONString(s);
+}
+
+bool _isEncodedJSONString(String s) {
+  if (s == '""') return true;
+
+  if (s.startsWith('"') && s.endsWith('"')) {
+    try {
+      var list = parseJSON(s);
+      return list is String;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  return false;
+}
+
+/// Returns [true] if [s] is a encoded JSON [List].
+bool isEncodedJSONList(String s) {
+  if (s == null) return false;
+  s = s.trim();
+  if (s.isEmpty) return false;
+  return _isEncodedJSONList(s);
+}
+
+bool _isEncodedJSONList(String s) {
+  if (!s.startsWith('[') || !s.endsWith(']')) return false;
+
+  try {
+    var list = parseJSON(s);
+    return list is List;
+  } catch (e) {
+    return false;
+  }
+}
+
+/// Returns [true] if [s] is a encoded JSON [Map].
+bool isEncodedJSONMap(String s) {
+  if (s == null) return false;
+  s = s.trim();
+  return _isEncodedJSONMap(s);
+}
+
+bool _isEncodedJSONMap(String s) {
+  if (!s.startsWith('{') || !s.endsWith('}')) return false;
+
+  try {
+    var map = parseJSON(s);
+    return map is Map;
+  } catch (e) {
+    return false;
+  }
+}

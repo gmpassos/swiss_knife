@@ -346,16 +346,21 @@ bool isAllEqualsInMap(Map map, dynamic value, [bool deep = false]) {
 }
 
 /// Returns [true] if at least ONE [list] element does NOT matches [matcher].
-// ignore: use_function_type_syntax_for_parameters
-bool listNotMatchesAll<T>(Iterable<T> list, bool matcher(T entry)) {
+bool listNotMatchesAll<T>(Iterable<T> list, bool Function(T entry) matcher) {
   var noMatch = list.firstWhere((e) => !matcher(e), orElse: () => null);
   return noMatch != null;
 }
 
 /// Returns [true] if all [list] elements matches [matcher].
-// ignore: use_function_type_syntax_for_parameters
-bool listMatchesAll<T>(Iterable<T> list, bool matcher(T entry)) {
+bool listMatchesAll<T>(Iterable<T> list, bool Function(T entry) matcher) {
   return !listNotMatchesAll(list, matcher);
+}
+
+/// Returns [true] if any element of [list] matches [matcher].
+bool listMatchesAny<T>(Iterable<T> list, bool Function(T entry) matcher) {
+  if (list == null || list.isEmpty) return false;
+  var match = list.firstWhere((e) => matcher(e), orElse: () => null);
+  return match != null;
 }
 
 /// Returns [true] if all [list] elements are of the same type.
@@ -370,6 +375,26 @@ bool isListEntriesAllOfSameType(Iterable list) {
 bool isListEntriesAllOfType(Iterable list, Type type) {
   if (list == null || list.isEmpty) return null;
   return listMatchesAll(list, (e) => e != null && e.runtimeType == type);
+}
+
+/// Returns [true] if all [list] elements are [identical].
+bool isListValuesIdentical(List l1, List l2) {
+  if (l1 == null || l2 == null) return false;
+  if (identical(l1, l2)) return true;
+
+  var length = l1.length;
+  if (length != l2.length) return false;
+
+  if (length == 0) return true;
+
+  for (var i = 0; i < length; ++i) {
+    var v1 = l1[i];
+    var v2 = l2[i];
+
+    if (!identical(v1, v2)) return false;
+  }
+
+  return true;
 }
 
 /// Adds all [values] to [list].
@@ -678,6 +703,16 @@ bool listContainsType<T>(Iterable list) {
   return found != null;
 }
 
+/// Returns [true] if [list] contains all elements of type [entry].
+bool listContainsAll(Iterable list, Iterable entries) {
+  if (entries == null || entries.isEmpty) return false;
+  if (list == null || list.isEmpty) return false;
+  for (var entry in entries) {
+    if (!list.contains(entry)) return false;
+  }
+  return true;
+}
+
 /// Returns [true] if [list] elements are all of type [List].
 bool isListOfList(Iterable list) {
   if (list == null) return false;
@@ -902,6 +937,8 @@ K findKeyName<K, V>(Map<K, V> map, List<K> keys, [bool ignoreCase]) {
 }
 
 /// Returns [true] if [s] is empty or null.
+///
+/// [trim] if [true] will trim [s] before check for [String.isEmpty].
 bool isEmptyString(String s, {bool trim = false}) {
   if (s == null) return true;
   if (trim ?? false) {
@@ -913,6 +950,17 @@ bool isEmptyString(String s, {bool trim = false}) {
 /// Returns ![isEmptyString].
 bool isNotEmptyString(String s, {bool trim = false}) {
   return !isEmptyString(s, trim: trim);
+}
+
+/// If [s] [isEmptyString] will return [def] or [null].
+///
+/// [def] Default value to return if [s] [isEmptyString].
+/// [trim] Passed to [isEmptyString].
+String ensureNotEmptyString(String s, {bool trim = false, String def}) {
+  if (isEmptyString(s, trim: trim)) {
+    return def;
+  }
+  return s;
 }
 
 /// Returns [true] if [o] is empty. Checks for [String], [List], [Map]
@@ -1254,6 +1302,87 @@ void deepReplaceSetValues<T>(
       set.add(val2);
     }
   }
+}
+
+/// Catches deeply values that matches [filter].
+///
+/// Returns a [List] of the matched values
+List deepCatchesValues<T>(dynamic o, ValueFilter filter, [List result]) {
+  result ??= [];
+
+  if (o == null) return result;
+
+  if (filter(null, null, o)) {
+    result.add(o);
+  } else if (o is List) {
+    deepCatchesListValues(o, filter, result);
+  } else if (o is Map) {
+    deepCatchesMapValues(o, filter, result);
+  } else if (o is Set) {
+    deepCatchesSetValues(o, filter, result);
+  }
+
+  return result;
+}
+
+/// Catches deeply [list] values that matches [filter].
+///
+/// Returns a [List] of the matched values
+List deepCatchesListValues<T>(List list, ValueFilter filter, [List result]) {
+  result ??= [];
+
+  if (list == null || list.isEmpty) return result;
+
+  for (var i = 0; i < list.length; ++i) {
+    var v = list[i];
+    if (filter(list, i, v)) {
+      result.add(v);
+    } else {
+      deepCatchesValues(v, filter, result);
+    }
+  }
+
+  return result;
+}
+
+/// Catches deeply [map] values that matches [filter].
+///
+/// Returns a [List] of the matched values
+List deepCatchesMapValues<T>(Map map, ValueFilter filter, [List result]) {
+  result ??= [];
+
+  if (map == null || map.isEmpty) return result;
+
+  for (var entry in map.entries) {
+    var k = entry.key;
+    var v = entry.value;
+    if (filter(map, k, v)) {
+      result.add(v);
+    } else {
+      deepCatchesValues(v, filter, result);
+    }
+  }
+
+  return result;
+}
+
+/// Catches deeply [set] values that matches [filter].
+///
+/// Returns a [List] of the matched values
+List deepCatchesSetValues<T>(Set set, ValueFilter filter, [List result]) {
+  result ??= [];
+
+  if (set == null || set.isEmpty) return result;
+
+  for (var val in set) {
+    if (filter(set, null, val)) {
+      result.add(val);
+    } else {
+      deepCatchesValues(val, filter, result);
+    }
+  }
+
+  return result;
 }
 
 /// A [Map] that delegates to another [_map].

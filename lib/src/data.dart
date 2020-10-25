@@ -320,6 +320,14 @@ class MimeType {
         return 'js';
       case 'gzip':
         return 'gz';
+      case 'svg+xml':
+        return 'svg';
+      case 'xhtml+xml':
+        return 'xhtml';
+      case 'mpeg':
+        return type == 'audio' ? 'mp3' : 'mp3g';
+      case 'x-icon':
+        return 'ico';
       default:
         return subType;
     }

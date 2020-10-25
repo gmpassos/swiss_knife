@@ -52,23 +52,26 @@ String dateFormat_YYYY_MM_dd([int time]) {
   return dateFormat.format(date);
 }
 
-DateTime parseDateTime(dynamic v, [DateTime def]) {
-  if (v == null) return def;
+/// Parses [date] as [DateTime].
+///
+/// Can be a [num] (Milliseconds since Epoch).
+DateTime parseDateTime(dynamic date, [DateTime def]) {
+  if (date == null) return def;
 
-  if (v is DateTime) {
-    return v;
+  if (date is DateTime) {
+    return date;
   }
 
-  if (v is int) {
-    if (v == 0 && def != null) return def;
-    return DateTime.fromMillisecondsSinceEpoch(v);
+  if (date is num) {
+    if (date == 0 && def != null) return def;
+    return DateTime.fromMillisecondsSinceEpoch(date.toInt());
   }
 
   String s;
-  if (v is String) {
-    s = v;
+  if (date is String) {
+    s = date;
   } else {
-    s = v.toString();
+    s = date.toString();
   }
 
   s = s.trim();
@@ -78,14 +81,16 @@ DateTime parseDateTime(dynamic v, [DateTime def]) {
   return DateTime.parse(s);
 }
 
-List<DateTime> parseDateTimeFromInlineList(dynamic s,
+/// Converts [o] to a [List<DateTime>].
+List<DateTime> parseDateTimeFromInlineList(dynamic o,
     [Pattern delimiter = ',', List<DateTime> def]) {
-  if (s == null) return def;
-  if (s is DateTime) return [s];
-  if (s is List) return s.map((e) => parseDateTime(e)).toList();
-  return parseFromInlineList(s.toString(), delimiter, parseDateTime, def);
+  if (o == null) return def;
+  if (o is DateTime) return [o];
+  if (o is List) return o.map((e) => parseDateTime(e)).toList();
+  return parseFromInlineList(o.toString(), delimiter, parseDateTime, def);
 }
 
+/// Parses [unit] and [amount] to [Duration].
 Duration parseDuration(String unit, int amount, [Duration def]) {
   if (unit == null) return def;
   unit = unit.toLowerCase().trim();

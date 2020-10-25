@@ -592,3 +592,105 @@ InteractionCompleter listenStreamWithInteractionCompleter<T>(
 
   return interactionCompleter;
 }
+
+/// A wrapper and handler for a value that is asynchronous (from a [Future]).
+class AsyncValue<T> {
+  Future<T> _future;
+
+  AsyncValue(Future<T> future) {
+    _future = future.then(_onLoad, onError: _onError);
+  }
+
+  factory AsyncValue.from(dynamic value) {
+    if (value == null) return null;
+
+    if (value is Future) {
+      return AsyncValue(value);
+    } else if (value is Future<T> Function()) {
+      var future = value();
+      return AsyncValue<T>(future);
+    } else if (value is Future Function()) {
+      var future = value();
+      return AsyncValue(future);
+    } else if (value is T Function()) {
+      var future = Future.microtask(() => value());
+      return AsyncValue<T>(future);
+    } else if (value is Function) {
+      var future = Future.microtask(() async {
+        var result = value();
+        if (result is Future) {
+          var result2 = await result;
+          return result2;
+        } else {
+          return result;
+        }
+      });
+      return AsyncValue(future);
+    }
+
+    return null;
+  }
+
+  Future<T> get future => _future;
+
+  /// Handles `load` events.
+  final EventStream<T> onLoad = EventStream();
+
+  bool _loaded = false;
+
+  /// Returns [true] if value is loaded.
+  bool get isLoaded => _loaded;
+
+  /// Returns [true] if [isLoaded] and no error (OK).
+  bool get isLoadedOK => _loaded && _error == null;
+
+  /// Returns [true] if [isLoaded] and has an [error]
+  bool get isLoadedWithError => _loaded && _error != null;
+
+  dynamic _error;
+
+  dynamic get error => _error;
+
+  /// Returns [true] if the value has an execution [error].
+  bool get hasError => _error != null;
+
+  T _value;
+
+  T _onLoad(value) {
+    _loaded = true;
+    _value = value;
+    onLoad.add(value);
+    return value;
+  }
+
+  void _onError(error) {
+    _loaded = true;
+    _error = error ?? 'error';
+    onLoad.add(null);
+  }
+
+  /// Returns the value (only if already loaded).
+  ///
+  /// [StateError] in case the value is not loaded yet.
+  T get() {
+    if (!isLoaded) throw StateError('Not loaded yet!');
+    return _value;
+  }
+
+  /// Returns the value if loaded.
+  T getIfLoaded() => _value;
+
+  /// Returns a [Future<T>] with the value.
+  Future<T> getAsync() async {
+    if (isLoaded) return _value;
+    await _future;
+    return _value;
+  }
+
+  /// Disposes the value, error and future associated.
+  void dispose() {
+    _future = null;
+    _error = null;
+    _value = null;
+  }
+}

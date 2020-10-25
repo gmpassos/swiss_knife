@@ -1,3 +1,12 @@
+## 2.5.16
+
+- New `AsyncValue`: to handle values that comes from `Future`.
+- Added `isEncodedJSON`, `isEncodedJSONList` and `isEncodedJSONMap`: to check if a `String` is an encoded JSON.
+- ADded `isDigit`, `isAlphaNumeric`, `isDigitString`, `isAlphaNumericString`.
+- Added `listMatchesAny`, `isListValuesIdentical`, `listContainsAll`, `ensureNotEmptyString`, `deepCatchesValues`.
+- `MimeType.fileExtension`: support for `svg`, `xhtml`, `mpeg`, `mp3`, `ico`.
+- Changed method signature: `getUriRootURL`, `getUriBaseHostAndPort`, `resolveUri`.
+
 ## 2.5.15
 
 - Added: `isEmptyString`, `isNotEmptyString`, `isListEntriesAllOfType`.
