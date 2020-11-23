@@ -275,7 +275,13 @@ Uri resolveUri(String url, {String baseURL, Uri baseUri}) {
       path: base.path, path2: url);
 }
 
-RegExp _REGEXP_localhost = RegExp(r'^(?:localhost|127\.0\.0\.1|::1)$');
+/// Same as [resolveUri], but returns [Uri] as URL String.
+String resolveURL(String url, {String baseURL, Uri baseUri}) {
+  var uri = resolveUri(url, baseURL: baseURL, baseUri: baseUri);
+  return uri != null ? uri.toString() : null;
+}
+
+RegExp _REGEXP_localhost = RegExp(r'^(?:localhost|127\.0\.0\.1|0.0.0.0|::1)$');
 
 /// Returns [true] if base Uri is localhost. See [isLocalhost].
 bool isUriBaseLocalhost() {

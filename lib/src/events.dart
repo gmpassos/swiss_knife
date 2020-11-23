@@ -394,6 +394,320 @@ class EventStream<T> implements Stream<T> {
   }
 }
 
+/// A delegator for `EventStream`.
+///
+/// Useful to point to `EventStream` instances that are not instantiated yet.
+class EventStreamDelegator<T> implements EventStream<T> {
+  EventStream<T> _eventStream;
+
+  final EventStream<T> Function() _eventStreamProvider;
+
+  EventStreamDelegator(this._eventStream) : _eventStreamProvider = null;
+
+  EventStreamDelegator.provider(this._eventStreamProvider);
+
+  /// Returns the main [EventStream].
+  EventStream<T> get eventStream {
+    if (_eventStream == null && _eventStreamProvider != null) {
+      _eventStream = _eventStreamProvider();
+      if (_eventStream != null) {
+        flush();
+      }
+    }
+    return _eventStream;
+  }
+
+  /// Sets the main [EventStream].
+  set eventStream(EventStream<T> value) {
+    if (_eventStream != value) {
+      _eventStream = value;
+      if (_eventStream != null) {
+        flush();
+      }
+    }
+  }
+
+  /// Flushes any event in buffer.
+  void flush() {
+    if (_eventStream == null && _eventStreamProvider != null) {
+      _eventStream = _eventStreamProvider();
+    }
+
+    var es = _eventStream;
+    if (es == null) return;
+
+    for (var v in _addBuffer) {
+      es.add(v);
+    }
+
+    for (var v in _addErrorBuffer) {
+      es.addError(v[0], v[1]);
+    }
+
+    for (var v in _listenBuffer) {
+      es.listen(v[0],
+          onError: v[1],
+          onDone: v[2],
+          cancelOnError: v[3],
+          singletonIdentifier: v[4],
+          singletonIdentifyByInstance: v[5]);
+    }
+
+    clearUnflushed();
+  }
+
+  /// Clears unflushed events.
+  void clearUnflushed() {
+    _addBuffer.clear();
+    _addErrorBuffer.clear();
+    _listenBuffer.clear();
+  }
+
+  @override
+  StreamController<T> _controller;
+
+  @override
+  Stream<T> _s;
+
+  @override
+  bool _used;
+
+  @override
+  _ListenSignature _getListenSignature(singletonIdentifier,
+      [bool singletonIdentifyByInstance = true]) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Set<_ListenSignature> get _listenSignatures => throw UnimplementedError();
+
+  @override
+  void _markUsed() {}
+
+  @override
+  Stream<T> get _stream => throw UnimplementedError();
+
+  final List<T> _addBuffer = [];
+
+  @override
+  void add(T value) {
+    var es = eventStream;
+    if (es == null) {
+      _addBuffer.add(value);
+    } else {
+      es.add(value);
+    }
+  }
+
+  final List<List> _addErrorBuffer = [];
+
+  @override
+  void addError(Object error, StackTrace stackTrace) {
+    var es = eventStream;
+    if (es == null) {
+      _addErrorBuffer.add([error, stackTrace]);
+    } else {
+      es.addError(error, stackTrace);
+    }
+  }
+
+  final List _listenBuffer = [];
+
+  @override
+  StreamSubscription<T> listen(void Function(T event) onData,
+      {Function onError,
+      void Function() onDone,
+      bool cancelOnError,
+      singletonIdentifier,
+      bool singletonIdentifyByInstance = true}) {
+    var es = eventStream;
+    if (es == null) {
+      _listenBuffer.add([
+        onData,
+        onError,
+        onDone,
+        cancelOnError,
+        singletonIdentifier,
+        singletonIdentifyByInstance
+      ]);
+      return null;
+    } else {
+      return es.listen(onData,
+          onError: onError,
+          onDone: onDone,
+          cancelOnError: cancelOnError,
+          singletonIdentifier: singletonIdentifier,
+          singletonIdentifyByInstance: singletonIdentifyByInstance);
+    }
+  }
+
+  @override
+  Future addStream(Stream<T> source, {bool cancelOnError}) =>
+      eventStream?.addStream(source, cancelOnError: cancelOnError);
+
+  @override
+  Future<bool> any(bool Function(T element) test) => eventStream?.any(test);
+
+  @override
+  Stream<T> asBroadcastStream(
+          {void Function(StreamSubscription<T> subscription) onListen,
+          void Function(StreamSubscription<T> subscription) onCancel}) =>
+      eventStream?.asBroadcastStream(onListen: onListen, onCancel: onCancel);
+
+  @override
+  Stream<E> asyncExpand<E>(Stream<E> Function(T event) convert) =>
+      eventStream?.asyncExpand(convert);
+
+  @override
+  Stream<E> asyncMap<E>(FutureOr<E> Function(T event) convert) =>
+      eventStream?.asyncMap(convert);
+
+  @override
+  void cancelAllSingletonSubscriptions() =>
+      eventStream?.cancelAllSingletonSubscriptions();
+
+  @override
+  bool cancelSingletonSubscription(singletonIdentifier,
+          [bool singletonIdentifyByInstance = true]) =>
+      eventStream?.cancelSingletonSubscription(
+          singletonIdentifier, singletonIdentifyByInstance);
+
+  @override
+  Stream<R> cast<R>() => eventStream?.cast<R>();
+
+  @override
+  Future close() => eventStream?.close();
+
+  @override
+  Future<bool> contains(Object needle) => eventStream?.contains(needle);
+
+  @override
+  Stream<T> distinct([bool Function(T previous, T next) equals]) =>
+      eventStream?.distinct(equals);
+
+  @override
+  Future<E> drain<E>([E futureValue]) => eventStream?.drain(futureValue);
+
+  @override
+  Future<T> elementAt(int updateMetadata) =>
+      eventStream?.elementAt(updateMetadata);
+
+  @override
+  Future<bool> every(bool Function(T element) test) => eventStream?.every(test);
+
+  @override
+  Stream<S> expand<S>(Iterable<S> Function(T element) convert) =>
+      eventStream?.expand(convert);
+
+  @override
+  Future<T> get first => eventStream?.first;
+
+  @override
+  Future<T> firstWhere(bool Function(T element) test, {T Function() orElse}) =>
+      eventStream?.firstWhere(test, orElse: orElse);
+
+  @override
+  Future<S> fold<S>(
+          S initialValue, S Function(S previous, T element) combine) =>
+      eventStream?.fold(initialValue, combine);
+
+  @override
+  Future forEach(void Function(T element) action) =>
+      eventStream?.forEach(action);
+
+  @override
+  StreamSubscription<T> getSingletonSubscription(singletonIdentifier,
+          [bool singletonIdentifyByInstance = true]) =>
+      eventStream?.getSingletonSubscription(
+          singletonIdentifier, singletonIdentifyByInstance);
+
+  @override
+  Stream<T> handleError(Function onError,
+          {bool Function(dynamic error) test}) =>
+      eventStream?.handleError(onError, test: test);
+
+  @override
+  bool get isBroadcast => eventStream?.isBroadcast;
+
+  @override
+  bool get isClosed => eventStream?.isClosed;
+
+  @override
+  Future<bool> get isEmpty => eventStream?.isEmpty;
+
+  @override
+  bool get isPaused => eventStream?.isPaused;
+
+  @override
+  bool get isUsed => eventStream?.isUsed;
+
+  @override
+  Future<String> join([String separator = '']) => eventStream?.join(separator);
+
+  @override
+  Future<T> get last => eventStream?.last;
+
+  @override
+  Future<T> lastWhere(bool Function(T element) test, {T Function() orElse}) =>
+      eventStream?.lastWhere(test, orElse: orElse);
+
+  @override
+  Future<int> get length => eventStream?.length;
+
+  @override
+  Future<T> listenAsFuture() => eventStream?.listenAsFuture();
+
+  @override
+  Stream<S> map<S>(S Function(T event) convert) => eventStream?.map(convert);
+
+  @override
+  Future pipe(StreamConsumer<T> streamConsumer) =>
+      eventStream?.pipe(streamConsumer);
+
+  @override
+  Future<T> reduce(T Function(T previous, T element) combine) =>
+      eventStream?.reduce(combine);
+
+  @override
+  Future<T> get single => eventStream?.single;
+
+  @override
+  Future<T> singleWhere(bool Function(T element) test, {T Function() orElse}) =>
+      eventStream?.singleWhere(test, orElse: orElse);
+
+  @override
+  Stream<T> skip(int count) => eventStream?.skip(count);
+
+  @override
+  Stream<T> skipWhile(bool Function(T element) test) =>
+      eventStream?.skipWhile(test);
+
+  @override
+  Stream<T> take(int count) => eventStream?.take(count);
+
+  @override
+  Stream<T> takeWhile(bool Function(T element) test) =>
+      eventStream?.takeWhile(test);
+
+  @override
+  Stream<T> timeout(Duration timeLimit,
+          {void Function(EventSink<T> sink) onTimeout}) =>
+      eventStream?.timeout(timeLimit, onTimeout: onTimeout);
+
+  @override
+  Future<List<T>> toList() => eventStream?.toList();
+
+  @override
+  Future<Set<T>> toSet() => eventStream?.toSet();
+
+  @override
+  Stream<S> transform<S>(StreamTransformer<T, S> streamTransformer) =>
+      eventStream?.transform(streamTransformer);
+
+  @override
+  Stream<T> where(bool Function(T event) test) => eventStream?.where(test);
+}
+
 /// Tracks interactions and after a delay, without interaction, triggers
 /// [onComplete].
 class InteractionCompleter {
@@ -575,16 +889,16 @@ InteractionCompleter listenStreamWithInteractionCompleter<T>(
   if (triggerDelay == null) throw ArgumentError.notNull('triggerDelay');
   if (onData == null) throw ArgumentError.notNull('onData');
 
-  var lastEvent = <T>[];
+  var lastEvent = [];
 
   var interactionCompleter = InteractionCompleter(
       'listenStreamWithInteractionCompleter[${stream}]',
       triggerDelay: triggerDelay, functionToTrigger: () {
     var event = lastEvent.isNotEmpty ? lastEvent.first : null;
-    onData(event);
+    onData(event is T ? event : null);
   });
 
-  stream.listen((event) {
+  stream.listen((dynamic event) {
     lastEvent.clear();
     lastEvent.add(event);
     interactionCompleter.interact();
@@ -692,5 +1006,113 @@ class AsyncValue<T> {
     _future = null;
     _error = null;
     _value = null;
+  }
+}
+
+/// Wraps [Stream] listen call.
+///
+/// Useful to create a one shot listener or extend and introduce different behaviors.
+class ListenerWrapper<T> {
+  /// [Stream] to wrap [listen] calls.
+  final Stream<T> stream;
+
+  final void Function(T event) onData;
+
+  final Function onError;
+
+  final void Function() onDone;
+
+  final bool cancelOnError;
+
+  /// See [Stream.listen].
+  ListenerWrapper(this.stream, this.onData,
+      {this.onError, this.onDone, this.cancelOnError, bool oneShot = false}) {
+    this.oneShot = oneShot;
+  }
+
+  bool _oneShot = false;
+
+  /// If [true] will wait for 1 event and call [cancel].
+  bool get oneShot => _oneShot;
+
+  set oneShot(bool value) {
+    _oneShot = value ?? false;
+  }
+
+  int _eventCount = 0;
+
+  int get eventCount => _eventCount;
+
+  /// Wrapper for any [event] or [error].
+  void onEvent(T event, Object error, StackTrace stackTrace) {
+    ++_eventCount;
+    if (_oneShot) {
+      cancel();
+    }
+  }
+
+  /// Wrapper for [event].
+  void onDataWrapper(T event) {
+    onEvent(event, null, null);
+    if (onData != null) {
+      onData(event);
+    }
+  }
+
+  int _errorCount = 0;
+
+  int get errorCount => _errorCount;
+
+  /// Wrapper for [error].
+  void onErrorWrapper(Object error, StackTrace stackTrace) {
+    ++_errorCount;
+
+    onEvent(null, error, stackTrace);
+
+    if (onError is void Function(Object error, StackTrace stackTrace)) {
+      onError(error, stackTrace);
+    } else if (onError is void Function(Object error)) {
+      onError(error);
+    } else if (onError is void Function()) {
+      onError();
+    } else if (onError != null) {
+      onError.call();
+    }
+  }
+
+  /// Wrapper called when done.
+  void onDoneWrapper() {
+    onEvent(null, null, null);
+    if (onDone != null) {
+      onDone();
+    }
+  }
+
+  StreamSubscription<T> _subscription;
+
+  /// The last [stream.listen] [StreamSubscription].
+  StreamSubscription<T> get subscription => _subscription;
+
+  /// Returns [true] if listening.
+  bool get isListening => _subscription != null;
+
+  /// Calls [stream.listen] and sets [subscription].
+  ///
+  /// Returns [false] if already listening.
+  bool listen() {
+    if (isListening) return false;
+
+    _subscription = stream.listen(onDataWrapper,
+        onError: onErrorWrapper,
+        onDone: onDoneWrapper,
+        cancelOnError: cancelOnError);
+
+    return true;
+  }
+
+  /// Cancels [subscription];
+  void cancel() {
+    _subscription?.cancel();
+    _subscription = null;
   }
 }

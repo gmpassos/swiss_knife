@@ -231,6 +231,7 @@ class Parameters4<A, B, C, D> extends Parameters3<A, B, C> {
   int get computeHashCode => super.computeHashCode ^ deepHashCode(d);
 }
 
+/// Caches a value that can be computed.
 class CachedComputation<R, T, K> {
   final R Function(T) function;
 
@@ -243,6 +244,7 @@ class CachedComputation<R, T, K> {
 
   int get cacheSize => _cache.length;
 
+  /// Clears cache.
   void clear() {
     _cache.clear();
   }
@@ -253,6 +255,7 @@ class CachedComputation<R, T, K> {
 
   int get computationCount => _computationCount;
 
+  /// Computes and caches value.
   R compute(T value) {
     var key = generateKey(value);
 

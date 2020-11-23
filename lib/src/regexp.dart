@@ -288,17 +288,7 @@ String buildStringPattern(String pattern, Map parameters,
     [List<Map> extraParameters]) {
   if (pattern == null) return null;
 
-  var matches = STRING_PLACEHOLDER_PATTERN.allMatches(pattern);
-
-  var strFilled = '';
-
-  var pos = 0;
-  for (var match in matches) {
-    var prev = pattern.substring(pos, match.start);
-    strFilled += prev;
-
-    var varName = match.group(1);
-
+  return replaceStringMarks(pattern, STRING_PLACEHOLDER_PATTERN, (varName) {
     while (varName.startsWith('/')) {
       varName = varName.substring(1);
     }
@@ -318,13 +308,38 @@ String buildStringPattern(String pattern, Map parameters,
       }
     }
 
+    return val != null ? val.toString() : '';
+  });
+}
+
+/// Replaces String [s] marks using [marksPattern] and [markResolver].
+///
+/// [marksPattern] A [RegExp] with the mark pattern and a 1 group with the mark name.
+/// [markResolver] Resolves mark name (from [marksPattern] group(1)) to a value to replace the [marksPattern] match.
+String replaceStringMarks(String s, RegExp marksPattern,
+    String Function(String markName) markResolver) {
+  if (s == null) return null;
+
+  var matches = marksPattern.allMatches(s);
+
+  var strFilled = '';
+
+  var pos = 0;
+  for (var match in matches) {
+    var prev = s.substring(pos, match.start);
+    strFilled += prev;
+
+    var markName = match.group(1);
+
+    var val = markResolver(markName);
+
     strFilled += '$val';
 
     pos = match.end;
   }
 
-  if (pos < pattern.length) {
-    var prev = pattern.substring(pos);
+  if (pos < s.length) {
+    var prev = s.substring(pos);
     strFilled += prev;
   }
 

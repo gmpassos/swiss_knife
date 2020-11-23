@@ -1,3 +1,11 @@
+## 2.5.17
+
+- Added `resolveURL`, similar to `resolveUri`.
+- Added `replaceStringMarks`.
+- `buildStringPattern` using `replaceStringMarks` and now returns empty string for null parameters.
+- Added `EventStreamDelegator`, to point to instances of `EventStream` not instantiated yet.  
+- Added `ListenerWrapper`, to handle `StreamSubscription` related to a listener and useful to create one shot listeners.
+
 ## 2.5.16
 
 - New `AsyncValue`: to handle values that comes from `Future`.

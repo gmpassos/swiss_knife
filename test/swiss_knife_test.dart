@@ -737,8 +737,8 @@ void main() {
     });
 
     test('buildStringPattern', () {
-      expect(buildStringPattern('user: <{{username}}>', {}),
-          equals('user: <null>'));
+      expect(
+          buildStringPattern('user: <{{username}}>', {}), equals('user: <>'));
       expect(buildStringPattern('user: <{{username}}>', {'username': 'joe'}),
           equals('user: <joe>'));
       expect(buildStringPattern('user: {{username}}', {'username': 'joe'}),
@@ -820,7 +820,13 @@ void main() {
       expect(isLocalhost('::1'), equals(true));
       expect(isLocalhost('local'), equals(false));
       expect(isLocalhost('www.foo.com'), equals(false));
-      expect(isLocalhost('0.0.0.0'), equals(false));
+      expect(isLocalhost('0.0.0.0'), equals(true));
+
+      expect(isIPAddress('192.168.0.1'), equals(true));
+      expect(isIPAddress('192.168.0.50'), equals(true));
+      expect(isIPAddress('10.0.0.1'), equals(true));
+      expect(isIPAddress('localhost'), equals(false));
+      expect(isIPAddress('foo.com'), equals(false));
     });
 
     test('Uri', () {

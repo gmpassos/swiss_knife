@@ -12,11 +12,30 @@
 [![Funding](https://img.shields.io/liberapay/patrons/gmpassos.svg?logo=liberapay)](https://liberapay.com/gmpassos/donate)
 
 
-Dart Useful Tools - collections, math, date, uri, json, events, resources, etc...
+Dart Useful Tools:
+
+- collections
+- data
+- date
+- events
+- io
+- json
+- loader
+- math
+- regexp
+- resources
+- string
+- uri
+
+and more...
+
+## API
+
+See Swiss Knife [API documentation](https://pub.dev/documentation/swiss_knife/latest/) for full functionalities.
 
 ## Usage
 
-A simple usage example:
+A simple `EventStream` usage example:
 
 ```dart
 import 'package:swiss_knife/swiss_knife.dart';
