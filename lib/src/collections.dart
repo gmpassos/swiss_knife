@@ -796,8 +796,6 @@ List<List<R>> parseListOfList<T, R>(dynamic s,
   return [parseListOf(s, parser)];
 }
 
-////////////////////////////////////////////////////////////////////////////////
-
 /// Returns [true] if [map] is [Map<String,String>].
 bool isMapOfString(Map map) {
   if (map == null) return false;
@@ -848,8 +846,6 @@ bool isMapOfStringKeysAndNumValues(Map map) {
 
   return true;
 }
-
-////////////////////////////////////////////////////////////////////////////////
 
 /// Finds in [map] a entry that has one of [keys].
 ///

@@ -548,8 +548,6 @@ bool isEmail(dynamic value) {
   return value is String && value.contains('@') && REGEXP_EMAIL.hasMatch(value);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-
 /// Represents a Geo Location in latitude and longitude.
 class Geolocation {
   static final RegExp GEOLOCATION_FORMAT =
@@ -599,8 +597,6 @@ class Geolocation {
   static String formatGeolocation(Point geo) {
     return formatLatitude(geo.x) + ' ' + formatLongitude(geo.y);
   }
-
-  ///////////////////////////////////////////////////
 
   num _latitude;
 
@@ -655,8 +651,6 @@ class Geolocation {
   }
 }
 
-////////////////////////////////////////////////////////////////////////////////
-
 /// Parses [value] as a [Rectangle].
 Rectangle<num> parseRectangle(dynamic value) {
   if (value is List) return parseRectangleFromList(value);
@@ -701,8 +695,6 @@ Rectangle<num> parseRectangleFromString(String s) {
 
   return Rectangle<num>(nums[0], nums[1], nums[2], nums[3]);
 }
-
-//////////////////
 
 /// Parses [value] as a [Point].
 Point<num> parsePoint(dynamic value) {

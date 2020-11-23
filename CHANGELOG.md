@@ -1,3 +1,7 @@
+## 2.5.18
+
+- Improve API Documentation.
+
 ## 2.5.17
 
 - Added `resolveURL`, similar to `resolveUri`.

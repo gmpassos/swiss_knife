@@ -83,8 +83,6 @@ class EventStream<T> implements Stream<T> {
     return _s;
   }
 
-  /////////////////////////////////////////////////
-
   /// Adds an event and notify it to listeners.
   void add(T value) {
     if (!_used) return;
@@ -111,8 +109,6 @@ class EventStream<T> implements Stream<T> {
 
   /// Returns [true] if this stream is paused.
   bool get isPaused => _controller.isPaused;
-
-  /////////////////////////////////////////////////
 
   @override
   Future<bool> any(bool Function(T element) test) {

@@ -28,8 +28,6 @@ class Math {
   /// Square root of 2.
   static double get Sqrt2 => dart_math.sqrt2;
 
-  //////
-
   /// Returns the lesser of two numbers.
   static T min<T extends num>(T a, T b) => dart_math.min(a, b);
 
