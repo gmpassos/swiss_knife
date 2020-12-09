@@ -174,10 +174,6 @@ class ResourceContent {
 
     if (resource == null) return null;
 
-    if (_readFuture == null) {
-      print('ResourceContent> LOAD> $resource');
-    }
-
     _readFuture ??= resource.readAsString().then((c) {
       _onLoad(c, false);
       return c;

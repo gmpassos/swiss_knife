@@ -123,6 +123,54 @@ class Math {
     return total;
   }
 
+  /// Subtract in sequence [ns] entries.
+  static double subtract(Iterable<num> ns) {
+    if (ns.length <= 1) return 0;
+
+    var total;
+    for (var n in ns) {
+      if (total == null) {
+        total = n;
+      } else {
+        total -= n;
+      }
+    }
+
+    return total;
+  }
+
+  /// Multiply in sequence [ns] entries.
+  static double multiply(Iterable<num> ns) {
+    if (ns.length <= 1) return 0;
+
+    var total;
+    for (var n in ns) {
+      if (total == null) {
+        total = n;
+      } else {
+        total *= n;
+      }
+    }
+
+    return total;
+  }
+
+  /// Divide in sequence [ns] entries.
+  static double divide(Iterable<num> ns) {
+    if (ns.length <= 1) return 0;
+
+    var total;
+    for (var n in ns) {
+      if (total == null) {
+        total = n;
+      } else {
+        total /= n;
+      }
+    }
+
+    return total;
+  }
+
   /// Mean value of [ns] entries.
   static double mean(Iterable<num> ns) {
     if (ns.isEmpty) return 0;

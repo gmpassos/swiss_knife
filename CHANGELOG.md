@@ -1,3 +1,11 @@
+## 2.5.19
+
+- `MimeType`: Added `isCharsetUTF16`, `isText`, `isXML`, `isXHTML`, `isFormURLEncoded`, `isStringType`.
+- `dateFormat_YY*`: added optional parameter `delimiter`.
+- `InteractionCompleter`: Added field `triggerDelayLimit`.
+- `Math`:
+  - Added collection methods: `subtract`, `multiply` and `divide`.
+
 ## 2.5.18
 
 - Improve API Documentation.

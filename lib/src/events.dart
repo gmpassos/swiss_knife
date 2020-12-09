@@ -710,12 +710,20 @@ class InteractionCompleter {
   /// Name of this instance.
   final String name;
 
-  /// The delay of triggers, started after last interaction.
+  /// The delay between [interact] and triggering.
+  /// Delay starts/restarts on each interaction.
   final Duration triggerDelay;
+
+  /// The limit of delay between 1st [interact] and triggering.
+  /// Delay starts in the 1st call to [interact] and is zeroed when the trigger is called.
+  ///
+  /// * NOTE: After the trigger is called, the next call to [interact] is considered a 1st call.
+  final Duration triggerDelayLimit;
+
   Function functionToTrigger;
 
   InteractionCompleter(String name,
-      {Duration triggerDelay, this.functionToTrigger})
+      {Duration triggerDelay, this.functionToTrigger, this.triggerDelayLimit})
       : name = name ?? '',
         triggerDelay = triggerDelay ?? Duration(milliseconds: 500);
 
@@ -725,6 +733,10 @@ class InteractionCompleter {
 
   int get triggerDelayMs => triggerDelay.inMilliseconds;
 
+  bool get hasTriggerDelayLimit =>
+      triggerDelayLimit != null && triggerDelayLimit.inMilliseconds > 0;
+
+  int _initInteractionTime;
   int _lastInteractionTime;
 
   int get lastInteractionTime => _lastInteractionTime;
@@ -765,7 +777,10 @@ class InteractionCompleter {
 
     log('interact', [noTriggering, interactionParameters]);
 
+    var now = this.now;
+
     _lastInteractionTime = now;
+    _initInteractionTime ??= now;
     _interactionNotTriggered = true;
 
     if (!noTriggering) {
@@ -775,6 +790,9 @@ class InteractionCompleter {
 
   int get interactionElapsedTime =>
       _lastInteractionTime != null ? now - _lastInteractionTime : null;
+
+  int get fullInteractionElapsedTime =>
+      _initInteractionTime != null ? now - _initInteractionTime : null;
 
   bool _triggerScheduled = false;
 
@@ -797,9 +815,13 @@ class InteractionCompleter {
     log('_callTrigger', [timeUntilNextTrigger]);
 
     if (timeUntilNextTrigger > 0) {
-      Future.delayed(
-          Duration(milliseconds: timeUntilNextTrigger), () => _callTrigger());
-      return;
+      if (hasTriggerDelayLimit &&
+          fullInteractionElapsedTime > triggerDelayLimit.inMilliseconds) {
+        triggerNow();
+      } else {
+        Future.delayed(
+            Duration(milliseconds: timeUntilNextTrigger), () => _callTrigger());
+      }
     } else {
       triggerNow();
     }
@@ -824,6 +846,7 @@ class InteractionCompleter {
 
     _triggerScheduled = false;
     _interactionNotTriggered = false;
+    _initInteractionTime = null;
 
     if (functionToTrigger != null) {
       try {

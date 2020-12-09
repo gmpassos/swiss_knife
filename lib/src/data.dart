@@ -287,6 +287,9 @@ class MimeType {
   /// Returns [true] if [charset] is UTF-8.
   bool get isCharsetUTF8 => charset == 'utf8' || charset == 'utf-8';
 
+  /// Returns [true] if [charset] is UTF-16.
+  bool get isCharsetUTF16 => charset == 'utf16' || charset == 'utf-16';
+
   /// Returns [true] if [charset] is LATIN-1.
   bool get isCharsetLATIN1 =>
       charset == 'latin1' ||
@@ -311,7 +314,31 @@ class MimeType {
 
   bool get isJavascript => subType == 'javascript';
 
+  /// Returns [true] if is `application/json`.
   bool get isJSON => subType == 'json';
+
+  /// Returns [true] if is `text/*`.
+  bool get isText => type == 'text';
+
+  /// Returns [true] if is XML.
+  bool get isXML => subType == 'xml';
+
+  /// Returns [true] if is XHTML.
+  bool get isXHTML => subType == 'xhtml+xml';
+
+  /// Returns [true] if is `application/x-www-form-urlencoded`.
+  bool get isFormURLEncoded =>
+      type == 'application' && subType == 'x-www-form-urlencoded';
+
+  /// Returns [true] if type is better represented as [String].
+  bool get isStringType {
+    return isText ||
+        isJSON ||
+        isJavascript ||
+        isFormURLEncoded ||
+        isXML ||
+        isXHTML;
+  }
 
   /// Returns the common file extension for the MIME-Type.
   String get fileExtension {

@@ -32,23 +32,50 @@ void _initializeDateFormatting() {
   initializeDateFormatting(locale, null);
 }
 
-String dateFormat_YYYY_MM_dd_HH_mm_ss([int time]) {
-  time ??= getCurrentTimeMillis();
-
-  _initializeDateFormatting();
-
-  var date = DateTime.fromMillisecondsSinceEpoch(time);
-  var dateFormat = DateFormat('yyyy-MM-dd HH:mm:ss');
-  return dateFormat.format(date);
+String dateFormat_YYYY_MM_dd_HH_mm_ss(
+    [int time, String delimiter = '-', String hourDelimiter = ':']) {
+  delimiter ??= '-';
+  hourDelimiter ??= ':';
+  return _dateFormat(
+      'yyyy${delimiter}MM${delimiter}dd HH${hourDelimiter}mm${hourDelimiter}ss',
+      time);
 }
 
-String dateFormat_YYYY_MM_dd([int time]) {
+String dateFormat_YYYY_MM_dd_HH_mm(
+    [int time, String delimiter = '-', String hourDelimiter = ':']) {
+  delimiter ??= '-';
+  hourDelimiter ??= ':';
+  return _dateFormat(
+      'yyyy${delimiter}MM${delimiter}dd HH${hourDelimiter}mm', time);
+}
+
+String dateFormat_YYYY_MM_dd_HH([int time, String delimiter = '-']) {
+  delimiter ??= '-';
+  return _dateFormat('yyyy${delimiter}MM-dd HH', time);
+}
+
+String dateFormat_YYYY_MM_dd([int time, String delimiter = '-']) {
+  delimiter ??= '-';
+  return _dateFormat('yyyy${delimiter}MM${delimiter}dd', time);
+}
+
+String dateFormat_YY_MM_dd([int time, String delimiter = '-']) {
+  delimiter ??= '-';
+  return _dateFormat('yy${delimiter}MM${delimiter}dd', time);
+}
+
+String dateFormat_YY_MM([int time, String delimiter = '-']) {
+  delimiter ??= '-';
+  return _dateFormat('yy${delimiter}MM', time);
+}
+
+String _dateFormat(String format, [int time]) {
   time ??= getCurrentTimeMillis();
 
   _initializeDateFormatting();
 
   var date = DateTime.fromMillisecondsSinceEpoch(time);
-  var dateFormat = DateFormat('yyyy-MM-dd');
+  var dateFormat = DateFormat(format);
   return dateFormat.format(date);
 }
 
