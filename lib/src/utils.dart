@@ -176,6 +176,11 @@ class Parameter<A> {
   }
 
   int get computeHashCode => deepHashCode(a);
+
+  @override
+  String toString() {
+    return 'Parameter{a: $a}';
+  }
 }
 
 class Parameters2<A, B> extends Parameter<A> {
@@ -193,6 +198,11 @@ class Parameters2<A, B> extends Parameter<A> {
 
   @override
   int get computeHashCode => super.computeHashCode ^ deepHashCode(b);
+
+  @override
+  String toString() {
+    return 'Parameters2{a: $a ; b: $b}';
+  }
 }
 
 class Parameters3<A, B, C> extends Parameters2<A, B> {
@@ -211,6 +221,11 @@ class Parameters3<A, B, C> extends Parameters2<A, B> {
 
   @override
   int get computeHashCode => super.computeHashCode ^ deepHashCode(c);
+
+  @override
+  String toString() {
+    return 'Parameters3{a: $a ; b: $b ; c: $c}';
+  }
 }
 
 class Parameters4<A, B, C, D> extends Parameters3<A, B, C> {
@@ -229,6 +244,11 @@ class Parameters4<A, B, C, D> extends Parameters3<A, B, C> {
 
   @override
   int get computeHashCode => super.computeHashCode ^ deepHashCode(d);
+
+  @override
+  String toString() {
+    return 'Parameters4{a: $a ; b: $b ; c: $c ; d: $d}';
+  }
 }
 
 /// Caches a value that can be computed.

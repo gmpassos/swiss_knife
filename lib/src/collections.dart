@@ -64,6 +64,125 @@ class Pair<T> {
   List<T> get asList => [a, b];
 }
 
+/// Represents a [width] X [height] dimension.
+class Dimension implements Comparable<Dimension> {
+  /// Extra parsers.
+  static Set<Dimension Function(dynamic value)> parsers = {};
+
+  /// Width of the dimension.
+  final int width;
+
+  /// Height of the dimension.
+  final int height;
+
+  Dimension(this.width, this.height);
+
+  factory Dimension.from(dynamic dimension) {
+    if (dimension == null) return null;
+    if (dimension is Dimension) return dimension;
+    if (dimension is Pair) {
+      return Dimension(parseInt(dimension.a), parseInt(dimension.b));
+    }
+
+    if (dimension is String) return Dimension.parse(dimension);
+
+    if (dimension is List) {
+      if (dimension.length == 2) {
+        var w = parseInt(dimension[0]);
+        var h = parseInt(dimension[1]);
+        return Dimension(w, h);
+      } else if (dimension.length == 1) {
+        var s = parseString(dimension[0]);
+        return Dimension.parse(s);
+      }
+    }
+
+    if (parsers.isNotEmpty) {
+      for (var p in parsers) {
+        var o = p(dimension);
+        if (o != null) return o;
+      }
+    }
+
+    return null;
+  }
+
+  static final RegExp _REGEXP_NON_DIGIT =
+      RegExp(r'\D', multiLine: false, caseSensitive: true);
+
+  /// Parsers [wh] String, trying to split with [delimiter] between 2 numbers
+  /// in the string.
+  static Dimension parse(String wh, [Pattern delimiter]) {
+    delimiter ??= RegExp(r'[\sx,;]+');
+    wh = wh.trim();
+
+    var parts = wh.split(delimiter);
+    if (parts.length < 2) return null;
+
+    var params = <String>[];
+
+    for (var i = 1; i < parts.length; ++i) {
+      var prev = parts[i - 1].trim();
+      var next = parts[i].trim();
+
+      var prevC = prev.isNotEmpty ? prev[prev.length - 1] : '';
+      var nextC = next.isNotEmpty ? next[0] : '';
+
+      var prevInt = prevC.isNotEmpty || isInt(prevC);
+      var nextInt = nextC.isNotEmpty || isInt(nextC);
+
+      if (prevInt && nextInt) {
+        var idxPrev = prev.lastIndexOf(_REGEXP_NON_DIGIT);
+        if (idxPrev >= 0) prev = prev.substring(idxPrev + 1);
+
+        var idxNext = next.indexOf(_REGEXP_NON_DIGIT);
+        if (idxNext >= 0) next = next.substring(0, idxNext);
+
+        params.add(prev);
+        params.add(next);
+      }
+    }
+
+    if (params.length < 2) return null;
+
+    var w = params[params.length - 2];
+    var h = params[params.length - 1];
+
+    return Dimension(parseInt(w), parseInt(h));
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Dimension && width == other.width && height == other.height;
+
+  @override
+  int get hashCode => width.hashCode ^ height.hashCode;
+
+  /// Area of the dimension.
+  int get area => (width ?? 1) * (height ?? 1);
+
+  /// Returns the difference between `this` and [other], using [width] and [height].
+  ///
+  /// [maximumDifferences] If true will return the maximum difference,
+  /// instead of the minimum difference.
+  int subtract(Dimension other, [bool maximumDifferences = false]) {
+    var dw = width - other.width;
+    var dh = height - other.height;
+    var d = (maximumDifferences ?? false) ? Math.min(dw, dh) : Math.max(dw, dh);
+    return d;
+  }
+
+  /// Compares with [other] [Dimension.area].
+  @override
+  int compareTo(Dimension other) => area.compareTo(other.area);
+
+  @override
+  String toString() {
+    return '${width}X${height}';
+  }
+}
+
 /// Returns [true] if [o1] and [o2] are equals.
 ///
 /// [deep] If [true] checks the collections deeply.
@@ -961,33 +1080,39 @@ String ensureNotEmptyString(String s, {bool trim = false, String def}) {
 
 /// Returns [true] if [o] is empty. Checks for [String], [List], [Map]
 /// [Iterable], [Set] or `o.toString()`.
-bool isEmptyObject<T>(T o) {
+bool isEmptyObject<T>(T o, {bool trim = false}) {
   if (o == null) return true;
 
+  trim ??= false;
+
   if (o is String) {
-    return o.isEmpty;
+    return trim ? o.trim().isEmpty : o.isEmpty;
   } else if (o is List) {
-    return o.isEmpty;
+    return trim ? o.where((e) => e != null).isEmpty : o.isEmpty;
   } else if (o is Map) {
-    return o.isEmpty;
+    return trim ? o.entries.where((e) => e.value != null).isEmpty : o.isEmpty;
   } else if (o is Iterable) {
-    return o.isEmpty;
+    return trim ? o.where((e) => e != null).isEmpty : o.isEmpty;
   } else if (o is Set) {
-    return o.isEmpty;
+    return trim ? o.where((e) => e != null).isEmpty : o.isEmpty;
   } else {
-    return o.toString().isEmpty;
+    var s = o.toString();
+    return trim ? s.trim().isEmpty : s.isEmpty;
   }
 }
 
 /// Returns ![isEmptyObject].
-bool isNotEmptyObject<T>(T value) {
-  return !isEmptyObject(value);
+bool isNotEmptyObject<T>(T value, {bool trim = false}) {
+  return !isEmptyObject(value, trim: trim);
 }
 
 /// Remove all entries of [list] that are true for [isEmptyObject].
-void removeEmptyEntries(List list) {
-  if (list == null || list.isEmpty) return;
+///
+/// Returns true if [list.isNotEmpty].
+bool removeEmptyEntries(List list) {
+  if (list == null || list.isEmpty) return false;
   list.removeWhere(isEmptyObject);
+  return list.isNotEmpty;
 }
 
 typedef ValueValidator<V> = bool Function(V value);
@@ -1010,12 +1135,15 @@ typedef StringMapper<T> = T Function(String s);
 /// [delimiterKeyValue] The delimiter for keys and values.
 /// [mapperKey] Maps keys to another type.
 /// [mapperValue] Maps values to another type.
-Map<K, V> parseFromInlineMap<K, V>(String s, Pattern delimiterPairs,
-    Pattern delimiterKeyValue, StringMapper mapperKey, StringMapper mapperValue,
-    [Map<K, V> def]) {
+Map<K, V> parseFromInlineMap<K, V>(
+    String s, Pattern delimiterPairs, Pattern delimiterKeyValue,
+    [StringMapper<K> mapperKey, StringMapper<V> mapperValue, Map<K, V> def]) {
   if (s == null) return def;
   s = s.trim();
   if (s.isEmpty) return def;
+
+  mapperKey ??= (k) => (k ?? '') as K;
+  mapperValue ??= (v) => (v ?? '') as V;
 
   var pairs = s.split(delimiterPairs);
 
@@ -1035,11 +1163,13 @@ Map<K, V> parseFromInlineMap<K, V>(String s, Pattern delimiterPairs,
 ///
 /// [delimiter] Elements delimiter.
 /// [mapper] Maps elements to another type.
-List<T> parseFromInlineList<T>(String s, Pattern delimiter, StringMapper mapper,
-    [List<T> def]) {
+List<T> parseFromInlineList<T>(String s, Pattern delimiter,
+    [StringMapper<T> mapper, List<T> def]) {
   if (s == null) return def;
   s = s.trim();
   if (s.isEmpty) return def;
+
+  mapper ??= (s) => (s ?? '') as T;
 
   var parts = s.split(delimiter);
 
@@ -1050,6 +1180,18 @@ List<T> parseFromInlineList<T>(String s, Pattern delimiter, StringMapper mapper,
   }
 
   return list;
+}
+
+final RegExp _INLINE_PROPERTIES_DELIMITER_PAIRS = RegExp(r'\s*;\s*');
+final RegExp _INLINE_PROPERTIES_DELIMITER_KEYS_VALUES = RegExp(r'\s*[:=]\s*');
+
+/// Parses an inline properties, like inline CSS, to a [Map<String,String>].
+Map<String, String> parseFromInlineProperties(String s,
+    [StringMapper<String> mapperKey,
+    StringMapper<String> mapperValue,
+    Map<String, String> def]) {
+  return parseFromInlineMap(s, _INLINE_PROPERTIES_DELIMITER_PAIRS,
+      _INLINE_PROPERTIES_DELIMITER_KEYS_VALUES, mapperKey, mapperValue, def);
 }
 
 /// Parses [v] as [String].
@@ -2047,4 +2189,137 @@ class NNField<T> {
     set(result);
     return asNum;
   }
+}
+
+/// A simple cache of objects, where is possible to define different
+/// instantiators for each key.
+class ObjectCache {
+  /// Maximum number of cached instances.
+  int maxInstances;
+
+  ObjectCache([this.maxInstances]);
+
+  final Map<String, dynamic> _cacheInstances = {};
+
+  final Map<String, Function()> _cacheInstantiators = {};
+  final Map<String, bool Function()> _cacheValidators = {};
+
+  /// Sets the [instantiator] for [key]
+  void setInstantiator<O>(String key, O Function() instantiator) =>
+      _cacheInstantiators[key] = instantiator;
+
+  /// Sets the [cacheValidator] for [key]
+  void setCacheValidator<O>(String key, bool Function() cacheValidator) =>
+      _cacheValidators[key] = cacheValidator;
+
+  /// Defines instantiator and cache-validator for [key].
+  void define<O>(String key, O Function() instantiator,
+      [bool Function() cacheValidator]) {
+    _cacheInstantiators[key] = instantiator;
+    _cacheValidators[key] = cacheValidator;
+  }
+
+  /// Remove instantiator and cache-validator for [key].
+  void undefine<O>(String key) {
+    _cacheInstantiators.remove(key);
+    _cacheValidators.remove(key);
+  }
+
+  /// Define all keys from [map], where map values can be a instantiator
+  /// functions or a list with 2 values
+  /// (instantiator and cache-validator functions).
+  void defineAll(Map<String, dynamic> map) {
+    for (var entry in map.entries) {
+      _define(entry.key, entry.value);
+    }
+  }
+
+  bool _define(String key, value) {
+    if (value is Function) {
+      define(key, value);
+      return true;
+    } else if (value is List) {
+      if (value.length == 1) {
+        define(key, value[0]);
+        return true;
+      } else if (value.length == 2) {
+        define(key, value[0], value[1]);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Returns an object for [key].
+  ///
+  /// Uses [instantiator] (or pre-defined) to instantiate.
+  ///
+  /// Uses [cacheValidator] (or pre-defined) to validade already cached instance.
+  O get<O>(String key,
+      [O Function() instantiator, bool Function() cacheValidator]) {
+    var o = _cacheInstances[key];
+
+    if (o != null) {
+      cacheValidator ??= _cacheValidators[key];
+
+      if (cacheValidator != null) {
+        var ok = cacheValidator();
+        if (ok) {
+          return o;
+        } else {
+          _cacheInstances.remove(key);
+        }
+      } else {
+        return o;
+      }
+    }
+
+    instantiator ??= _cacheInstantiators[key];
+    if (instantiator == null) return null;
+
+    if (maxInstances != null && maxInstances > 0) {
+      var needToRemove = _cacheInstances.length - (maxInstances - 1);
+      disposeInstances(needToRemove);
+    }
+
+    o = instantiator();
+    _cacheInstances[key] = o;
+
+    return o;
+  }
+
+  int disposeInstances(int amountToRemove) {
+    if (amountToRemove == null || amountToRemove < 1) return 0;
+
+    var keys = List.from(_cacheInstances.keys);
+
+    var removed = 0;
+    for (var k in keys) {
+      _cacheInstances.remove(k);
+      removed++;
+
+      if (removed >= amountToRemove) {
+        return removed;
+      }
+    }
+
+    return removed;
+  }
+
+  /// Removes [key] instance from cache.
+  void disposeInstance(String key) => _cacheInstances.remove(key);
+
+  /// Removes all cached instances, preseving definitions.
+  void clearInstances() {
+    _cacheInstances.clear();
+  }
+
+  /// Clear all cached instances and all definitions.
+  void clear() {
+    clearInstances();
+    _cacheInstantiators.clear();
+    _cacheValidators.clear();
+  }
+
+  dynamic operator [](String key) => get(key);
 }

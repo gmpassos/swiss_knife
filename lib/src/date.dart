@@ -69,6 +69,11 @@ String dateFormat_YY_MM([int time, String delimiter = '-']) {
   return _dateFormat('yy${delimiter}MM', time);
 }
 
+String dateFormat_YYYY_MM([int time, String delimiter = '-']) {
+  delimiter ??= '-';
+  return _dateFormat('yyyy${delimiter}MM', time);
+}
+
 String _dateFormat(String format, [int time]) {
   time ??= getCurrentTimeMillis();
 

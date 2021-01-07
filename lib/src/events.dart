@@ -59,6 +59,9 @@ class _ListenSignature {
   }
 }
 
+typedef EventValidatorFunction<T> = bool Function(
+    EventStream<T> eventStream, T event);
+
 /// Implements a Stream for events and additional features.
 ///
 /// See [Stream] for more documentation of delegated methods.
@@ -261,6 +264,8 @@ class EventStream<T> implements Stream<T> {
     return null;
   }
 
+  EventValidatorFunction<T> eventValidator;
+
   /// Listen for events.
   ///
   /// [onData] on event data.
@@ -273,9 +278,22 @@ class EventStream<T> implements Stream<T> {
       void Function() onDone,
       bool cancelOnError,
       dynamic singletonIdentifier,
-      bool singletonIdentifyByInstance = true}) {
+      bool singletonIdentifyByInstance = true,
+      EventValidatorFunction<T> eventValidator}) {
     try {
       cancelOnError ??= false;
+      eventValidator ??= this.eventValidator;
+
+      if (eventValidator != null) {
+        var eventValidatorOriginal = eventValidator;
+        var onDataOriginal = onData;
+        onData = (event) {
+          var valid = eventValidatorOriginal(this, event);
+          if (valid) {
+            onDataOriginal(event);
+          }
+        };
+      }
 
       if (singletonIdentifier != null) {
         var listenSignature = _ListenSignature(
@@ -432,21 +450,22 @@ class EventStreamDelegator<T> implements EventStream<T> {
     var es = _eventStream;
     if (es == null) return;
 
-    for (var v in _addBuffer) {
-      es.add(v);
-    }
-
-    for (var v in _addErrorBuffer) {
-      es.addError(v[0], v[1]);
-    }
-
     for (var v in _listenBuffer) {
       es.listen(v[0],
           onError: v[1],
           onDone: v[2],
           cancelOnError: v[3],
           singletonIdentifier: v[4],
-          singletonIdentifyByInstance: v[5]);
+          singletonIdentifyByInstance: v[5],
+          eventValidator: v[6]);
+    }
+
+    for (var v in _addBuffer) {
+      es.add(v);
+    }
+
+    for (var v in _addErrorBuffer) {
+      es.addError(v[0], v[1]);
     }
 
     clearUnflushed();
@@ -515,7 +534,8 @@ class EventStreamDelegator<T> implements EventStream<T> {
       void Function() onDone,
       bool cancelOnError,
       singletonIdentifier,
-      bool singletonIdentifyByInstance = true}) {
+      bool singletonIdentifyByInstance = true,
+      EventValidatorFunction<T> eventValidator}) {
     var es = eventStream;
     if (es == null) {
       _listenBuffer.add([
@@ -524,7 +544,8 @@ class EventStreamDelegator<T> implements EventStream<T> {
         onDone,
         cancelOnError,
         singletonIdentifier,
-        singletonIdentifyByInstance
+        singletonIdentifyByInstance,
+        eventValidator
       ]);
       return null;
     } else {
@@ -533,7 +554,8 @@ class EventStreamDelegator<T> implements EventStream<T> {
           onDone: onDone,
           cancelOnError: cancelOnError,
           singletonIdentifier: singletonIdentifier,
-          singletonIdentifyByInstance: singletonIdentifyByInstance);
+          singletonIdentifyByInstance: singletonIdentifyByInstance,
+          eventValidator: eventValidator);
     }
   }
 
@@ -702,6 +724,13 @@ class EventStreamDelegator<T> implements EventStream<T> {
 
   @override
   Stream<T> where(bool Function(T event) test) => eventStream?.where(test);
+
+  @override
+  EventValidatorFunction<T> get eventValidator => eventStream?.eventValidator;
+
+  @override
+  set eventValidator(EventValidatorFunction<T> eventValidator) =>
+      eventStream?.eventValidator = eventValidator;
 }
 
 /// Tracks interactions and after a delay, without interaction, triggers

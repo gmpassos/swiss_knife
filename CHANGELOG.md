@@ -1,3 +1,15 @@
+## 2.5.20
+ 
+- Added `ObjectCache`.
+- Added `Dimension`.
+- Added `ContextualResource` and `ContextualResourceResolver`:
+  - Resolves a resource based into a context, like screen dimension.
+- Added: `parseFromInlineProperties` and `dateFormat_YYYY_MM`.
+- `EventStream`:
+  - Added `eventValidator`.
+- `Math`: 
+  - `minMax`, `maxInList` and `minInList`: added optional `comparator` parameter.
+
 ## 2.5.19
 
 - `MimeType`: Added `isCharsetUTF16`, `isText`, `isXML`, `isXHTML`, `isFormURLEncoded`, `isStringType`.

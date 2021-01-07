@@ -303,3 +303,182 @@ class ResourceContent {
     return Uri.parse(url);
   }
 }
+
+/// Wraps a resource and the related context.
+class ContextualResource<T, C extends Comparable<C>>
+    implements Comparable<ContextualResource<T, C>> {
+  /// The resource associated with [context].
+  final T resource;
+
+  /// The contexts, that implements [Comparable].
+  final C context;
+
+  static S _resolveContext<T, S>(T resource, dynamic context) {
+    if (context == null) return null;
+
+    if (context is S) {
+      return context;
+    } else if (context is Function) {
+      var v = context(resource);
+      return _resolveContext(resource, v);
+    }
+
+    throw StateError("Can't resolve resource ($resource) context: $context");
+  }
+
+  ContextualResource(T resource, dynamic context)
+      : resource = resource,
+        context = _resolveContext<T, C>(resource, context);
+
+  static List<ContextualResource<T, C>> toList<T, C extends Comparable<C>>(
+          Iterable<T> resources, C Function(T resource) context) =>
+      resources.map((r) => ContextualResource<T, C>(r, context)).toList();
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ContextualResource &&
+          runtimeType == other.runtimeType &&
+          resource == other.resource &&
+          context == other.context;
+
+  @override
+  int get hashCode => resource.hashCode ^ context.hashCode;
+
+  @override
+  int compareTo(ContextualResource<T, C> other) =>
+      context.compareTo(other.context);
+
+  int compareContext(C context) => this.context.compareTo(context);
+
+  @override
+  String toString() =>
+      'ContextualResource{resource: $resource, context: $context}';
+}
+
+/// Resolves a resource based into a context, like screen dimension or OS.
+class ContextualResourceResolver<T, C extends Comparable<C>> {
+  /// The context comparator, to overwrite default comparator of [C].
+  final Comparator<C> contextComparator;
+
+  ContextualResourceResolver(
+      {Map<String, dynamic> resources,
+      this.contextComparator,
+      this.defaultContext,
+      this.defaultResource}) {
+    if (resources != null) {
+      for (var entry in resources.entries) {
+        var k = entry.key;
+        var v = entry.value;
+
+        if (v is ContextualResource) {
+          add(k, [v]);
+        } else if (v is Iterable) {
+          add(k, v);
+        } else if (v is Function) {}
+      }
+    }
+  }
+
+  final Map<String, Set<ContextualResource<T, C>>> _resources = {};
+  final Map<String, List<ContextualResource<T, C>>> _resourcesSorted = {};
+
+  /// The resources keys.
+  List<String> get keys => _resources.keys.toList();
+
+  /// Clears all resources.
+  void clear() {
+    _resources.clear();
+    _resourcesSorted.clear();
+  }
+
+  /// Adds a resources with a dynamic [value].
+  void addDynamic(String key, dynamic value,
+      [ContextualResource<T, C> Function(dynamic value) mapper]) {
+    if (value is ContextualResource) {
+      add(key, [value]);
+    } else if (value is Iterable) {
+      for (var e in value) {
+        addDynamic(key, e);
+      }
+    } else if (value is Function) {
+      var v = value(key);
+      addDynamic(key, v);
+    }
+  }
+
+  /// Adds a resource.
+  void add(String key, Iterable<ContextualResource<T, C>> options) {
+    if (isEmptyObject(options)) return;
+
+    var entries =
+        _resources.putIfAbsent(key, () => <ContextualResource<T, C>>{});
+
+    var size = entries.length;
+    entries.addAll(options);
+
+    if (entries.length != size) {
+      _resourcesSorted.remove(key);
+    }
+  }
+
+  /// The default resource to return when is not possible to resolve one.
+  ContextualResource<T, C> defaultResource;
+
+  /// The default context to be used when resolve is called without one.
+  C defaultContext;
+
+  /// Resolves a resource.
+  T resolve(String key, [C context]) {
+    var options = _resources[key];
+    if (isEmptyObject(options)) return defaultResource?.resource;
+
+    context ??= defaultContext;
+    if (context == null) {
+      return (defaultResource ?? options.first)?.resource;
+    }
+
+    var sortedOptions = _resourcesSorted.putIfAbsent(key, () {
+      var list = options.toList();
+      list.sort();
+      return list;
+    });
+
+    return _getResource(sortedOptions, context)?.resource;
+  }
+
+  ContextualResource<T, C> _getResource(
+      List<ContextualResource<T, C>> options, C context) {
+    var low = 0;
+    var high = options.length - 1;
+
+    var comparator = contextComparator;
+
+    while (low <= high) {
+      var mid = (low + high) ~/ 2;
+      var midVal = options[mid];
+
+      var cmp = comparator != null
+          ? comparator(midVal.context, context)
+          : midVal.compareContext(context);
+
+      if (cmp < 0) {
+        low = mid + 1;
+      } else if (cmp > 0) {
+        high = mid - 1;
+      } else {
+        return midVal;
+      } // key found
+    }
+
+    return options[low];
+  }
+
+  /// Returns a resolved resource using [defaultContext].
+  T operator [](String key) => resolve(key);
+
+  @override
+  String toString() {
+    return 'ScalableResourceResolver{resources: $_resources}';
+  }
+}

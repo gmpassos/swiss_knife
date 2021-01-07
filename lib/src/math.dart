@@ -202,44 +202,82 @@ class Math {
   }
 
   /// A pair with minimum and maximum value of [ns] entries.
-  static Pair<T> minMax<T extends num>(Iterable<T> ns) {
+  ///
+  /// [comparator] is optional and useful for non [num] [T].
+  static Pair<T> minMax<T>(Iterable<T> ns, [Comparator<T> comparator]) {
     if (ns == null || ns.isEmpty) return null;
 
-    var min = ns.first;
-    var max = min;
+    if (comparator != null) {
+      var min = ns.first;
+      var max = min;
 
-    for (var n in ns) {
-      if (n < min) min = n;
-      if (n > max) max = n;
+      for (var n in ns) {
+        if (comparator(n, min) < 0) min = n;
+        if (comparator(n, max) > 0) max = n;
+      }
+
+      return Pair<T>(min, max);
+    } else {
+      var min = ns.first as num;
+      var max = min;
+
+      for (var n in ns.map((e) => e as num)) {
+        if (n < min) min = n;
+        if (n > max) max = n;
+      }
+
+      return Pair<T>(min as T, max as T);
     }
-
-    return Pair<T>(min, max);
   }
 
   /// Minimal value of [ns] entries.
-  static T minInList<T extends num>(Iterable<T> ns) {
+  ///
+  /// [comparator] is optional and useful for non [num] [T].
+  static T minInList<T>(Iterable<T> ns, [Comparator<T> comparator]) {
     if (ns == null || ns.isEmpty) return null;
 
-    var min = ns.first;
+    if (comparator != null) {
+      var min = ns.first;
 
-    for (var n in ns) {
-      if (n < min) min = n;
+      for (var n in ns) {
+        if (comparator(n, min) < 0) min = n;
+      }
+
+      return min;
+    } else {
+      var min = ns.first as num;
+
+      for (var n in ns.map((e) => e as num)) {
+        if (n < min) min = n;
+      }
+
+      return min as T;
     }
-
-    return min;
   }
 
   /// Maximum value in [ns] entries.
-  static T maxInList<T extends num>(Iterable<T> ns) {
+  ///
+  /// [comparator] is optional and useful for non [num] [T].
+  static T maxInList<T>(Iterable<T> ns, [Comparator<T> comparator]) {
     if (ns == null || ns.isEmpty) return null;
 
-    var max = ns.first;
+    if (comparator != null) {
+      var max = ns.first;
 
-    for (var n in ns) {
-      if (n > max) max = n;
+      for (var n in ns) {
+        if (comparator(n, max) > 0) max = n;
+      }
+
+      return max;
+    } else {
+      var max = ns.first as num;
+
+      for (var n in ns.map((e) => e as num)) {
+        if (n > max) max = n;
+      }
+
+      return max as T;
     }
-
-    return max;
   }
 }
 
