@@ -1,3 +1,8 @@
+## 2.5.21
+
+- `MimeType`: Added `htmlTag` and `isAudio`.
+- Added `unquoteString`.
+
 ## 2.5.20
  
 - Added `ObjectCache`.

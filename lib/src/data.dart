@@ -303,6 +303,22 @@ class MimeType {
   /// Returns [true] if this a video MIME-Type.
   bool get isVideo => type == 'video';
 
+  /// Returns [true] if this a audio MIME-Type.
+  bool get isAudio => type == 'audio';
+
+  /// Returns the HTML tag name for this MIME-Type.
+  String get htmlTag {
+    if (isImage) {
+      return 'img';
+    } else if (isVideo) {
+      return 'video';
+    } else if (isAudio) {
+      return 'audio';
+    } else {
+      return null;
+    }
+  }
+
   /// Returns [true] if this is `image/jpeg`.
   bool get isImageJPEG => isImage && subType == 'jpeg';
 

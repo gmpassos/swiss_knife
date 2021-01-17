@@ -148,3 +148,16 @@ bool isAlphaNumericStringInRange(String s, int offset, int length) {
 
   return true;
 }
+
+/// Removes quotes from [String] [s]
+String unquoteString(String s) {
+  if (s == null) return null;
+  if (s.length <= 1) return s;
+
+  if ((s.startsWith('"') && s.endsWith('"')) ||
+      (s.startsWith("'") && s.endsWith("'"))) {
+    return s.substring(1, s.length - 1);
+  }
+
+  return s;
+}
