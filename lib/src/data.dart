@@ -208,7 +208,10 @@ class MimeType {
   }
 
   /// Creates an instance by file [extension].
-  factory MimeType.byExtension(String extension) {
+  ///
+  /// [defaultAsApplication] if true returns 'application/[extension]'.
+  factory MimeType.byExtension(String extension,
+      {bool defaultAsApplication = true}) {
     if (extension == null) return null;
     var idx = extension.lastIndexOf('.');
     if (idx >= 0) {
@@ -258,7 +261,12 @@ class MimeType {
       case 'svg':
         return MimeType.parse(SVG);
       default:
-        return MimeType.parse('application/$extension');
+        {
+          if (defaultAsApplication ?? true) {
+            return MimeType.parse('application/$extension');
+          }
+          return null;
+        }
     }
   }
 

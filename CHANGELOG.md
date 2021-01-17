@@ -1,3 +1,7 @@
+## 2.5.22
+
+- `MimeType.byExtension`: Added parameter `defaultAsApplication`.
+
 ## 2.5.21
 
 - `MimeType`: Added `htmlTag` and `isAudio`.
