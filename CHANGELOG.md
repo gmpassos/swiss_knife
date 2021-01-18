@@ -1,3 +1,7 @@
+## 2.5.23
+
+- Added `TreeReferenceMap`: an alternative to Weak References (nonexistent in Dart).
+
 ## 2.5.22
 
 - `MimeType.byExtension`: Added parameter `defaultAsApplication`.

@@ -2323,3 +2323,465 @@ class ObjectCache {
 
   dynamic operator [](String key) => get(key);
 }
+
+/// A [Map] that keeps keys that are in the tree of [root].
+///
+/// Since Dart doesn't have Weak References, one way to avoid memory
+/// bloat is to ensure that the key is in the tree of objects that you are
+/// managing.
+///
+/// Browser: one useful way is to use with [document] (the root of DOM),
+/// and be able to associate values with any [Node] in DOM tree.
+class TreeReferenceMap<K, V> implements Map<K, V> {
+  /// The root of the Tree Reference.
+  final K root;
+
+  /// If true, each operation performs a purge.
+  final bool autoPurge;
+
+  /// Will stored purged entries in a separated [Map].
+  final bool keepPurgedEntries;
+
+  /// Purged entries timeout.
+  final Duration purgedEntriesTimeout;
+
+  /// Maximum number of purged entries.
+  final int maxPurgedEntries;
+
+  /// The [Function] that returns the parent of a key.
+  final K Function(K key) parentGetter;
+
+  /// The [Function] that returns the children of a key.
+  final Iterable<K> Function(K key) childrenGetter;
+
+  /// The [Function] that returns true if [parent] has [child].
+  final bool Function(K parent, K child, bool deep) childChecker;
+
+  TreeReferenceMap(this.root,
+      {bool autoPurge,
+      bool keepPurgedKeys,
+      this.purgedEntriesTimeout,
+      this.maxPurgedEntries,
+      this.parentGetter,
+      this.childrenGetter,
+      this.childChecker})
+      : autoPurge = autoPurge ?? false,
+        keepPurgedEntries = keepPurgedKeys ?? false;
+
+  final Map<K, V> _map = {};
+
+  void put(K key, V value) {
+    _map[key] = value;
+    doAutoPurge();
+  }
+
+  V get(K key) {
+    doAutoPurge();
+    return _map[key];
+  }
+
+  V getAlsoFromPurgedEntries(K key) {
+    doAutoPurge();
+    return _map[key] ?? getFromPurgedEntries(key);
+  }
+
+  /// Returns [true] if [key] is valid (in the tree).
+  bool isValidEntry(K key, V value) {
+    return isInTree(key);
+  }
+
+  /// Returns [true] if [key] is in the tree.
+  bool isInTree(K key) {
+    if (identical(root, key)) return true;
+
+    var cursor = key;
+    while (true) {
+      var parent = getParentOf(cursor);
+      if (parent == null) return false;
+      if (identical(parent, root)) return true;
+      cursor = parent;
+    }
+  }
+
+  /// Returns the parent of [key].
+  ///
+  /// Will call [parentGetter].
+  ///
+  /// Should be overwritten if [parentGetter] is null.
+  K getParentOf(K key) => parentGetter(key);
+
+  /// Return sub values of [key].
+  List<V> getSubValues(K key, {bool includePurgedEntries = false}) {
+    var subValues = <V>[];
+    if (includePurgedEntries ?? false) {
+      _getSubValuesImpl_includePurgedEntries(key, subValues);
+    } else {
+      _getSubValuesImpl(key, subValues);
+    }
+    return subValues;
+  }
+
+  void _getSubValuesImpl(K key, List<V> subValues) {
+    var children = getChildrenOf(key);
+    if (children == null || children.isEmpty) return;
+
+    for (var child in children) {
+      var value = get(child);
+      if (value != null) {
+        subValues.add(value);
+      } else {
+        _getSubValuesImpl(child, subValues);
+      }
+    }
+  }
+
+  void _getSubValuesImpl_includePurgedEntries(K key, List<V> subValues) {
+    var children = getChildrenOf(key);
+    if (children == null || children.isEmpty) return;
+
+    for (var child in children) {
+      var value = getAlsoFromPurgedEntries(child);
+      if (value != null) {
+        subValues.add(value);
+      } else {
+        _getSubValuesImpl_includePurgedEntries(child, subValues);
+      }
+    }
+  }
+
+  /// Get 1st parent value of [child];
+  V getParentValue(K child, {bool includePurgedEntries = false}) {
+    var parent = getParentKey(child);
+    return parent != null
+        ? ((includePurgedEntries ?? false)
+            ? getAlsoFromPurgedEntries(parent)
+            : get(parent))
+        : null;
+  }
+
+  /// Get 1st parent key of [child];
+  K getParentKey(K child, {bool includePurgedEntries = false}) {
+    if (child == null) return null;
+
+    if (isChildOf(root, child, false)) {
+      return root;
+    }
+
+    for (var k in _map.keys) {
+      if (isChildOf(k, child, true)) {
+        var cursor = k;
+        while (cursor != null) {
+          if (_map.containsKey(cursor) && isChildOf(cursor, child, false)) {
+            return cursor;
+          }
+          cursor = getParentOf(cursor);
+        }
+        return k;
+      }
+    }
+
+    if (_purged != null && (includePurgedEntries ?? false)) {
+      for (var k in _purged.keys) {
+        if (isChildOf(k, child, true)) {
+          var cursor = k;
+          while (cursor != null) {
+            if (_purged.containsKey(cursor) &&
+                isChildOf(cursor, child, false)) {
+              return cursor;
+            }
+            cursor = getParentOf(cursor);
+          }
+          return k;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /// Returns the children of [key].
+  ///
+  /// Will call [childrenGetter].
+  ///
+  /// Should be overwritten if [childrenGetter] is null.
+  Iterable<K> getChildrenOf(K key) => childrenGetter(key);
+
+  /// Returns true if [parent] has [child]. If [deep] is true, will check sub nodes children.
+  ///
+  /// Will call [childChecker].
+  ///
+  /// Should be overwritten if [childChecker] is null.
+  bool isChildOf(K parent, K child, bool deep) =>
+      childChecker(parent, child, deep);
+
+  Map<K, MapEntry<DateTime, V>> _purged;
+
+  /// Returns the purged entries length. Only relevant if [keepPurgedEntries] is true.
+  int get purgedLength => _purged != null ? _purged.length : 0;
+
+  /// Returns [key] value from purged entries. Only relevant if [keepPurgedEntries] is true.
+  V getFromPurgedEntries(K key) => _purged != null ? _purged[key]?.value : null;
+
+  /// Disposes purged entries. Only relevant if [keepPurgedEntries] is true.
+  void disposePurgedEntries() {
+    _purged = null;
+  }
+
+  int _purgedEntriesCount = 0;
+
+  int get purgedEntriesCount => _purgedEntriesCount;
+
+  /// Remove all [invalidKeys].
+  TreeReferenceMap<K, V> purge() {
+    if (keepPurgedEntries) {
+      revalidatePurgedEntries();
+      checkPurgedEntriesTimeout();
+
+      var invalidKeys = this.invalidKeys;
+      if (invalidKeys.isEmpty) return this;
+
+      _purged ??= <K, MapEntry<DateTime, V>>{};
+
+      for (var k in invalidKeys) {
+        var val = _map.remove(k);
+        _purgedEntriesCount++;
+        if (val != null) {
+          _purged[k] = MapEntry(DateTime.now(), val);
+        }
+      }
+
+      checkPurgeEntriesLimit();
+    } else {
+      for (var k in invalidKeys) {
+        _map.remove(k);
+        _purgedEntriesCount++;
+      }
+    }
+    return this;
+  }
+
+  /// Same as [purge], but called automatically by many operations.
+  void doAutoPurge() {
+    if (!autoPurge) return;
+    purge();
+  }
+
+  /// Removed purged entries over [maxPurgedEntries] limit.
+  void checkPurgeEntriesLimit() {
+    if (_purged != null && maxPurgedEntries != null && maxPurgedEntries > 0) {
+      var needToRemove = _purged.length - maxPurgedEntries;
+      if (needToRemove > 0) {
+        var del = <K>[];
+        for (var k in _purged.keys) {
+          del.add(k);
+          if (del.length >= needToRemove) break;
+        }
+        for (var k in del) {
+          _purged.remove(k);
+        }
+      }
+    }
+  }
+
+  /// Remove expired purged entries. Only relevant if [purgedEntriesTimeout] is not null.
+  void checkPurgedEntriesTimeout() {
+    if (_purged != null &&
+        purgedEntriesTimeout != null &&
+        purgedEntriesTimeout.inMilliseconds > 0) {
+      var timeoutMs = purgedEntriesTimeout.inMilliseconds;
+      var now = DateTime.now().millisecondsSinceEpoch;
+      var expired = _purged.entries
+          .where((e) => (now - e.value.key.millisecondsSinceEpoch) > timeoutMs)
+          .map((e) => e.key)
+          .toList();
+      for (var k in expired) {
+        _purged.remove(k);
+      }
+    }
+  }
+
+  int _revalidatedPurgedEntriesCount = 0;
+
+  int get revalidatedPurgedEntriesCount => _revalidatedPurgedEntriesCount;
+
+  /// Restore purged entries that are currently valid. Only relevant if [keepPurgedEntries] is true.
+  int revalidatePurgedEntries() {
+    if (_purged != null) {
+      var validPurged = _purged.entries
+          .where((e) => isValidEntry(e.key, e.value.value))
+          .toList();
+
+      for (var e in validPurged) {
+        _map[e.key] = e.value.value;
+        _purged.remove(e.key);
+      }
+
+      _revalidatedPurgedEntriesCount += validPurged.length;
+      return validPurged.length;
+    }
+    return 0;
+  }
+
+  /// Returns the valid entries.
+  List<MapEntry<K, V>> get validEntries {
+    return _map.entries.where((e) => isValidEntry(e.key, e.value)).toList();
+  }
+
+  /// Returns the invalid entries.
+  List<MapEntry<K, V>> get invalidEntries {
+    return _map.entries.where((e) => !isValidEntry(e.key, e.value)).toList();
+  }
+
+  /// Returns the purged entries. Only relevant if [keepPurgedEntries] is true.
+  List<MapEntry<K, V>> get purgedEntries {
+    return (_purged ?? <K, MapEntry<DateTime, V>>{})
+        .entries
+        .map((e) => MapEntry(e.key, e.value.value))
+        .toList();
+  }
+
+  /// Returns the valid keys.
+  List<K> get validKeys {
+    return _map.entries
+        .where((e) => isValidEntry(e.key, e.value))
+        .map((e) => e.key)
+        .toList();
+  }
+
+  /// Returns the invalid keys.
+  List<K> get invalidKeys {
+    return _map.entries
+        .where((e) => !isValidEntry(e.key, e.value))
+        .map((e) => e.key)
+        .toList();
+  }
+
+  @override
+  String toString() {
+    return '{root: $root,'
+        ' length: $length,'
+        ' purgedLength: $purgedLength,'
+        ' purgedEntriesCount: $purgedEntriesCount,'
+        ' revalidatedPurgedEntries: $revalidatedPurgedEntriesCount,'
+        ' keepPurgedEntries: $keepPurgedEntries,'
+        ' purgedEntriesTimeout: ${purgedEntriesTimeout.inMilliseconds ?? -1}ms,'
+        ' maxPurgedEntries: $maxPurgedEntries}';
+  }
+
+  @override
+  void addAll(Map<K, V> other) {
+    _map.addAll(other);
+    doAutoPurge();
+  }
+
+  @override
+  bool containsKey(Object key) {
+    doAutoPurge();
+    return _map.containsKey(key);
+  }
+
+  @override
+  bool containsValue(Object value) {
+    doAutoPurge();
+    return _map.containsValue(value);
+  }
+
+  @override
+  V remove(Object key) {
+    var rm = _map.remove(key);
+    doAutoPurge();
+    return rm;
+  }
+
+  @override
+  int get length {
+    doAutoPurge();
+    return _map.length;
+  }
+
+  @override
+  void clear() {
+    _map.clear();
+  }
+
+  @override
+  Iterable<K> get keys {
+    doAutoPurge();
+    return _map.keys;
+  }
+
+  @override
+  Iterable<V> get values {
+    doAutoPurge();
+    return _map.values;
+  }
+
+  @override
+  V operator [](Object key) => get(key);
+
+  @override
+  void operator []=(K key, V value) => put(key, value);
+
+  @override
+  void addEntries(Iterable<MapEntry<K, V>> newEntries) {
+    doAutoPurge();
+    _map.addEntries(newEntries);
+  }
+
+  @override
+  Iterable<MapEntry<K, V>> get entries {
+    doAutoPurge();
+    return _map.entries;
+  }
+
+  @override
+  Map<RK, RV> cast<RK, RV>() {
+    doAutoPurge();
+    return _map.cast<RK, RV>();
+  }
+
+  @override
+  void forEach(void Function(K key, V value) f) {
+    doAutoPurge();
+    _map.forEach(f);
+  }
+
+  @override
+  bool get isEmpty {
+    doAutoPurge();
+    return _map.isEmpty;
+  }
+
+  @override
+  bool get isNotEmpty => !isEmpty;
+
+  @override
+  V putIfAbsent(K key, V Function() ifAbsent) {
+    doAutoPurge();
+    return _map.putIfAbsent(key, ifAbsent);
+  }
+
+  @override
+  void removeWhere(bool Function(K key, V value) predicate) {
+    doAutoPurge();
+    _map.removeWhere(predicate);
+  }
+
+  @override
+  V update(K key, V Function(V value) update, {V Function() ifAbsent}) {
+    doAutoPurge();
+    return _map.update(key, update, ifAbsent: ifAbsent);
+  }
+
+  @override
+  void updateAll(V Function(K key, V value) update) {
+    doAutoPurge();
+    _map.updateAll(update);
+  }
+
+  @override
+  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> Function(K key, V value) f) {
+    doAutoPurge();
+    return _map.map(f);
+  }
+}
