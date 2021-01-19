@@ -1,3 +1,8 @@
+## 2.5.24
+
+- `TreeReferenceMap`:
+  - fix `getParentKey`.
+
 ## 2.5.23
 
 - Added `TreeReferenceMap`: an alternative to Weak References (nonexistent in Dart).

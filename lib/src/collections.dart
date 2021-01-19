@@ -2373,6 +2373,7 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
   void put(K key, V value) {
     _map[key] = value;
     doAutoPurge();
+    _expireCache();
   }
 
   V get(K key) {
@@ -2461,39 +2462,26 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
 
   /// Get 1st parent key of [child];
   K getParentKey(K child, {bool includePurgedEntries = false}) {
-    if (child == null) return null;
+    if (child == null || identical(child, root)) return null;
+
+    if (includePurgedEntries ?? false) {
+      var cursor = getParentOf(child);
+      while (cursor != null) {
+        if (_map.containsKey(cursor) || _purged.containsKey(cursor)) {
+          return cursor;
+        }
+        cursor = getParentOf(cursor);
+      }
+    } else {
+      var cursor = getParentOf(child);
+      while (cursor != null) {
+        if (_map.containsKey(cursor)) return cursor;
+        cursor = getParentOf(cursor);
+      }
+    }
 
     if (isChildOf(root, child, false)) {
       return root;
-    }
-
-    for (var k in _map.keys) {
-      if (isChildOf(k, child, true)) {
-        var cursor = k;
-        while (cursor != null) {
-          if (_map.containsKey(cursor) && isChildOf(cursor, child, false)) {
-            return cursor;
-          }
-          cursor = getParentOf(cursor);
-        }
-        return k;
-      }
-    }
-
-    if (_purged != null && (includePurgedEntries ?? false)) {
-      for (var k in _purged.keys) {
-        if (isChildOf(k, child, true)) {
-          var cursor = k;
-          while (cursor != null) {
-            if (_purged.containsKey(cursor) &&
-                isChildOf(cursor, child, false)) {
-              return cursor;
-            }
-            cursor = getParentOf(cursor);
-          }
-          return k;
-        }
-      }
     }
 
     return null;
@@ -2525,6 +2513,7 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
   /// Disposes purged entries. Only relevant if [keepPurgedEntries] is true.
   void disposePurgedEntries() {
     _purged = null;
+    _expireCache();
   }
 
   int _purgedEntriesCount = 0;
@@ -2533,6 +2522,7 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
 
   /// Remove all [invalidKeys].
   TreeReferenceMap<K, V> purge() {
+    var changed = false;
     if (keepPurgedEntries) {
       revalidatePurgedEntries();
       checkPurgedEntriesTimeout();
@@ -2545,6 +2535,7 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
       for (var k in invalidKeys) {
         var val = _map.remove(k);
         _purgedEntriesCount++;
+        changed = true;
         if (val != null) {
           _purged[k] = MapEntry(DateTime.now(), val);
         }
@@ -2555,8 +2546,14 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
       for (var k in invalidKeys) {
         _map.remove(k);
         _purgedEntriesCount++;
+        changed = true;
       }
     }
+
+    if (changed) {
+      _expireCache();
+    }
+
     return this;
   }
 
@@ -2576,8 +2573,12 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
           del.add(k);
           if (del.length >= needToRemove) break;
         }
-        for (var k in del) {
-          _purged.remove(k);
+
+        if (del.isNotEmpty) {
+          for (var k in del) {
+            _purged.remove(k);
+          }
+          _expireCache();
         }
       }
     }
@@ -2594,8 +2595,12 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
           .where((e) => (now - e.value.key.millisecondsSinceEpoch) > timeoutMs)
           .map((e) => e.key)
           .toList();
-      for (var k in expired) {
-        _purged.remove(k);
+
+      if (expired.isNotEmpty) {
+        for (var k in expired) {
+          _purged.remove(k);
+        }
+        _expireCache();
       }
     }
   }
@@ -2611,9 +2616,12 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
           .where((e) => isValidEntry(e.key, e.value.value))
           .toList();
 
-      for (var e in validPurged) {
-        _map[e.key] = e.value.value;
-        _purged.remove(e.key);
+      if (validPurged.isNotEmpty) {
+        for (var e in validPurged) {
+          _map[e.key] = e.value.value;
+          _purged.remove(e.key);
+        }
+        _expireCache();
       }
 
       _revalidatedPurgedEntriesCount += validPurged.length;
@@ -2623,37 +2631,56 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
   }
 
   /// Returns the valid entries.
-  List<MapEntry<K, V>> get validEntries {
-    return _map.entries.where((e) => isValidEntry(e.key, e.value)).toList();
-  }
+  List<MapEntry<K, V>> get validEntries =>
+      _map.entries.where((e) => isValidEntry(e.key, e.value)).toList();
 
   /// Returns the invalid entries.
-  List<MapEntry<K, V>> get invalidEntries {
-    return _map.entries.where((e) => !isValidEntry(e.key, e.value)).toList();
-  }
+  List<MapEntry<K, V>> get invalidEntries =>
+      _map.entries.where((e) => !isValidEntry(e.key, e.value)).toList();
 
   /// Returns the purged entries. Only relevant if [keepPurgedEntries] is true.
-  List<MapEntry<K, V>> get purgedEntries {
-    return (_purged ?? <K, MapEntry<DateTime, V>>{})
-        .entries
-        .map((e) => MapEntry(e.key, e.value.value))
-        .toList();
-  }
+  List<MapEntry<K, V>> get purgedEntries => _purged != null
+      ? _purged.entries.map((e) => MapEntry(e.key, e.value.value)).toList()
+      : <MapEntry<DateTime, V>>[];
+
+  /// Returns the purged keys. Only relevant if [keepPurgedEntries] is true.
+  List<K> get purgedKeys => _purged != null ? _purged.keys.toList() : <K>[];
 
   /// Returns the valid keys.
-  List<K> get validKeys {
-    return _map.entries
-        .where((e) => isValidEntry(e.key, e.value))
-        .map((e) => e.key)
-        .toList();
-  }
+  List<K> get validKeys => _map.entries
+      .where((e) => isValidEntry(e.key, e.value))
+      .map((e) => e.key)
+      .toList();
 
   /// Returns the invalid keys.
-  List<K> get invalidKeys {
-    return _map.entries
-        .where((e) => !isValidEntry(e.key, e.value))
-        .map((e) => e.key)
-        .toList();
+  List<K> get invalidKeys => _map.entries
+      .where((e) => !isValidEntry(e.key, e.value))
+      .map((e) => e.key)
+      .toList();
+
+  /// Walks tree from [root] and stops when [walker] returns some [R] object.
+  R walkTree<R>(R Function(K node) walker, {K root}) {
+    root ??= this.root;
+    return _walkTreeImpl(root, walker);
+  }
+
+  R _walkTreeImpl<R>(K node, R Function(K node) walker) {
+    var children = getChildrenOf(node);
+    if (children == null || children.isEmpty) return null;
+
+    for (var child in children) {
+      var ret = walker(child);
+      if (ret != null) {
+        return ret;
+      }
+
+      ret = _walkTreeImpl(child, walker);
+      if (ret != null) {
+        return ret;
+      }
+    }
+
+    return null;
   }
 
   @override
@@ -2672,6 +2699,7 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
   void addAll(Map<K, V> other) {
     _map.addAll(other);
     doAutoPurge();
+    _expireCache();
   }
 
   @override
@@ -2690,6 +2718,7 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
   V remove(Object key) {
     var rm = _map.remove(key);
     doAutoPurge();
+    _expireCache();
     return rm;
   }
 
@@ -2702,6 +2731,29 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
   @override
   void clear() {
     _map.clear();
+    _expireCache();
+  }
+
+  List<K> _keysReversedList;
+
+  /// Returns [keys] reversed (unmodifiable);
+  List<K> get keysReversed {
+    _keysReversedList ??= _map.keys.toList().reversed.toList();
+    return UnmodifiableListView(_keysReversedList);
+  }
+
+  List<K> _purgedKeysReversedList;
+
+  /// Returns [purgedKeys] reversed (unmodifiable);
+  List<K> get purgedKeysReversed {
+    _purgedKeysReversedList ??=
+        _purged != null ? _purged.keys.toList().reversed.toList() : [];
+    return UnmodifiableListView(_purgedKeysReversedList);
+  }
+
+  void _expireCache() {
+    _keysReversedList = null;
+    _purgedKeysReversedList = null;
   }
 
   @override
@@ -2726,6 +2778,7 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
   void addEntries(Iterable<MapEntry<K, V>> newEntries) {
     doAutoPurge();
     _map.addEntries(newEntries);
+    _expireCache();
   }
 
   @override
@@ -2758,25 +2811,31 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
   @override
   V putIfAbsent(K key, V Function() ifAbsent) {
     doAutoPurge();
-    return _map.putIfAbsent(key, ifAbsent);
+    var val = _map.putIfAbsent(key, ifAbsent);
+    _expireCache();
+    return val;
   }
 
   @override
   void removeWhere(bool Function(K key, V value) predicate) {
     doAutoPurge();
     _map.removeWhere(predicate);
+    _expireCache();
   }
 
   @override
   V update(K key, V Function(V value) update, {V Function() ifAbsent}) {
     doAutoPurge();
-    return _map.update(key, update, ifAbsent: ifAbsent);
+    var val = _map.update(key, update, ifAbsent: ifAbsent);
+    _expireCache();
+    return val;
   }
 
   @override
   void updateAll(V Function(K key, V value) update) {
     doAutoPurge();
     _map.updateAll(update);
+    _expireCache();
   }
 
   @override
