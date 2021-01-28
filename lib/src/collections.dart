@@ -2366,7 +2366,9 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
       this.childrenGetter,
       this.childChecker})
       : autoPurge = autoPurge ?? false,
-        keepPurgedEntries = keepPurgedKeys ?? false;
+        keepPurgedEntries = keepPurgedKeys ?? false {
+    if (root == null) throw ArgumentError.notNull('root');
+  }
 
   final Map<K, V> _map = {};
 

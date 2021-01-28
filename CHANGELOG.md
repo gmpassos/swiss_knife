@@ -1,3 +1,8 @@
+## 2.5.25
+
+- `TreeReferenceMap`: ensure that `root` is not null.
+- `EventStream`: Added `listenOneShot`.
+
 ## 2.5.24
 
 - `TreeReferenceMap`:

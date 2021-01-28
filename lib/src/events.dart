@@ -327,6 +327,21 @@ class EventStream<T> implements Stream<T> {
     }
   }
 
+  ListenerWrapper<T> listenOneShot(void Function(T event) onData,
+      {Function onError,
+      void Function() onDone,
+      bool cancelOnError,
+      dynamic singletonIdentifier,
+      bool singletonIdentifyByInstance = true}) {
+    var listenerWrapper = ListenerWrapper<T>(this, onData,
+        onError: onError,
+        onDone: onDone,
+        cancelOnError: cancelOnError,
+        oneShot: true);
+    var ok = listenerWrapper.listen();
+    return ok != null ? listenerWrapper : null;
+  }
+
   /// Returns a future that completes when receives at least 1 event.
   Future<T> listenAsFuture() {
     var completer = Completer<T>();
@@ -460,6 +475,15 @@ class EventStreamDelegator<T> implements EventStream<T> {
           eventValidator: v[6]);
     }
 
+    for (var v in _listenOneShotBuffer) {
+      es.listenOneShot(v[0],
+          onError: v[1],
+          onDone: v[2],
+          cancelOnError: v[3],
+          singletonIdentifier: v[4],
+          singletonIdentifyByInstance: v[5]);
+    }
+
     for (var v in _addBuffer) {
       es.add(v);
     }
@@ -476,6 +500,7 @@ class EventStreamDelegator<T> implements EventStream<T> {
     _addBuffer.clear();
     _addErrorBuffer.clear();
     _listenBuffer.clear();
+    _listenOneShotBuffer.clear();
   }
 
   @override
@@ -556,6 +581,36 @@ class EventStreamDelegator<T> implements EventStream<T> {
           singletonIdentifier: singletonIdentifier,
           singletonIdentifyByInstance: singletonIdentifyByInstance,
           eventValidator: eventValidator);
+    }
+  }
+
+  final List _listenOneShotBuffer = [];
+
+  @override
+  ListenerWrapper<T> listenOneShot(void Function(T event) onData,
+      {Function onError,
+      void Function() onDone,
+      bool cancelOnError,
+      singletonIdentifier,
+      bool singletonIdentifyByInstance = true}) {
+    var es = eventStream;
+    if (es == null) {
+      _listenOneShotBuffer.add([
+        onData,
+        onError,
+        onDone,
+        cancelOnError,
+        singletonIdentifier,
+        singletonIdentifyByInstance,
+      ]);
+      return null;
+    } else {
+      return es.listenOneShot(onData,
+          onError: onError,
+          onDone: onDone,
+          cancelOnError: cancelOnError,
+          singletonIdentifier: singletonIdentifier,
+          singletonIdentifyByInstance: singletonIdentifyByInstance);
     }
   }
 
@@ -1072,9 +1127,18 @@ class ListenerWrapper<T> {
 
   final bool cancelOnError;
 
+  final dynamic singletonIdentifier;
+
+  final bool singletonIdentifyByInstance;
+
   /// See [Stream.listen].
   ListenerWrapper(this.stream, this.onData,
-      {this.onError, this.onDone, this.cancelOnError, bool oneShot = false}) {
+      {this.onError,
+      this.onDone,
+      this.cancelOnError,
+      bool oneShot = false,
+      this.singletonIdentifier,
+      this.singletonIdentifyByInstance = true}) {
     this.oneShot = oneShot;
   }
 
@@ -1150,12 +1214,22 @@ class ListenerWrapper<T> {
   bool listen() {
     if (isListening) return false;
 
-    _subscription = stream.listen(onDataWrapper,
-        onError: onErrorWrapper,
-        onDone: onDoneWrapper,
-        cancelOnError: cancelOnError);
+    if (stream is EventStream) {
+      var eventStream = stream as EventStream;
+      _subscription = eventStream.listen(onDataWrapper,
+          onError: onErrorWrapper,
+          onDone: onDoneWrapper,
+          cancelOnError: cancelOnError,
+          singletonIdentifier: singletonIdentifier,
+          singletonIdentifyByInstance: singletonIdentifyByInstance);
+    } else {
+      _subscription = stream.listen(onDataWrapper,
+          onError: onErrorWrapper,
+          onDone: onDoneWrapper,
+          cancelOnError: cancelOnError);
+    }
 
-    return true;
+    return _subscription != null;
   }
 
   /// Cancels [subscription];
