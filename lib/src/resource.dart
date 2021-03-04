@@ -240,7 +240,7 @@ class ResourceContent {
 
   @override
   String toString() {
-    return 'ResourceContent{resource: ${uri}';
+    return 'ResourceContent{resource: $uri}';
   }
 
   /// Resolves [url] using this [ResourceContent] as reference (base [Uri]).

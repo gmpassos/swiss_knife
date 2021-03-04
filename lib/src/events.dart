@@ -995,7 +995,7 @@ InteractionCompleter listenStreamWithInteractionCompleter<T>(
   var lastEvent = [];
 
   var interactionCompleter = InteractionCompleter(
-      'listenStreamWithInteractionCompleter[${stream}]',
+      'listenStreamWithInteractionCompleter[$stream]',
       triggerDelay: triggerDelay, functionToTrigger: () {
     var event = lastEvent.isNotEmpty ? lastEvent.first : null;
     onData(event is T ? event : null);

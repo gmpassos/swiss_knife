@@ -2,6 +2,7 @@
 
 - Optimize: `parseInt`, `parseDouble` and `parseNum`.
 - Fix: `listNotMatchesAll` and `listMatchesAny` when leading with lists with `null` elements. 
+- Dart 2.12.0+ compliant: `dartfmt` and `dartanalyzer`.
 
 ## 2.5.25
 

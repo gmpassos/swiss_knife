@@ -16,6 +16,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Dart version
+      run: dart --version
     - name: Install dependencies
       run: pub get
     - name: dartfmt

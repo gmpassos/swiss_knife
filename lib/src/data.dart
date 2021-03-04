@@ -687,7 +687,7 @@ class Geolocation {
 
   /// Generates a browser windoe ID with coordinates.
   String windowID(String prefix) {
-    return '${prefix}__${latitude}__${longitude}';
+    return '${prefix}__${latitude}__$longitude';
   }
 
   /// Generates a Google Maps URL with coordinates.

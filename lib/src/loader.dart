@@ -11,7 +11,8 @@ class LoadController {
   /// Global ID of this loader.
   String id = (++_idCounter).toString();
 
-  LoaderFunction _loader;
+  /// The actual loading function that is handled by this [LoadController].
+  LoaderFunction loader;
 
   final EventStream<LoadController> onLoad = EventStream();
 
@@ -19,16 +20,9 @@ class LoadController {
     this.id = id ?? _newID();
   }
 
-  LoadController.function(this._loader, [String id]) {
-    if (_loader == null) throw ArgumentError('Null LoaderFunction');
+  LoadController.function(this.loader, [String id]) {
+    if (loader == null) throw ArgumentError('Null LoaderFunction');
     this.id = id ?? _newID();
-  }
-
-  /// The actual loading function that is handled by this [LoadController].
-  LoaderFunction get loader => _loader;
-
-  set loader(LoaderFunction value) {
-    _loader = value;
   }
 
   Future<bool> _loadFuture;
@@ -51,24 +45,25 @@ class LoadController {
 
   /// Does the load process.
   ///
-  /// [loader] the function to use in the load process. If already set by the constructor will throws [StateError].
-  Future<bool> load([LoaderFunction loader]) async {
+  /// - [actualLoader]: the function to use in the load process.
+  /// Will throw a [StateError] if [loader] is already set by the constructor.
+  Future<bool> load([LoaderFunction actualLoader]) async {
     if (_loadFuture != null) return _loadFuture;
 
-    if (loader != null) {
-      if (_loader != null) {
+    if (actualLoader != null) {
+      if (loader != null) {
         throw StateError(
             "LoadController[$id] already have a LoaderFunction: can't pass another as parameter.");
       }
-      _loader = loader;
+      loader = actualLoader;
     }
 
-    if (_loader == null) {
+    if (loader == null) {
       throw ArgumentError(
           'LoadController[$id] without LoaderFunction: required as parameter when calling load().');
     }
 
-    _loadFuture = _loader();
+    _loadFuture = loader();
     _loadSuccessful = await _loadFuture;
 
     _loaded = true;

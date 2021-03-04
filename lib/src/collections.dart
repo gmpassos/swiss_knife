@@ -179,7 +179,7 @@ class Dimension implements Comparable<Dimension> {
 
   @override
   String toString() {
-    return '${width}X${height}';
+    return '${width}X$height';
   }
 }
 

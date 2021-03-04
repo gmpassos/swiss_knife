@@ -78,7 +78,7 @@ List<String> split(String s, Pattern delimiter, [int limit]) {
   } else if (delimiter is RegExp) {
     return _split_RegExp(s, delimiter, limit);
   } else {
-    throw ArgumentError('Invalid delimiter type: ${delimiter}');
+    throw ArgumentError('Invalid delimiter type: $delimiter');
   }
 }
 

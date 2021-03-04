@@ -52,7 +52,7 @@ String getUriBaseHostAndPort({bool suppressPort80 = true, int port}) {
     return uri.host;
   }
 
-  return '${uri.host}:${port}';
+  return '${uri.host}:$port';
 }
 
 /// Returns base Uri as URL string.

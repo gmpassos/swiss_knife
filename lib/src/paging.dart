@@ -110,22 +110,16 @@ abstract class JSONPaging extends MapDelegate<String, dynamic> {
     return myFormat.trim().toLowerCase() == format.trim().toLowerCase();
   }
 
-  PagingRequester _pagingRequester;
-
   /// Requesting Function that is able to make new requests to a specific page.
   /// See [PagingRequester].
-  PagingRequester get pagingRequester => _pagingRequester;
-
-  set pagingRequester(PagingRequester value) {
-    _pagingRequester = value;
-  }
+  PagingRequester pagingRequester;
 
   /// The url for a request using [url] and [page] to build.
   String pagingRequestURL(String url, int page);
 
   Future<JSONPaging> requestPage(int page) {
-    if (_pagingRequester == null) return null;
-    return _pagingRequester(page);
+    if (pagingRequester == null) return null;
+    return pagingRequester(page);
   }
 
   /// Requests next page.

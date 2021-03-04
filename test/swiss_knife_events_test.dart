@@ -1,7 +1,7 @@
 import 'package:swiss_knife/swiss_knife.dart';
 import 'package:test/test.dart';
 
-void _sleep(int delayMs) async {
+Future<void> _sleep(int delayMs) async {
   if (delayMs <= 0) return;
   await Future.delayed(Duration(milliseconds: delayMs), () {});
 }

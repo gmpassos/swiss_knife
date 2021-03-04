@@ -389,21 +389,21 @@ String formatTimeMillis(int time) {
     var min = t.toInt();
     var sec = ((t - min) * 60).toInt();
 
-    return sec > 0 ? '$sig${min} min ${sec} s' : ('$sig${min} min');
+    return sec > 0 ? '$sig$min min $sec s' : ('$sig$min min');
   } else if (time < ONE_DAY) {
     var t = time / ONE_HOUR;
 
     var hour = t.toInt();
     var min = ((t - hour) * 60).toInt();
 
-    return min > 0 ? '$sig${hour} h ${min} min' : '$sig${hour} h';
+    return min > 0 ? '$sig$hour h $min min' : '$sig$hour h';
   } else {
     var t = time / ONE_DAY;
 
     var day = t.toInt();
     var hour = ((t - day) * 24).toInt();
 
-    return hour > 0 ? '$sig${day} d ${hour} h' : '$sig${day} d';
+    return hour > 0 ? '$sig$day d $hour h' : '$sig$day d';
   }
 }
 
