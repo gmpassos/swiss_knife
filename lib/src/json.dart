@@ -85,10 +85,12 @@ bool isJSONList(dynamic json) {
 
   if (json is List<String>) return true;
   if (json is List<num>) return true;
+  if (json is List<int>) return true;
+  if (json is List<double>) return true;
   if (json is List<bool>) return true;
 
   if (json is List) {
-    return listMatchesAll(json, isJSON);
+    return json.isEmpty || listMatchesAll(json, isJSON);
   }
 
   return false;
@@ -100,9 +102,12 @@ bool isJSONMap(dynamic json) {
 
   if (json is Map<String, String>) return true;
   if (json is Map<String, num>) return true;
+  if (json is Map<String, int>) return true;
+  if (json is Map<String, double>) return true;
   if (json is Map<String, bool>) return true;
 
   if (json is Map) {
+    if (json.isEmpty) return true;
     if (!isMapOfStringKeys(json)) return false;
     return listMatchesAll(json.values, isJSON);
   }

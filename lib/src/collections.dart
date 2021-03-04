@@ -466,20 +466,29 @@ bool isAllEqualsInMap(Map map, dynamic value, [bool deep = false]) {
 
 /// Returns [true] if at least ONE [list] element does NOT matches [matcher].
 bool listNotMatchesAll<T>(Iterable<T> list, bool Function(T entry) matcher) {
-  var noMatch = list.firstWhere((e) => !matcher(e), orElse: () => null);
-  return noMatch != null;
+  if (list == null || list.isEmpty) return false;
+  for (var e in list) {
+    if (!matcher(e)) return true;
+  }
+  return false;
 }
 
 /// Returns [true] if all [list] elements matches [matcher].
 bool listMatchesAll<T>(Iterable<T> list, bool Function(T entry) matcher) {
-  return !listNotMatchesAll(list, matcher);
+  if (list == null || list.isEmpty) return false;
+  for (var e in list) {
+    if (!matcher(e)) return false;
+  }
+  return true;
 }
 
 /// Returns [true] if any element of [list] matches [matcher].
 bool listMatchesAny<T>(Iterable<T> list, bool Function(T entry) matcher) {
   if (list == null || list.isEmpty) return false;
-  var match = list.firstWhere((e) => matcher(e), orElse: () => null);
-  return match != null;
+  for (var e in list) {
+    if (matcher(e)) return true;
+  }
+  return false;
 }
 
 /// Returns [true] if all [list] elements are of the same type.

@@ -1,3 +1,8 @@
+## 2.5.26
+
+- Optimize: `parseInt`, `parseDouble` and `parseNum`.
+- Fix: `listNotMatchesAll` and `listMatchesAny` when leading with lists with `null` elements. 
+
 ## 2.5.25
 
 - `TreeReferenceMap`: ensure that `root` is not null.

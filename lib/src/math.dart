@@ -303,11 +303,16 @@ int parseInt(dynamic v, [int def]) {
 
   if (s.isEmpty) return def;
 
-  try {
-    return num.parse(s).toInt();
-  } catch (e) {
-    return def;
+  num n = int.tryParse(s);
+
+  if (n == null) {
+    var d = double.tryParse(s);
+    if (d != null) {
+      return d.toInt();
+    }
   }
+
+  return n ?? def;
 }
 
 /// Parses [v] to [double].
@@ -330,11 +335,8 @@ double parseDouble(dynamic v, [double def]) {
 
   if (s.isEmpty) return def;
 
-  try {
-    return double.parse(s);
-  } catch (e) {
-    return def;
-  }
+  var n = double.tryParse(s);
+  return n ?? def;
 }
 
 /// Parses [v] to [num].
@@ -358,11 +360,8 @@ num parseNum(dynamic v, [num def]) {
 
   if (s.isEmpty) return def;
 
-  try {
-    return num.parse(s);
-  } catch (e) {
-    return def;
-  }
+  var n = num.tryParse(s);
+  return n ?? def;
 }
 
 /// Parses [v] to [bool].

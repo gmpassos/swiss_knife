@@ -24,3 +24,6 @@ jobs:
       run: dartanalyzer --fatal-infos --fatal-warnings .
     - name: Run tests
       run: pub run test
+    - name: publish --dry-run
+      run: pub publish --dry-run
+
