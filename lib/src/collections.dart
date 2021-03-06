@@ -54,6 +54,7 @@ class Pair<T> {
 
   /// Joins [a] and [b] with the [delimiter].
   String join(String delimiter) {
+    delimiter ??= '';
     return '$a$delimiter$b';
   }
 
@@ -1244,6 +1245,7 @@ List<String> parseStringFromInlineList(dynamic s,
     [Pattern delimiter, List<String> def]) {
   if (s == null) return def;
   if (s is List) return s.map((e) => parseString(e)).toList();
+  delimiter ??= RegExp(r'\s*,\s*');
   return parseFromInlineList(s.toString(), delimiter, parseString, def);
 }
 
@@ -1267,6 +1269,7 @@ MapEntry<String, String> parseMapEntry<K, V>(dynamic e,
   } else if (e is List) {
     if (e.isEmpty) return def;
     if (e.length == 1) {
+      delimiter ??= RegExp(r'\s*;\s*');
       return parseMapEntry(e.first, delimiter, def);
     } else if (e.length == 2) {
       return MapEntry('${e[0]}', '${e[1]}');
