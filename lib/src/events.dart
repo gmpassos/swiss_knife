@@ -3,16 +3,14 @@ import 'dart:async';
 import 'package:swiss_knife/src/collections.dart';
 
 class _ListenSignature {
-  final dynamic _identifier;
+  final dynamic /*!*/ _identifier;
 
-  bool _identifyByInstance;
+  final bool /*!*/ _identifyByInstance;
 
   final bool _cancelOnError;
 
   _ListenSignature(
-      this._identifier, bool identifyByInstance, this._cancelOnError) {
-    _identifyByInstance = identifyByInstance ?? true;
-  }
+      this._identifier, this._identifyByInstance, this._cancelOnError);
 
   dynamic get identifier => _identifier;
 
@@ -32,7 +30,8 @@ class _ListenSignature {
   @override
   int get hashCode => _identifier.hashCode;
 
-  StreamSubscription subscription;
+  /*late final*/
+  StreamSubscription /*?*/ subscription;
 
   bool _canceled = false;
 
@@ -66,67 +65,65 @@ typedef EventValidatorFunction<T> = bool Function(
 ///
 /// See [Stream] for more documentation of delegated methods.
 class EventStream<T> implements Stream<T> {
-  StreamController<T> _controller;
+  final StreamController<T> /*!*/ _controller = StreamController();
 
-  Stream<T> _s;
+  /*late final*/
+  Stream<T> /*!*/ _s;
 
   EventStream() {
-    _controller = StreamController();
     _s = _controller.stream.asBroadcastStream();
   }
 
-  bool _used = false;
+  bool /*!*/ _used = false;
 
-  bool get isUsed => _used;
+  bool /*!*/ get isUsed => _used;
 
   void _markUsed() => _used = true;
 
-  Stream<T> get _stream {
+  Stream<T> /*!*/ get _stream {
     _markUsed();
     return _s;
   }
 
   /// Adds an event and notify it to listeners.
-  void add(T value) {
+  void add(T /*!*/ value) {
     if (!_used) return;
     _controller.add(value);
   }
 
   /// Adds an error event and notify it to listeners.
-  void addError(Object error, StackTrace stackTrace) {
+  void addError(Object /*!*/ error, [StackTrace /*?*/ stackTrace]) {
     if (!_used) return;
     _controller.addError(error, stackTrace);
   }
 
-  Future addStream(Stream<T> source, {bool cancelOnError}) {
-    return _controller.addStream(source, cancelOnError: cancelOnError);
-  }
+  Future /*!*/ addStream(Stream<T> /*!*/ source, {bool /*?*/ cancelOnError}) =>
+      _controller.addStream(source, cancelOnError: cancelOnError);
 
   /// Closes this stream.
-  Future close() {
-    return _controller.close();
-  }
+  Future /*!*/ close() => _controller.close();
 
   /// Returns [true] if this stream is closed.
-  bool get isClosed => _controller.isClosed;
+  bool /*!*/ get isClosed => _controller.isClosed;
 
   /// Returns [true] if this stream is paused.
-  bool get isPaused => _controller.isPaused;
+  bool /*!*/ get isPaused => _controller.isPaused;
 
   @override
-  Future<bool> any(bool Function(T element) test) {
+  Future<bool> /*!*/ any(bool Function(T element) /*!*/ test) {
     return _stream.any(test);
   }
 
   @override
   Stream<T> asBroadcastStream(
-      {void Function(StreamSubscription<T> subscription) onListen,
-      void Function(StreamSubscription<T> subscription) onCancel}) {
+      {void Function(StreamSubscription<T> subscription) /*?*/ onListen,
+      void Function(StreamSubscription<T> subscription) /*?*/ onCancel}) {
     return _stream.asBroadcastStream(onListen: onListen, onCancel: onCancel);
   }
 
   @override
-  Stream<E> asyncExpand<E>(Stream<E> Function(T event) convert) {
+  Stream<E> /*!*/ asyncExpand<E>(
+      Stream<E> /*?*/ Function(T event) /*!*/ convert) {
     return _stream.asyncExpand(convert);
   }
 
@@ -141,79 +138,83 @@ class EventStream<T> implements Stream<T> {
   }
 
   @override
-  Future<bool> contains(Object needle) {
+  Future<bool> contains(Object /*?*/ needle) {
     return _stream.contains(needle);
   }
 
   @override
-  Stream<T> distinct([bool Function(T previous, T next) equals]) {
+  Stream<T> distinct([bool Function(T previous, T next) /*?*/ equals]) {
     return _stream.distinct(equals);
   }
 
   @override
-  Future<E> drain<E>([E futureValue]) {
+  Future<E> drain<E>([E /*?*/ futureValue]) {
     return _stream.drain(futureValue);
   }
 
   @override
-  Future<T> elementAt(int updateMetadata) {
+  Future<T> elementAt(int /*!*/ updateMetadata) {
     return _stream.elementAt(updateMetadata);
   }
 
   @override
-  Future<bool> every(bool Function(T element) test) {
+  Future<bool> every(bool Function(T element) /*!*/ test) {
     return _stream.every(test);
   }
 
   @override
-  Stream<S> expand<S>(Iterable<S> Function(T element) convert) {
+  Stream<S> expand<S>(Iterable<S> Function(T element) /*!*/ convert) {
     return _stream.expand(convert);
   }
 
   @override
-  Future<T> get first => _stream.first;
+  Future<T> /*!*/ get first => _stream.first;
 
   @override
-  Future<T> firstWhere(bool Function(T element) test, {T Function() orElse}) {
+  Future<T> firstWhere(bool Function(T element) /*!*/ test,
+      {T Function() /*?*/ orElse}) {
     return _stream.firstWhere(test, orElse: orElse);
   }
 
   @override
-  Future<S> fold<S>(S initialValue, S Function(S previous, T element) combine) {
+  Future<S> fold<S>(
+      S /*!*/ initialValue, S Function(S previous, T element) /*!*/ combine) {
     return _stream.fold(initialValue, combine);
   }
 
   @override
-  Future forEach(void Function(T element) action) {
+  Future forEach(void Function(T element) /*!*/ action) {
     return _stream.forEach(action);
   }
 
   @override
-  Stream<T> handleError(Function onError, {bool Function(dynamic error) test}) {
+  Stream<T> handleError(Function /*!*/ onError,
+      {bool Function(dynamic error) /*?*/ test}) {
     return _stream.handleError(onError, test: test);
   }
 
   @override
-  bool get isBroadcast => _stream.isBroadcast;
+  bool /*!*/ get isBroadcast => _stream.isBroadcast;
 
   @override
-  Future<bool> get isEmpty => _stream.isEmpty;
+  Future<bool> /*!*/ get isEmpty => _stream.isEmpty;
 
   @override
-  Future<String> join([String separator = '']) {
+  Future<String> /*!*/ join([String /*!*/ separator = '']) {
     return _stream.join(separator);
   }
 
   @override
-  Future<T> get last => _stream.last;
+  Future<T> /*!*/ get last => _stream.last;
 
   @override
-  Future<T> lastWhere(bool Function(T element) test, {T Function() orElse}) {
+  Future<T> lastWhere(bool Function(T element) /*!*/ test,
+      {T Function() /*?*/ orElse}) {
     return _stream.lastWhere(test, orElse: orElse);
   }
 
   @override
-  Future<int> get length => _stream.length;
+  Future<int> /*!*/ get length => _stream.length;
 
   final Set<_ListenSignature> _listenSignatures = {};
 
@@ -226,8 +227,8 @@ class EventStream<T> implements Stream<T> {
   }
 
   /// Cancels [StreamSubscription] associated with [singletonIdentifier].
-  bool cancelSingletonSubscription(dynamic singletonIdentifier,
-      [bool singletonIdentifyByInstance = true]) {
+  bool /*!*/ cancelSingletonSubscription(dynamic /*!*/ singletonIdentifier,
+      [bool /*!*/ singletonIdentifyByInstance = true]) {
     var signature =
         _getListenSignature(singletonIdentifier, singletonIdentifyByInstance);
 
@@ -240,18 +241,16 @@ class EventStream<T> implements Stream<T> {
   }
 
   /// Returns a [StreamSubscription] associated with [singletonIdentifier].
-  StreamSubscription<T> getSingletonSubscription(dynamic singletonIdentifier,
+  StreamSubscription<T> /*?*/ getSingletonSubscription(
+      dynamic /*!*/ singletonIdentifier,
       [bool singletonIdentifyByInstance = true]) {
     var signature =
         _getListenSignature(singletonIdentifier, singletonIdentifyByInstance);
-    return signature != null ? signature.subscription : null;
+    return signature?.subscription;
   }
 
-  _ListenSignature _getListenSignature(dynamic singletonIdentifier,
-      [bool singletonIdentifyByInstance = true]) {
-    if (singletonIdentifier == null) return null;
-    singletonIdentifyByInstance ??= true;
-
+  _ListenSignature /*?*/ _getListenSignature(dynamic /*!*/ singletonIdentifier,
+      [bool singletonIdentifyByInstance /*!*/ = true]) {
     var listenSignature = _ListenSignature(
         singletonIdentifier, singletonIdentifyByInstance, false);
 
@@ -264,7 +263,7 @@ class EventStream<T> implements Stream<T> {
     return null;
   }
 
-  EventValidatorFunction<T> eventValidator;
+  EventValidatorFunction<T> /*?*/ eventValidator;
 
   /// Listen for events.
   ///
@@ -273,15 +272,14 @@ class EventStream<T> implements Stream<T> {
   /// [singletonIdentifier] identifier to avoid multiple listeners with the same identifier. This will register a singleton [StreamSubscription] associated with [singletonIdentifier].
   /// [singletonIdentifyByInstance] if true uses `identical(...)` to compare the [singletonIdentifier].
   @override
-  StreamSubscription<T> listen(void Function(T event) onData,
-      {Function onError,
-      void Function() onDone,
-      bool cancelOnError,
-      dynamic singletonIdentifier,
-      bool singletonIdentifyByInstance = true,
-      EventValidatorFunction<T> eventValidator}) {
+  StreamSubscription<T> /*?*/ listen(void Function(T event) /*!*/ onData,
+      {Function /*?*/ onError,
+      void Function() /*?*/ onDone,
+      bool /*!*/ cancelOnError = false,
+      dynamic /*?*/ singletonIdentifier,
+      bool /*!*/ singletonIdentifyByInstance = true,
+      EventValidatorFunction<T> /*?*/ eventValidator}) {
     try {
-      cancelOnError ??= false;
       eventValidator ??= this.eventValidator;
 
       if (eventValidator != null) {
@@ -327,9 +325,9 @@ class EventStream<T> implements Stream<T> {
     }
   }
 
-  ListenerWrapper<T> listenOneShot(void Function(T event) onData,
-      {Function onError,
-      void Function() onDone,
+  ListenerWrapper<T> listenOneShot(void Function(T event) /*!*/ onData,
+      {Function /*?*/ onError,
+      void Function() /*?*/ onDone,
       bool cancelOnError,
       dynamic singletonIdentifier,
       bool singletonIdentifyByInstance = true}) {
@@ -339,11 +337,11 @@ class EventStream<T> implements Stream<T> {
         cancelOnError: cancelOnError,
         oneShot: true);
     var ok = listenerWrapper.listen();
-    return ok != null ? listenerWrapper : null;
+    return ok ? listenerWrapper : null;
   }
 
   /// Returns a future that completes when receives at least 1 event.
-  Future<T> listenAsFuture() {
+  Future<T> /*!*/ listenAsFuture() {
     var completer = Completer<T>();
     listen((e) {
       if (!completer.isCompleted) {
@@ -427,27 +425,30 @@ class EventStream<T> implements Stream<T> {
 ///
 /// Useful to point to `EventStream` instances that are not instantiated yet.
 class EventStreamDelegator<T> implements EventStream<T> {
-  EventStream<T> _eventStream;
+  EventStream<T> /*?*/ _eventStream;
 
-  final EventStream<T> Function() _eventStreamProvider;
+  final EventStream<T> Function() /*?*/ _eventStreamProvider;
 
-  EventStreamDelegator(this._eventStream) : _eventStreamProvider = null;
+  EventStreamDelegator(EventStream<T> /*!*/ eventStream)
+      : _eventStream = eventStream,
+        _eventStreamProvider = null;
 
-  EventStreamDelegator.provider(this._eventStreamProvider);
+  EventStreamDelegator.provider(
+      EventStream<T> Function() /*!*/ eventStreamProvider)
+      : _eventStream = null,
+        _eventStreamProvider = eventStreamProvider;
 
   /// Returns the main [EventStream].
-  EventStream<T> get eventStream {
-    if (_eventStream == null && _eventStreamProvider != null) {
-      _eventStream = _eventStreamProvider();
-      if (_eventStream != null) {
-        flush();
-      }
+  EventStream<T> /*!*/ get eventStream {
+    if (_eventStream == null) {
+      _eventStream = _eventStreamProvider /*!*/ ();
+      flush();
     }
     return _eventStream;
   }
 
   /// Sets the main [EventStream].
-  set eventStream(EventStream<T> value) {
+  set eventStream(EventStream<T> /*!*/ value) {
     if (_eventStream != value) {
       _eventStream = value;
       if (_eventStream != null) {
@@ -458,9 +459,7 @@ class EventStreamDelegator<T> implements EventStream<T> {
 
   /// Flushes any event in buffer.
   void flush() {
-    if (_eventStream == null && _eventStreamProvider != null) {
-      _eventStream = _eventStreamProvider();
-    }
+    _eventStream ??= _eventStreamProvider();
 
     var es = _eventStream;
     if (es == null) return;
@@ -530,7 +529,7 @@ class EventStreamDelegator<T> implements EventStream<T> {
   final List<T> _addBuffer = [];
 
   @override
-  void add(T value) {
+  void add(T /*!*/ value) {
     var es = eventStream;
     if (es == null) {
       _addBuffer.add(value);
@@ -542,7 +541,7 @@ class EventStreamDelegator<T> implements EventStream<T> {
   final List<List> _addErrorBuffer = [];
 
   @override
-  void addError(Object error, StackTrace stackTrace) {
+  void addError(Object error, [StackTrace /*?*/ stackTrace]) {
     var es = eventStream;
     if (es == null) {
       _addErrorBuffer.add([error, stackTrace]);
@@ -554,10 +553,10 @@ class EventStreamDelegator<T> implements EventStream<T> {
   final List _listenBuffer = [];
 
   @override
-  StreamSubscription<T> listen(void Function(T event) onData,
+  StreamSubscription<T> /*?*/ listen(void Function(T event) /*!*/ onData,
       {Function onError,
       void Function() onDone,
-      bool cancelOnError,
+      bool cancelOnError = false,
       singletonIdentifier,
       bool singletonIdentifyByInstance = true,
       EventValidatorFunction<T> eventValidator}) {
@@ -587,7 +586,7 @@ class EventStreamDelegator<T> implements EventStream<T> {
   final List _listenOneShotBuffer = [];
 
   @override
-  ListenerWrapper<T> listenOneShot(void Function(T event) onData,
+  ListenerWrapper<T> listenOneShot(void Function(T event) /*!*/ onData,
       {Function onError,
       void Function() onDone,
       bool cancelOnError,
@@ -987,11 +986,9 @@ class InteractionCompleterDummy extends InteractionCompleter {
 /// [onData] is only called when [stream] event is triggered and stays
 /// without any new event for [triggerDelay] duration.
 InteractionCompleter listenStreamWithInteractionCompleter<T>(
-    Stream<T> stream, Duration triggerDelay, void Function(T event) onData) {
-  if (stream == null) throw ArgumentError.notNull('stream');
-  if (triggerDelay == null) throw ArgumentError.notNull('triggerDelay');
-  if (onData == null) throw ArgumentError.notNull('onData');
-
+    Stream<T> /*!*/ stream,
+    Duration /*!*/ triggerDelay,
+    void Function(T event) /*!*/ onData) {
   var lastEvent = [];
 
   var interactionCompleter = InteractionCompleter(
@@ -1012,15 +1009,13 @@ InteractionCompleter listenStreamWithInteractionCompleter<T>(
 
 /// A wrapper and handler for a value that is asynchronous (from a [Future]).
 class AsyncValue<T> {
-  Future<T> _future;
+  Future<T> /*!*/ _future;
 
-  AsyncValue(Future<T> future) {
-    _future = future.then(_onLoad, onError: _onError);
+  AsyncValue(Future<T> /*!*/ future) {
+    _future = future.then((v) => _onLoad(v), onError: _onError);
   }
 
-  factory AsyncValue.from(dynamic value) {
-    if (value == null) return null;
-
+  factory AsyncValue.from(dynamic /*!*/ value) {
     if (value is Future) {
       return AsyncValue(value);
     } else if (value is Future<T> Function()) {
@@ -1043,17 +1038,17 @@ class AsyncValue<T> {
         }
       });
       return AsyncValue(future);
+    } else {
+      throw ArgumentError('Not an async value: $value');
     }
-
-    return null;
   }
 
   Future<T> get future => _future;
 
   /// Handles `load` events.
-  final EventStream<T> onLoad = EventStream();
+  final EventStream<T> /*!*/ onLoad = EventStream();
 
-  bool _loaded = false;
+  bool /*!*/ _loaded = false;
 
   /// Returns [true] if value is loaded.
   bool get isLoaded => _loaded;
@@ -1064,14 +1059,14 @@ class AsyncValue<T> {
   /// Returns [true] if [isLoaded] and has an [error]
   bool get isLoadedWithError => _loaded && _error != null;
 
-  dynamic _error;
+  dynamic /*?*/ _error;
 
   dynamic get error => _error;
 
   /// Returns [true] if the value has an execution [error].
   bool get hasError => _error != null;
 
-  T _value;
+  T /*?*/ _value;
 
   T _onLoad(value) {
     _loaded = true;
@@ -1106,7 +1101,7 @@ class AsyncValue<T> {
 
   /// Disposes the value, error and future associated.
   void dispose() {
-    _future = null;
+    _future = Future<T>.value();
     _error = null;
     _value = null;
   }
@@ -1117,48 +1112,40 @@ class AsyncValue<T> {
 /// Useful to create a one shot listener or extend and introduce different behaviors.
 class ListenerWrapper<T> {
   /// [Stream] to wrap [listen] calls.
-  final Stream<T> stream;
+  final Stream<T> /*!*/ stream;
 
-  final void Function(T event) onData;
+  final void Function(T event) /*!*/ onData;
 
-  final Function onError;
+  final Function /*?*/ onError;
 
-  final void Function() onDone;
+  final void Function() /*?*/ onDone;
 
-  final bool cancelOnError;
+  final bool /*!*/ cancelOnError;
 
-  final dynamic singletonIdentifier;
+  final dynamic /*?*/ singletonIdentifier;
 
-  final bool singletonIdentifyByInstance;
+  final bool /*!*/ singletonIdentifyByInstance;
 
   /// See [Stream.listen].
   ListenerWrapper(this.stream, this.onData,
       {this.onError,
       this.onDone,
-      this.cancelOnError,
-      bool oneShot = false,
+      this.cancelOnError = false,
+      this.oneShot = false,
       this.singletonIdentifier,
-      this.singletonIdentifyByInstance = true}) {
-    this.oneShot = oneShot;
-  }
-
-  bool _oneShot = false;
+      this.singletonIdentifyByInstance = true});
 
   /// If [true] will wait for 1 event and call [cancel].
-  bool get oneShot => _oneShot;
+  bool /*!*/ oneShot = false;
 
-  set oneShot(bool value) {
-    _oneShot = value ?? false;
-  }
-
-  int _eventCount = 0;
+  int /*!*/ _eventCount = 0;
 
   int get eventCount => _eventCount;
 
   /// Wrapper for any [event] or [error].
   void onEvent(T event, Object error, StackTrace stackTrace) {
     ++_eventCount;
-    if (_oneShot) {
+    if (oneShot) {
       cancel();
     }
   }
@@ -1166,9 +1153,7 @@ class ListenerWrapper<T> {
   /// Wrapper for [event].
   void onDataWrapper(T event) {
     onEvent(event, null, null);
-    if (onData != null) {
-      onData(event);
-    }
+    onData(event);
   }
 
   int _errorCount = 0;
@@ -1211,7 +1196,7 @@ class ListenerWrapper<T> {
   /// Calls [stream.listen] and sets [subscription].
   ///
   /// Returns [false] if already listening.
-  bool listen() {
+  bool /*!*/ listen() {
     if (isListening) return false;
 
     if (stream is EventStream) {

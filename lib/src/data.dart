@@ -93,7 +93,7 @@ class MimeType {
   /// Note that this can resolve aliases like `JSON`.
   ///
   /// [defaultMimeType] if [mimeType] is invalid.
-  static String parseAsString(String mimeType, [String defaultMimeType]) {
+  static String/*?*/ parseAsString(String/*?*/ mimeType, [String/*?*/ defaultMimeType]) {
     var m = MimeType.parse(mimeType, defaultMimeType);
     return m != null ? m.toString() : null;
   }
@@ -101,10 +101,10 @@ class MimeType {
   /// Constructor that parses a [mimeType] string.
   ///
   /// [defaultMimeType] if [mimeType] is invalid.
-  factory MimeType.parse(String mimeType, [String defaultMimeType]) {
+  static MimeType/*?*/ parse(String/*?*/ mimeType, [String/*?*/ defaultMimeType]) {
     mimeType ??= defaultMimeType;
 
-    if (mimeType == null) return null;
+    if (mimeType == null) return null;   /*!!!*/
     mimeType = mimeType.trim();
     if (mimeType.isEmpty) mimeType = defaultMimeType;
     if (mimeType == null) return null;
@@ -210,7 +210,7 @@ class MimeType {
   /// Creates an instance by file [extension].
   ///
   /// [defaultAsApplication] if true returns 'application/[extension]'.
-  factory MimeType.byExtension(String extension,
+  static MimeType/*?*/ byExtension(String extension,
       {bool defaultAsApplication = true}) {
     if (extension == null) return null;
     var idx = extension.lastIndexOf('.');
@@ -270,7 +270,7 @@ class MimeType {
     }
   }
 
-  static String normalizeCharset(String charset) {
+  static String/*?*/ normalizeCharset(String/*?*/ charset) {
     if (charset == null) return null;
     charset = charset.trim();
     if (charset.isEmpty) return null;
@@ -280,11 +280,11 @@ class MimeType {
     return charset;
   }
 
-  final String type;
+  final String/*!*/ type;
 
-  final String subType;
+  final String/*!*/ subType;
 
-  final String charset;
+  final String/*?*/ charset;
 
   MimeType(this.type, this.subType, [String charSet])
       : charset = charSet != null ? charSet.trim() : null;
@@ -548,7 +548,7 @@ class DataURLBase64 {
   /// Constructor that parses a Data URL [s]
   ///
   /// [defaultMimeType] if [s] is invalid.
-  factory DataURLBase64.parse(String s, {String defaultMimeType}) {
+  static DataURLBase64/*?*/ parse(String/*?*/ s, {String/*?*/ defaultMimeType}) {
     if (s == null) return null;
     s = s.trim();
     if (s.isEmpty) return null;
@@ -604,9 +604,9 @@ class Geolocation {
   static final RegExp GEOLOCATION_FORMAT =
       RegExp(r'([-=]?)(\d+[,.]?\d*)\s*[°o]?\s*(\w)');
 
-  static num parseLatitudeOrLongitudeValue(String s,
-      [bool onlyWithCardinals = false]) {
-    onlyWithCardinals ??= false;
+  static num/*?*/ parseLatitudeOrLongitudeValue(String/*?*/ s,
+      [bool/*!*/ onlyWithCardinals = false]) {
+    if (s == null) return null;
 
     var match = GEOLOCATION_FORMAT.firstMatch(s);
     if (match == null) return null;
@@ -634,7 +634,7 @@ class Geolocation {
     }
 
     if (onlyWithCardinals) return null;
-    return double.parse(number);
+    return number != null ? double.parse(number) : null;
   }
 
   static String formatLatitude(num lat) {
@@ -649,9 +649,9 @@ class Geolocation {
     return formatLatitude(geo.x) + ' ' + formatLongitude(geo.y);
   }
 
-  num _latitude;
+  num/*!*/ _latitude;
 
-  num _longitude;
+  num/*!*/ _longitude;
 
   Geolocation(this._latitude, this._longitude) {
     if (_latitude == null || _longitude == null) {
@@ -659,8 +659,10 @@ class Geolocation {
     }
   }
 
-  factory Geolocation.fromCoords(String coords, [bool onlyWithCardinals]) {
+  static Geolocation/*?*/ fromCoords(String/*?*/ coords, [bool onlyWithCardinals = false]) {
+    if (coords == null) return null ;
     coords = coords.trim();
+    if (coords.isEmpty) return null ;
 
     var parts = coords.split(RegExp(r'\s+'));
     if (parts.length < 2) return null;
@@ -703,7 +705,7 @@ class Geolocation {
 }
 
 /// Parses [value] as a [Rectangle].
-Rectangle<num> parseRectangle(dynamic value) {
+Rectangle<num/*!*/>/*?*/ parseRectangle(dynamic value) {
   if (value is List) return parseRectangleFromList(value);
   if (value is Map) return parseRectangleFromMap(value);
   if (value is String) return parseRectangleFromString(value);
@@ -711,7 +713,7 @@ Rectangle<num> parseRectangle(dynamic value) {
 }
 
 /// Parses [list] as a [Rectangle].
-Rectangle<num> parseRectangleFromList(List list) {
+Rectangle<num/*!*/>/*?*/ parseRectangleFromList(List list) {
   if (list.length < 4) return null;
   list = list.map((e) => parseNum(e)).whereType<num>().toList();
   if (list.length < 4) return null;
@@ -719,7 +721,7 @@ Rectangle<num> parseRectangleFromList(List list) {
 }
 
 /// Parses [map] as a [Rectangle].
-Rectangle<num> parseRectangleFromMap(Map map) {
+Rectangle<num/*!*/>/*?*/ parseRectangleFromMap(Map map) {
   if (map == null || map.isEmpty) return null;
 
   var x = parseNum(findKeyValue(map, ['x', 'left'], true));
@@ -733,7 +735,7 @@ Rectangle<num> parseRectangleFromMap(Map map) {
 }
 
 /// Parses [s] as a [Rectangle].
-Rectangle<num> parseRectangleFromString(String s) {
+Rectangle<num/*!*/>/*?*/ parseRectangleFromString(String s) {
   if (s == null) return null;
   s = s.trim();
   if (s.isEmpty) return null;
@@ -748,7 +750,7 @@ Rectangle<num> parseRectangleFromString(String s) {
 }
 
 /// Parses [value] as a [Point].
-Point<num> parsePoint(dynamic value) {
+Point<num/*!*/>/*?*/ parsePoint(dynamic value) {
   if (value is List) return parsePointFromList(value);
   if (value is Map) return parsePointFromMap(value);
   if (value is String) return parsePointFromString(value);
@@ -756,13 +758,15 @@ Point<num> parsePoint(dynamic value) {
 }
 
 /// Parses [list] as a [Point].
-Point<num> parsePointFromList(List list) {
+Point<num/*!*/>/*?*/ parsePointFromList(List list) {
   if (list == null || list.length < 2) return null;
-  return Point<num>(parseNum(list[0]), parseNum(list[1]));
+  var x = parseNum(list[0]);
+  var y = parseNum(list[1]);
+  return x != null && y != null ? Point<num>(x, y) : null ;
 }
 
 /// Parses [map] as a [Point].
-Point<num> parsePointFromMap(Map map) {
+Point<num/*!*/>/*?*/ parsePointFromMap(Map map) {
   var x = parseNum(findKeyValue(map, ['x', 'left'], true));
   var y = parseNum(findKeyValue(map, ['y', 'top'], true));
   if (x == null || y == null) return null;
@@ -770,7 +774,7 @@ Point<num> parsePointFromMap(Map map) {
 }
 
 /// Parses [s] as a [Point].
-Point<num> parsePointFromString(String s) {
+Point<num/*!*/>/*?*/ parsePointFromString(String/*?*/ s) {
   if (s == null) return null;
   s = s.trim();
   if (s.isEmpty) return null;
@@ -792,7 +796,7 @@ Point<num> parsePointFromString(String s) {
 ///
 /// [binaryBase] Default [false]. If [true] uses a binary base, if false uses
 /// decimal base.
-String dataSizeFormat(int size, {bool decimalBase, bool binaryBase}) {
+String/*?*/ dataSizeFormat(int/*?*/ size, {bool/*?*/ decimalBase, bool/*?*/ binaryBase}) {
   if (size == null) return null;
 
   var baseDecimal;

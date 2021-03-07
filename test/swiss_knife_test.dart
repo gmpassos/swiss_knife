@@ -180,7 +180,7 @@ void main() {
         ]
       };
 
-      deepReplaceValues(deepObj2, (c, k, v) => k == 'id', (c, k, v) => v * 10);
+      deepReplaceValues(deepObj2, (c, k, v) => k == 'id', (c, k, v) => (v as int) * 10);
 
       expect(
           isEqualsDeep(deepObj2, {
@@ -412,12 +412,12 @@ void main() {
       expect(formatPercent(-10.01), equals('-10.01%'));
       expect(formatPercent(3.3), equals('3.3%'));
 
-      expect(formatPercent(0.33, 2, true), equals('33%'));
-      expect(formatPercent(0.333, 2, true), equals('33.30%'));
-      expect(formatPercent(0.3333, 2, true), equals('33.33%'));
-      expect(formatPercent(1 / 3, 2, true), equals('33.33%'));
-      expect(formatPercent(1 / 3, 3, true), equals('33.333%'));
-      expect(formatPercent(1 / 3, 4, true), equals('33.3333%'));
+      expect(formatPercent(0.33, precision: 2, isRatio: true), equals('33%'));
+      expect(formatPercent(0.333, precision: 2, isRatio:true), equals('33.30%'));
+      expect(formatPercent(0.3333, precision: 2, isRatio:true), equals('33.33%'));
+      expect(formatPercent(1 / 3, precision: 2, isRatio:true), equals('33.33%'));
+      expect(formatPercent(1 / 3, precision: 3, isRatio:true), equals('33.333%'));
+      expect(formatPercent(1 / 3, precision: 4, isRatio:true), equals('33.3333%'));
 
       expect(formatPercent(33), equals('33%'));
       expect(formatPercent(33.3), equals('33.3%'));
@@ -436,12 +436,12 @@ void main() {
       expect(formatDecimal(-10.01), equals('-10.01'));
       expect(formatDecimal(3.3), equals('3.3'));
 
-      expect(formatDecimal(33.0, 2), equals('33'));
-      expect(formatDecimal(33.30, 2), equals('33.3'));
-      expect(formatDecimal(33.33, 2), equals('33.33'));
-      expect(formatDecimal(1 / 3, 2), equals('0.33'));
-      expect(formatDecimal(1 / 3, 3), equals('0.333'));
-      expect(formatDecimal(1 / 3, 4), equals('0.3333'));
+      expect(formatDecimal(33.0, precision: 2), equals('33'));
+      expect(formatDecimal(33.30, precision: 2), equals('33.3'));
+      expect(formatDecimal(33.33, precision: 2), equals('33.33'));
+      expect(formatDecimal(1 / 3, precision: 2), equals('0.33'));
+      expect(formatDecimal(1 / 3, precision: 3), equals('0.333'));
+      expect(formatDecimal(1 / 3, precision: 4), equals('0.3333'));
 
       expect(formatDecimal(33), equals('33'));
       expect(formatDecimal(33.3), equals('33.3'));
@@ -813,7 +813,8 @@ void main() {
       expect(getUriBaseHostAndPort(), matches(uriRootHostAndPort));
       expect(getUriRootURL(), equals(uriRoot));
 
-      expect(isUriBaseLocalhost(), equals(true));
+      expect(isUriBaseLocalhost(), equals(true),
+          reason: 'getUriBaseHost: ${getUriBaseHost()}');
 
       expect(isLocalhost('localhost'), equals(true));
       expect(isLocalhost('127.0.0.1'), equals(true));
@@ -1096,8 +1097,7 @@ void main() {
       expect(toFlatListOfStrings(['a', ' b ', 'c'], trim: false),
           equals(['a', 'b', 'c']));
 
-      expect(toFlatListOfStrings(['a', ' b ', 'c'], trim: null),
-          equals(['a', 'b', 'c']));
+      expect(toFlatListOfStrings(['a', ' b ', 'c']), equals(['a', 'b', 'c']));
 
       expect(toFlatListOfStrings([' a ', ' b ', 'c_d'], delimiter: '_'),
           equals(['a', 'b', 'c', 'd']));

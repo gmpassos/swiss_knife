@@ -8,7 +8,7 @@ import 'collections.dart';
 /// Parses [json] to a JSON tree.
 ///
 /// [def] The default value if [json] is null, empty or a blank String.
-dynamic parseJSON(dynamic json, [dynamic def]) {
+dynamic /*?*/ parseJSON(dynamic /*?*/ json, [dynamic /*?*/ def]) {
   if (json == null) return def;
 
   if (json is String) {
@@ -25,23 +25,18 @@ dynamic parseJSON(dynamic json, [dynamic def]) {
 /// [indent] By default uses 2 spaces: `  `.
 /// [clearNullEntries] If true will apply [removeNullEntries] and remove any null entry in tree.
 /// [toEncodable] Function to transform an object to JSON.
-String encodeJSON(dynamic json,
-    {String indent,
-    bool withIndent,
-    bool clearNullEntries,
-    Object Function(dynamic object) toEncodable}) {
-  clearNullEntries ??= false;
+String /*!*/ encodeJSON(dynamic /*?*/ json,
+    {String /*?*/ indent,
+    bool /*!*/ withIndent = false,
+    bool /*!*/ clearNullEntries = false,
+    Object Function(dynamic object) /*!*/ toEncodable = toEncodableJSON}) {
   if (clearNullEntries) {
     removeNullEntries(json);
   }
 
-  if (withIndent != null && withIndent) {
-    if (indent == null || indent.isEmpty) {
-      indent = '  ';
-    }
+  if (withIndent && (indent == null || indent.isEmpty)) {
+    indent = '  ';
   }
-
-  toEncodable ??= toEncodableJSON;
 
   dart_convert.JsonEncoder encoder;
 
@@ -55,11 +50,11 @@ String encodeJSON(dynamic json,
 }
 
 /// Remove null entries from [json] tree.
-T removeNullEntries<T>(T json) {
-  if (json == null) return json;
+T /*?*/ removeNullEntries<T>(T /*?*/ json) {
+  if (json == null) return null;
 
   if (json is List) {
-    json.removeWhere((e) => null);
+    json.removeWhere((e) => e == null);
     json.forEach(removeNullEntries);
   } else if (json is Map) {
     json.removeWhere((key, value) => key == null || value == null);
@@ -70,17 +65,17 @@ T removeNullEntries<T>(T json) {
 }
 
 /// Returns [true] if [value] is a JSON.
-bool isJSON(dynamic value) {
+bool /*!*/ isJSON(dynamic /*?*/ value) {
   return isJSONPrimitive(value) || isJSONList(value) || isJSONMap(value);
 }
 
 /// Returns [true] if [value] is a JSON primitive (String, bool, num, int, double, or null).
-bool isJSONPrimitive(dynamic value) {
+bool /*!*/ isJSONPrimitive(dynamic /*?*/ value) {
   return value == null || value is String || value is num || value is bool;
 }
 
 /// Returns [true] if [value] is a JSON List.
-bool isJSONList(dynamic json) {
+bool /*!*/ isJSONList(dynamic /*?*/ json) {
   if (json == null) return false;
 
   if (json is List<String>) return true;
@@ -97,7 +92,7 @@ bool isJSONList(dynamic json) {
 }
 
 /// Returns [true] if [value] is a JSON Map<String,?>.
-bool isJSONMap(dynamic json) {
+bool /*!*/ isJSONMap(dynamic /*?*/ json) {
   if (json == null) return false;
 
   if (json is Map<String, String>) return true;
@@ -116,7 +111,7 @@ bool isJSONMap(dynamic json) {
 }
 
 /// Ensures that [o] is an encodable JSON tree.
-dynamic toEncodableJSON(dynamic o) {
+dynamic /*?*/ toEncodableJSON(dynamic /*?*/ o) {
   if (o == null) return null;
   if (o is num) return o;
   if (o is bool) return o;
@@ -141,8 +136,8 @@ dynamic toEncodableJSON(dynamic o) {
 }
 
 /// Ensures that [list] is an encodable JSON tree.
-List toEncodableJSONList(List list) {
-  if (list == null) return null;
+List /*!*/ toEncodableJSONList(List /*?*/ list) {
+  if (list == null) return [];
 
   if (list is List<num>) return list;
   if (list is List<int>) return list;
@@ -174,8 +169,8 @@ List toEncodableJSONList(List list) {
 }
 
 /// Ensures that [map] is an encodable JSON tree.
-Map toEncodableJSONMap(Map map) {
-  if (map == null) return null;
+Map /*!*/ toEncodableJSONMap(Map /*?*/ map) {
+  if (map == null) return {};
 
   if (map is Map<String, num>) return map;
   if (map is Map<String, int>) return map;
@@ -211,7 +206,7 @@ Map toEncodableJSONMap(Map map) {
 }
 
 /// Returns [true] if [s] is a encoded JSON String of a primitive value.
-bool isEncodedJSON(String s) {
+bool /*!*/ isEncodedJSON(String /*?*/ s) {
   if (s == null) return false;
   s = s.trim();
   if (s.isEmpty) return false;
@@ -222,7 +217,7 @@ bool isEncodedJSON(String s) {
 }
 
 /// Returns [true] if [s] is a encoded JSON String of a primitive value.
-bool isEncodedJSONPrimitive(String s) {
+bool /*!*/ isEncodedJSONPrimitive(String /*?*/ s) {
   if (s == null) return false;
   s = s.trim();
   if (s.isEmpty) return false;
@@ -230,7 +225,7 @@ bool isEncodedJSONPrimitive(String s) {
   return _isEncodedJSONPrimitive(s);
 }
 
-bool _isEncodedJSONPrimitive(String s) {
+bool /*!*/ _isEncodedJSONPrimitive(String /*!*/ s) {
   return _isEncodedJSONString(s) ||
       _isEncodedJSONBoolean(s) ||
       _isEncodedJSONNumber(s) ||
@@ -238,43 +233,41 @@ bool _isEncodedJSONPrimitive(String s) {
 }
 
 /// Returns [true] if [s] is a encoded JSON `null`.
-bool isEncodedJSONNull(String s) {
+bool /*!*/ isEncodedJSONNull(String /*?*/ s) {
   if (s == null) return false;
   s = s.trim();
   return _isEncodedJSONNull(s);
 }
 
-bool _isEncodedJSONNull(String s) => s == 'null';
+bool /*!*/ _isEncodedJSONNull(String /*!*/ s) => s == 'null';
 
 /// Returns [true] if [s] is a encoded JSON [bool].
-bool isEncodedJSONBoolean(String s) {
+bool /*!*/ isEncodedJSONBoolean(String /*?*/ s) {
   if (s == null) return false;
   s = s.trim();
   return _isEncodedJSONBoolean(s);
 }
 
-bool _isEncodedJSONBoolean(String s) => s == 'true' || s == 'false';
+bool /*!*/ _isEncodedJSONBoolean(String /*!*/ s) => s == 'true' || s == 'false';
 
 /// Returns [true] if [s] is a encoded JSON [num].
-bool isEncodedJSONNumber(String s) {
+bool /*!*/ isEncodedJSONNumber(String /*?*/ s) {
   if (s == null) return false;
   s = s.trim();
   if (s.isEmpty) return false;
   return _isEncodedJSONNumber(s);
 }
 
-bool _isEncodedJSONNumber(String s) {
-  return isNum(s);
-}
+bool /*!*/ _isEncodedJSONNumber(String /*!*/ s) => isNum(s);
 
 /// Returns [true] if [s] is a encoded JSON [String].
-bool isEncodedJSONString(String s) {
+bool /*!*/ isEncodedJSONString(String /*?*/ s) {
   if (s == null) return false;
   s = s.trim();
   return _isEncodedJSONString(s);
 }
 
-bool _isEncodedJSONString(String s) {
+bool /*!*/ _isEncodedJSONString(String /*!*/ s) {
   if (s == '""') return true;
 
   if (s.startsWith('"') && s.endsWith('"')) {
@@ -290,14 +283,14 @@ bool _isEncodedJSONString(String s) {
 }
 
 /// Returns [true] if [s] is a encoded JSON [List].
-bool isEncodedJSONList(String s) {
+bool /*!*/ isEncodedJSONList(String /*?*/ s) {
   if (s == null) return false;
   s = s.trim();
   if (s.isEmpty) return false;
   return _isEncodedJSONList(s);
 }
 
-bool _isEncodedJSONList(String s) {
+bool /*!*/ _isEncodedJSONList(String /*!*/ s) {
   if (!s.startsWith('[') || !s.endsWith(']')) return false;
 
   try {
@@ -309,13 +302,13 @@ bool _isEncodedJSONList(String s) {
 }
 
 /// Returns [true] if [s] is a encoded JSON [Map].
-bool isEncodedJSONMap(String s) {
+bool /*!*/ isEncodedJSONMap(String /*?*/ s) {
   if (s == null) return false;
   s = s.trim();
   return _isEncodedJSONMap(s);
 }
 
-bool _isEncodedJSONMap(String s) {
+bool /*!*/ _isEncodedJSONMap(String /*!*/ s) {
   if (!s.startsWith('{') || !s.endsWith('}')) return false;
 
   try {

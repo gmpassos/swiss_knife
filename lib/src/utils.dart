@@ -55,8 +55,11 @@ Map<String, String> decodeQueryString(String queryString) {
 /// Formats [s] with initial character to Upper case.
 String toUpperCaseInitials(String s) {
   if (s == null || s.isEmpty) return s;
-  return s.toLowerCase().replaceAllMapped(
-      RegExp(r'(\s|^)(\S)'), (m) => '${m[1]}${m[2].toUpperCase()}');
+  return s.toLowerCase().replaceAllMapped(RegExp(r'(\s|^)(\S)'), (m) {
+    var m1 = m[1] /*!*/;
+    var m2 = m[2] /*!*/;
+    return '$m1${m2.toUpperCase()}';
+  });
 }
 
 /// Formats [s] with camel case style.
@@ -70,7 +73,8 @@ String toCamelCase(String s) {
 /// [limit] The maximum elements to return.
 ///
 /// Note: Standard Dart split doesn't have [limit] parameter.
-List<String> split(String s, Pattern delimiter, [int limit]) {
+List<String /*!*/ > /*!*/ split(String /*!*/ s, Pattern delimiter,
+    [int limit]) {
   if (delimiter == null) {
     return [s];
   } else if (delimiter is String) {
@@ -82,7 +86,7 @@ List<String> split(String s, Pattern delimiter, [int limit]) {
   }
 }
 
-List<String> _split(String s, String delimiter, int limit) {
+List<String /*!*/ > /*!*/ _split(String /*!*/ s, String delimiter, int limit) {
   if (limit == null) return s.split(delimiter);
   if (limit == 1) return [s];
 
@@ -119,7 +123,8 @@ List<String> _split(String s, String delimiter, int limit) {
   return parts;
 }
 
-List<String> _split_RegExp(String s, RegExp delimiter, int limit) {
+List<String /*!*/ > /*!*/ _split_RegExp(
+    String /*!*/ s, RegExp delimiter, int limit) {
   if (limit == null) return s.split(delimiter);
   if (limit == 1) return [s];
 
@@ -167,7 +172,7 @@ class Parameter<A> {
   bool operator ==(Object other) =>
       identical(this, other) || other is Parameter && isEqualsDeep(a, other.a);
 
-  int _hashCode;
+  int /*?*/ _hashCode;
 
   @override
   int get hashCode {

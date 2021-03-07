@@ -9,7 +9,7 @@ class ResourceContentCache {
 
   int get size => _resources.length;
 
-  bool contains(dynamic resource) {
+  bool contains(Object/*?*/ resource) {
     return get(resource) != null;
   }
 
@@ -19,7 +19,7 @@ class ResourceContentCache {
   /// prioritize it and return it.
   ///
   /// [resource] can be of type [Resource], [ResourceContent], [Uri] or Uri string.
-  ResourceContent get(dynamic resource) {
+  ResourceContent/*?*/ get(Object/*?*/ resource) {
     if (resource == null) return null;
 
     var resourceContent = ResourceContent.from(resource);
@@ -48,7 +48,7 @@ class ResourceContentCache {
 
   /// Remove a [ResourceContent] associated with [resource].
   /// See [get] for [resource] description.
-  ResourceContent remove(dynamic resource) {
+  ResourceContent remove(Object/*?*/ resource) {
     if (resource == null) return null;
 
     var resourceContent = ResourceContent.from(resource);
@@ -65,7 +65,7 @@ class ResourceContentCache {
     if (uri != null) return uri.toString();
 
     if (resourceContent.hasContent) {
-      var content = resourceContent.getContentIfLoaded();
+      var content = resourceContent.getContentIfLoaded()/*!*/;
 
       String init;
       String end;
@@ -99,10 +99,10 @@ class ResourceContentCache {
 /// Represents a Resource Content
 class ResourceContent {
   /// The resource (with [Uri]).
-  final Resource resource;
+  final Resource/*?*/ resource;
 
   /// The resolved content/body.
-  String _content;
+  String/*?*/ _content;
 
   ResourceContent(this.resource, [this._content]) {
     if (resource == null && _content == null) {
@@ -113,7 +113,7 @@ class ResourceContent {
   /// Constructor with [Resource] from [uri].
   ///
   /// [content] in case of content/body is already resolved.
-  factory ResourceContent.fromURI(dynamic uri, [String content]) {
+  static ResourceContent/*?*/ fromURI(Object/*?*/ uri, [String/*?*/ content]) {
     if (uri == null && content == null) return null;
 
     if (uri is Uri) {
@@ -128,15 +128,15 @@ class ResourceContent {
     }
   }
 
-  factory ResourceContent.from(dynamic rsc) {
+  static ResourceContent/*?*/ from(Object/*?*/ rsc) {
     if (rsc is ResourceContent) return rsc;
     if (rsc is Resource) return ResourceContent(rsc);
     return ResourceContent.fromURI(rsc);
   }
 
   /// Resolved [url] before instantiate [fromURI].
-  factory ResourceContent.fromResolvedUrl(String url,
-      {String baseURL, String content}) {
+  static ResourceContent/*?*/ fromResolvedUrl(String/*?*/ url,
+      {String/*?*/ baseURL, String/*?*/ content}) {
     if (url == null) {
       if (content != null) return ResourceContent(null, content);
       return null;
@@ -158,18 +158,18 @@ class ResourceContent {
     _loadError = false;
   }
 
-  Future<String> _readFuture;
+  Future<String>/*?*/ _readFuture;
 
   /// Notifies events when load is completed.
-  EventStream<String> onLoad = EventStream();
+  final EventStream<String> onLoad = EventStream();
 
   /// Triggers content load.
-  void load() {
-    getContent();
+  Future<void> load() async {
+    await getContent();
   }
 
   /// Returns the content after resolve it.
-  Future<String> getContent() async {
+  Future<String/*?*/>/*!*/ getContent() async {
     if (hasContent) return _content;
 
     if (resource == null) return null;
@@ -186,13 +186,13 @@ class ResourceContent {
   }
 
   /// Returns the content if [isLoaded].
-  String getContentIfLoaded() => isLoaded ? _content : null;
+  String/*?*/ getContentIfLoaded() => isLoaded ? _content : null;
 
-  bool _loaded = false;
+  bool/*!*/ _loaded = false;
 
-  bool _loadError = false;
+  bool/*!*/ _loadError = false;
 
-  void _onLoad(String content, bool loadError) {
+  void _onLoad(String content, bool/*!*/ loadError) {
     _content = content;
     _loaded = true;
     _loadError = loadError;
@@ -209,31 +209,31 @@ class ResourceContent {
   bool get hasContent => _content != null;
 
   /// The [Resource.uri].
-  Uri get uri => resource.uri;
+  Uri/*?*/ get uri => resource?.uri;
 
   /// Returns [uri] file extension.
-  String get uriFileExtension {
+  String/*?*/ get uriFileExtension {
     var uri = this.uri;
     if (uri == null) return null;
     return getPathExtension(uri.toString());
   }
 
   /// Returns a [MimeType] based into the [uri] file name extension.
-  MimeType get uriMimeType {
+  MimeType/*?*/ get uriMimeType {
     var uri = this.uri;
     if (uri == null) return null;
     return MimeType.byExtension(uri.toString());
   }
 
   /// Return resolved [Uri] from [Resource.uriResolved].
-  Future<Uri> get uriResolved => resource.uriResolved;
+  Future<Uri/*?*/>/*!*/ get uriResolved => resource?.uriResolved;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is ResourceContent &&
           runtimeType == other.runtimeType &&
-          resource.uri == other.resource.uri;
+          resource?.uri == other.resource?.uri;
 
   @override
   int get hashCode => uri?.hashCode ?? 0;
@@ -252,7 +252,7 @@ class ResourceContent {
 
   /// Resolves an [url] using another [ResourceContent] as [reference] (base [Uri]).
   static Future<Uri> resolveURLFromReference(
-      ResourceContent reference, String url) async {
+      ResourceContent/*?*/ reference, String/*?*/ url) async {
     if (url == null) return null;
     url = url.trim();
 
@@ -305,15 +305,15 @@ class ResourceContent {
 }
 
 /// Wraps a resource and the related context.
-class ContextualResource<T, C extends Comparable<C>>
+class ContextualResource<T, C extends Comparable<C/*!*/>>
     implements Comparable<ContextualResource<T, C>> {
   /// The resource associated with [context].
   final T resource;
 
   /// The contexts, that implements [Comparable].
-  final C context;
+  final C/*?*/ context;
 
-  static S _resolveContext<T, S>(T resource, dynamic context) {
+  static S/*?*/ _resolveContext<T, S>(T resource, dynamic context) {
     if (context == null) return null;
 
     if (context is S) {
@@ -346,10 +346,38 @@ class ContextualResource<T, C extends Comparable<C>>
   int get hashCode => resource.hashCode ^ context.hashCode;
 
   @override
-  int compareTo(ContextualResource<T, C> other) =>
-      context.compareTo(other.context);
+  int compareTo(ContextualResource<T, C> other) {
+    var c1 = context;
+    var c2 = other.context;
+    if (c1 != null && c2 == null) {
+      return -1 ;
+    }
+    else if (c1 == null && c2 != null) {
+      return 1 ;
+    }
+    else if (c1 == null && c2 == null) {
+      return 0 ;
+    }
+    else {
+      return c1.compareTo(c2);
+    }
+  }
 
-  int compareContext(C context) => this.context.compareTo(context);
+  int compareContext(C c2) {
+    var c1 = context;
+    if (c1 != null && c2 == null) {
+      return -1 ;
+    }
+    else if (c1 == null && c2 != null) {
+      return 1 ;
+    }
+    else if (c1 == null && c2 == null) {
+      return 0 ;
+    }
+    else {
+      return c1.compareTo(c2);
+    }
+  }
 
   @override
   String toString() =>
@@ -357,12 +385,12 @@ class ContextualResource<T, C extends Comparable<C>>
 }
 
 /// Resolves a resource based into a context, like screen dimension or OS.
-class ContextualResourceResolver<T, C extends Comparable<C>> {
+class ContextualResourceResolver<T, C extends Comparable<C/*!*/>> {
   /// The context comparator, to overwrite default comparator of [C].
-  final Comparator<C> contextComparator;
+  final Comparator<C/*!*/>/*?*/ contextComparator;
 
   ContextualResourceResolver(
-      {Map<String, dynamic> resources,
+      {Map<String/*!*/, dynamic> resources,
       this.contextComparator,
       this.defaultContext,
       this.defaultResource}) {
@@ -375,7 +403,10 @@ class ContextualResourceResolver<T, C extends Comparable<C>> {
           add(k, [v]);
         } else if (v is Iterable) {
           add(k, v);
-        } else if (v is Function) {}
+        } else if (v is Function) {
+          var val = v();
+          addDynamic(k, val);
+        }
       }
     }
   }
@@ -393,16 +424,25 @@ class ContextualResourceResolver<T, C extends Comparable<C>> {
   }
 
   /// Adds a resources with a dynamic [value].
-  void addDynamic(String key, dynamic value,
-      [ContextualResource<T, C> Function(dynamic value) mapper]) {
+  void addDynamic(String key, Object value,
+      [ContextualResource<T, C> Function(Object value)/*?*/ mapper]) {
     if (value is ContextualResource) {
+      if (mapper != null) {
+        value = mapper(value);
+      }
       add(key, [value]);
     } else if (value is Iterable) {
       for (var e in value) {
+        if (mapper != null) {
+          e = mapper(e);
+        }
         addDynamic(key, e);
       }
     } else if (value is Function) {
       var v = value(key);
+      if (mapper != null) {
+        v = mapper(v);
+      }
       addDynamic(key, v);
     }
   }
@@ -423,18 +463,18 @@ class ContextualResourceResolver<T, C extends Comparable<C>> {
   }
 
   /// The default resource to return when is not possible to resolve one.
-  ContextualResource<T, C> defaultResource;
+  ContextualResource<T, C/*!*/>/*?*/ defaultResource;
 
   /// The default context to be used when resolve is called without one.
   C defaultContext;
 
   /// Resolves a resource.
-  T resolve(String key, [C context]) {
+  T resolve(String key, [C/*?*/ context]) {
     var options = _resources[key];
     if (isEmptyObject(options)) return defaultResource?.resource;
 
     context ??= defaultContext;
-    if (context == null) {
+    if (context == null) {  /*!!!*/
       return (defaultResource ?? options.first)?.resource;
     }
 
@@ -448,7 +488,7 @@ class ContextualResourceResolver<T, C extends Comparable<C>> {
   }
 
   ContextualResource<T, C> _getResource(
-      List<ContextualResource<T, C>> options, C context) {
+      List<ContextualResource<T, C/*!*/>>/*!*/ options, C/*!*/ context) {
     var low = 0;
     var high = options.length - 1;
 

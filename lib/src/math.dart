@@ -57,7 +57,7 @@ class Math {
   static double log(num x) => dart_math.log(x);
 
   /// Returns the Absolute value of [a].
-  static T abs<T extends num>(num a) => a >= 0 ? a : -a;
+  static T abs<T extends num>(T a) => a >= 0 ? a : -a as T;
 
   /// Returns the smallest (closest to negative infinity) value that is greater than or equal to the argument [a] and is equal to a mathematical integer.
   static num ceil(num a) {
@@ -124,7 +124,7 @@ class Math {
   }
 
   /// Subtract in sequence [ns] entries.
-  static double subtract(Iterable<num> ns) {
+  static double /*!*/ subtract(Iterable<num> ns) {
     if (ns.length <= 1) return 0;
 
     var total;
@@ -140,7 +140,7 @@ class Math {
   }
 
   /// Multiply in sequence [ns] entries.
-  static double multiply(Iterable<num> ns) {
+  static double /*!*/ multiply(Iterable<num> ns) {
     if (ns.length <= 1) return 0;
 
     var total;
@@ -156,7 +156,7 @@ class Math {
   }
 
   /// Divide in sequence [ns] entries.
-  static double divide(Iterable<num> ns) {
+  static double /*!*/ divide(Iterable<num> ns) {
     if (ns.length <= 1) return 0;
 
     var total;
@@ -172,7 +172,7 @@ class Math {
   }
 
   /// Mean value of [ns] entries.
-  static double mean(Iterable<num> ns) {
+  static double /*!*/ mean(Iterable<num> ns) {
     if (ns.isEmpty) return 0;
     return sum(ns) / ns.length;
   }
@@ -180,16 +180,15 @@ class Math {
   /// Standard deviation of [ns] entries.
   ///
   /// [mean] an already calculated mean for [ns].
-  static double standardDeviation(Iterable<num> ns, [num mean]) {
+  static double standardDeviation(Iterable<num> ns, [num /*?*/ mean]) {
     if (ns.length == 1) {
       return 0.0;
     } else {
-      mean ??= Math.mean(ns);
-
+      var meanD = (mean ?? Math.mean(ns)).toDouble();
       var sum = 0.0;
 
       for (var n in ns) {
-        double v = (n - mean);
+        double v = (n - meanD);
         v *= v;
         sum += v;
       }
@@ -204,7 +203,8 @@ class Math {
   /// A pair with minimum and maximum value of [ns] entries.
   ///
   /// [comparator] is optional and useful for non [num] [T].
-  static Pair<T> minMax<T>(Iterable<T> ns, [Comparator<T> comparator]) {
+  static Pair<T> /*?*/ minMax<T>(Iterable<T> /*?*/ ns,
+      [Comparator<T> comparator]) {
     if (ns == null || ns.isEmpty) return null;
 
     if (comparator != null) {
@@ -233,7 +233,8 @@ class Math {
   /// Minimal value of [ns] entries.
   ///
   /// [comparator] is optional and useful for non [num] [T].
-  static T minInList<T>(Iterable<T> ns, [Comparator<T> comparator]) {
+  static T /*?*/ minInList<T>(Iterable<T> /*?*/ ns,
+      [Comparator<T> comparator]) {
     if (ns == null || ns.isEmpty) return null;
 
     if (comparator != null) {
@@ -258,7 +259,8 @@ class Math {
   /// Maximum value in [ns] entries.
   ///
   /// [comparator] is optional and useful for non [num] [T].
-  static T maxInList<T>(Iterable<T> ns, [Comparator<T> comparator]) {
+  static T /*?*/ maxInList<T>(Iterable<T> /*?*/ ns,
+      [Comparator<T> comparator]) {
     if (ns == null || ns.isEmpty) return null;
 
     if (comparator != null) {
@@ -284,7 +286,7 @@ class Math {
 /// Parses [v] to [int].
 ///
 /// [def] The default value if [v] is invalid.
-int parseInt(dynamic v, [int def]) {
+int /*?*/ parseInt(dynamic /*?*/ v, [int /*?*/ def]) {
   if (v == null) return def;
 
   if (v is int) return v;
@@ -318,7 +320,7 @@ int parseInt(dynamic v, [int def]) {
 /// Parses [v] to [double].
 ///
 /// [def] The default value if [v] is invalid.
-double parseDouble(dynamic v, [double def]) {
+double /*?*/ parseDouble(dynamic /*?*/ v, [double /*?*/ def]) {
   if (v == null) return def;
 
   if (v is double) return v;
@@ -342,7 +344,7 @@ double parseDouble(dynamic v, [double def]) {
 /// Parses [v] to [num].
 ///
 /// [def] The default value if [v] is invalid.
-num parseNum(dynamic v, [num def]) {
+num /*?*/ parseNum(dynamic /*?*/ v, [num /*?*/ def]) {
   if (v == null) return def;
 
   if (v is num) return v;
@@ -371,7 +373,7 @@ num parseNum(dynamic v, [num def]) {
 /// if [v] is [String]: true when [v == "true"|"yes"|"ok"|"1"|"y"|"s"|"t"|"+"
 ///
 /// [def] The default value if [v] is invalid.
-bool parseBool(dynamic v, [bool def]) {
+bool /*?*/ parseBool(dynamic /*?*/ v, [bool /*?*/ def]) {
   if (v == null) return def;
 
   if (v is bool) return v;
@@ -403,11 +405,17 @@ bool parseBool(dynamic v, [bool def]) {
 ///
 /// [delimiter] pattern for delimiter if [s] is a [String].
 /// [def] the default value if [s] is invalid.
-List<int> parseIntsFromInlineList(dynamic s,
-    [Pattern delimiter = ',', List<int> def]) {
+List<int /*!*/ > /*?*/ parseIntsFromInlineList(dynamic s,
+    [Pattern /*!*/ delimiter = ',', List<int> /*?*/ def]) {
   if (s == null) return def;
   if (s is int) return [s];
-  if (s is List) return s.map((e) => parseInt(e)).toList();
+  if (s is List) {
+    return s
+        .map((e) => parseInt(e))
+        .where((e) => e != null)
+        .cast<int>()
+        .toList();
+  }
   return parseFromInlineList(s.toString(), delimiter, parseInt, def);
 }
 
@@ -415,8 +423,8 @@ List<int> parseIntsFromInlineList(dynamic s,
 ///
 /// [delimiter] pattern for delimiter if [s] is a [String].
 /// [def] the default value if [s] is invalid.
-List<num> parseNumsFromInlineList(dynamic s,
-    [Pattern delimiter = ',', List<num> def]) {
+List<num/*!*/>/*?*/ parseNumsFromInlineList(dynamic s,
+    [Pattern/*!*/ delimiter = ',', List<num>/*?*/ def]) {
   if (s == null) return def;
   if (s is num) return [s];
   if (s is List) return s.map((e) => parseNum(e)).toList();
@@ -427,8 +435,8 @@ List<num> parseNumsFromInlineList(dynamic s,
 ///
 /// [delimiter] pattern for delimiter if [s] is a [String].
 /// [def] the default value if [s] is invalid.
-List<double> parseDoublesFromInlineList(dynamic s,
-    [Pattern delimiter = ',', List<double> def]) {
+List<double/*!*/>/*?*/ parseDoublesFromInlineList(dynamic s,
+    [Pattern delimiter/*!*/ = ',', List<double>/*?*/ def]) {
   if (s == null) return def;
   if (s is double) return [s];
   if (s is List) return s.map((e) => parseDouble(e)).toList();
@@ -439,8 +447,8 @@ List<double> parseDoublesFromInlineList(dynamic s,
 ///
 /// [delimiter] pattern for delimiter if [s] is a [String].
 /// [def] the default value if [s] is invalid.
-List<bool> parseBoolsFromInlineList(dynamic s, Pattern delimiter,
-    [List<bool> def]) {
+List<bool/*!*/>/*?*/ parseBoolsFromInlineList(dynamic s, Pattern/*!*/ delimiter,
+    [List<bool>/*?*/ def]) {
   if (s == null) return def;
   if (s is bool) return [s];
   if (s is List) return s.map((e) => parseBool(e)).toList();
@@ -450,7 +458,7 @@ List<bool> parseBoolsFromInlineList(dynamic s, Pattern delimiter,
 RegExp _REGEXP_SPLIT_COMMA = RegExp(r'\s*,\s*');
 
 /// Parses a generic [list] to a [List<num>].
-List<num> parseNumsFromList(List list) {
+List<num> parseNumsFromList(List/*!*/ list) {
   return list
       .map((e) {
         if (e is dart_math.Point) {
@@ -472,7 +480,7 @@ List<num> parseNumsFromList(List list) {
 /// Parses [v] as a percentage from 0..100.
 ///
 /// [def] the default value if [v] is invalid.
-num parsePercent(dynamic v, [double def]) {
+num/*?*/ parsePercent(dynamic v, [double/*?*/ def]) {
   if (v == null) return null;
 
   if (v is num) {
@@ -501,8 +509,8 @@ num parsePercent(dynamic v, [double def]) {
 ///
 /// [precision] amount of decimal places.
 /// [decimalSeparator] decimal separator, usually `.` or `,`.
-String formatDecimal(dynamic value,
-    [int precision = 2, String decimalSeparator = '.']) {
+String/*?*/ formatDecimal(dynamic value,
+    {int/*!*/ precision = 2, String/*!*/ decimalSeparator = '.'}) {
   if (value == null) return null;
 
   var p = parseNum(value);
@@ -510,7 +518,6 @@ String formatDecimal(dynamic value,
 
   if (p.isInfinite) return p.isNegative ? '-∞' : '∞';
 
-  precision ??= 2;
   if (precision <= 0) return p.toInt().toString();
 
   var pStr = p.toString();
@@ -541,7 +548,7 @@ String formatDecimal(dynamic value,
 ///
 /// [precision] amount of decimal places.
 /// [isRatio] if true the [percent] parameter is in the range 0..1.
-String formatPercent(dynamic percent, [int precision = 2, bool isRatio]) {
+String formatPercent(dynamic percent, {int/*!*/ precision = 2, bool/*!*/ isRatio = false}) {
   if (percent == null) return '0%';
 
   var p = parseNum(percent);
@@ -549,13 +556,9 @@ String formatPercent(dynamic percent, [int precision = 2, bool isRatio]) {
 
   if (p.isInfinite) return p.isNegative ? '-∞%' : '∞%';
 
-  isRatio ??= false;
-
   if (isRatio) {
     p = p * 100;
   }
-
-  precision ??= 2;
 
   if (precision <= 0) return '${p.toInt()}%';
 
@@ -579,20 +582,18 @@ String formatPercent(dynamic percent, [int precision = 2, bool isRatio]) {
   return '$integer.$decimal%';
 }
 
-final RegExp _REGEXP_int = RegExp(r'^-?\d+$');
-
 /// Returns true if [value] is [int]. Can be a int as string too.
-bool isInt(dynamic value) {
+bool/*!*/ isInt(dynamic value) {
   if (value == null) return false;
   if (value is int) return true;
   if (value is num) return value.toInt() == value;
 
   var s = value.toString();
-  return _REGEXP_int.hasMatch(s);
+  return int.tryParse(s) != null;
 }
 
 /// Returns [true] if is a list of [int]. Can be a string of int too.
-bool isIntList(dynamic value, [String delimiter = ',']) {
+bool/*!*/ isIntList(dynamic value, [String delimiter = ',']) {
   if (value == null) return false;
 
   if (value is List<int>) return true;
@@ -605,19 +606,17 @@ bool isIntList(dynamic value, [String delimiter = ',']) {
   return RegExp(r'^-?\d+(?:' + delimiter + r'-?\d+)+$').hasMatch(s);
 }
 
-final RegExp _REGEXP_num = RegExp(r'^-?\d+(?:\.\d+)?$');
-
 /// Returns true if [value] is [num]. Can be a num as string too.
-bool isNum(dynamic value) {
+bool/*!*/ isNum(dynamic value) {
   if (value == null) return false;
   if (value is num) return true;
 
   var s = value.toString();
-  return _REGEXP_num.hasMatch(s);
+  return num.tryParse(s) != null;
 }
 
 /// Returns [true] if is a list of [num]. Can be a string of num too.
-bool isNumList(dynamic value, [String delimiter = ',']) {
+bool/*!*/ isNumList(dynamic value, [String delimiter = ',']) {
   if (value == null) return false;
 
   if (value is List<num>) return true;
@@ -633,20 +632,18 @@ bool isNumList(dynamic value, [String delimiter = ',']) {
       .hasMatch(s);
 }
 
-final RegExp _REGEXP_double = RegExp(r'^(?:-?\d+\.\d+|-?\.\d+)$');
-
 /// Returns true if [value] is [double]. Can be a double as string too.
-bool isDouble(dynamic value) {
+bool/*!*/ isDouble(dynamic value) {
   if (value == null) return false;
   if (value is double) return true;
   if (value is num) return value.toDouble() == value;
 
   var s = value.toString();
-  return _REGEXP_double.hasMatch(s);
+  return double.tryParse(s) != null && int.tryParse(s) == null;
 }
 
 /// Returns [true] if is a list of [double]. Can be a string of double too.
-bool isDoubleList(dynamic value, [String delimiter = ',']) {
+bool/*!*/ isDoubleList(dynamic value, [String delimiter = ',']) {
   if (value == null) return false;
 
   if (value is List<double>) return true;
@@ -663,7 +660,7 @@ bool isDoubleList(dynamic value, [String delimiter = ',']) {
 final RegExp _REGEXP_bool = RegExp(r'^(?:true|false|yes|no)$');
 
 /// Returns true if [value] is [bool]. Can be a bool as string too.
-bool isBool(dynamic value) {
+bool/*!*/ isBool(dynamic value) {
   if (value == null) return false;
   if (value is bool) return true;
 
@@ -672,7 +669,7 @@ bool isBool(dynamic value) {
 }
 
 /// Returns [true] if is a list of [bool]. Can be a string of bool too.
-bool isBoolList(dynamic value, [String delimiter = ',']) {
+bool/*!*/ isBoolList(dynamic value, [String delimiter = ',']) {
   if (value == null) return false;
 
   if (value is List<bool>) return true;
@@ -691,17 +688,17 @@ bool isBoolList(dynamic value, [String delimiter = ',']) {
 /// Represents a scale with [minimum], [maximum] and [length].
 class Scale<T> {
   /// The minimum value of the scale.
-  final T minimum;
+  final T/*!*/ minimum;
 
   /// The maximum value of the scale.
-  final T maximum;
+  final T/*!*/ maximum;
 
-  T _length;
+  T/*!*/ _length;
 
   /// The length of the scale: [maximum] - [minimum].
   T get length => _length;
 
-  Scale(this.minimum, this.maximum, [T length]) {
+  Scale(this.minimum, this.maximum, [T/*?*/ length]) {
     try {
       length ??= computeLength(maximum, minimum);
     }
@@ -719,7 +716,7 @@ class Scale<T> {
     return Scale(sorted[0], sorted[sorted.length - 1]);
   }
 
-  Type valuesType() {
+  Type/*!*/ valuesType() {
     var t = minimum.runtimeType;
     if (maximum.runtimeType != t) {
       if (minimum is num && maximum is num) {
@@ -734,7 +731,7 @@ class Scale<T> {
   }
 
   /// Converts a [value] to [num].
-  num toNum(T value) {
+  num/*?*/ toNum(T value) {
     if (value == null) return null;
 
     if (value is num) {
@@ -749,7 +746,7 @@ class Scale<T> {
   }
 
   /// Converts a [value] to [T].
-  T toValue(dynamic value) {
+  T/*!*/ toValue(dynamic value) {
     if (value is T) {
       return value;
     } else if (T == num) {
@@ -768,7 +765,7 @@ class Scale<T> {
   }
 
   /// Computes the length: [maximum] - [minimum].
-  T computeLength(T maximum, T minimum) {
+  T/*!*/ computeLength(T/*!*/ maximum, T/*!*/ minimum) {
     var max = toNum(maximum);
     var min = toNum(minimum);
     var length = max - min;
@@ -776,40 +773,40 @@ class Scale<T> {
   }
 
   /// Normalizes a [value] to range 0..1.
-  double normalize(T value) {
+  double/*!*/ normalize(T/*!*/ value) {
     throw UnimplementedError();
   }
 
   /// Denormalizes a [value] from range 0..1 to this scale.
-  T denormalize(double value) {
+  T/*!*/ denormalize(double/*!*/ value) {
     throw UnimplementedError();
   }
 
   /// Clips [value] in this scale.
-  T clip(T value) {
+  T/*!*/ clip(T/*!*/ value) {
     throw UnimplementedError();
   }
 
   /// Normalizes a list.
-  List<double> normalizeList(Iterable<T> list) {
+  List<double/*!*/>/*!*/ normalizeList(Iterable<T>/*!*/ list) {
     return list.map(normalize).toList();
   }
 
   /// Denormalizes a list.
-  List<T> denormalizeList(Iterable<double> list) {
+  List<T>/*!*/ denormalizeList(Iterable<double>/*!*/ list) {
     return list.map(denormalize).toList();
   }
 
   /// Clips a list.
-  List<T> clipList(Iterable<T> list) {
+  List<T>/*!*/ clipList(Iterable<T>/*!*/ list) {
     return list.map(clip).toList();
   }
 
   /// Same as [minimum] but as a nice number.
-  T get minimumNice => minimum;
+  T/*!*/ get minimumNice => minimum;
 
   /// Same as [maximum] but as a nice number.
-  T get maximumNice => maximum;
+  T/*!*/ get maximumNice => maximum;
 }
 
 /// Version of [Scale] but for [num] values.
