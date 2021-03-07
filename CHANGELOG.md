@@ -1,3 +1,15 @@
+## 3.0.0
+
+- Dart 2.12.0:
+  - Sound null safety compatibility.
+  - Update CI dart commands.
+  - sdk: '>=2.12.0 <3.0.0'
+- intl: ^0.17.0
+- resource_portable: ^3.0.0
+- collection: ^1.15.0
+- pedantic: ^1.11.0
+- test: ^1.16.5
+
 ## 2.5.26
 
 - Optimize: `parseInt`, `parseDouble` and `parseNum`.

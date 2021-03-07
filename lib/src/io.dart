@@ -5,7 +5,7 @@ import 'dart:typed_data';
 /// Loads a file as String using [encoding].
 ///
 /// [encoding] If null uses UTF-8.
-Future<String> catFile(File file, [Encoding /*!*/ encoding = utf8]) async {
+Future<String> catFile(File file, [Encoding encoding = utf8]) async {
   return file.readAsString(encoding: encoding);
 }
 
@@ -18,7 +18,7 @@ Future<Uint8List> catFileBytes(File file) async {
 ///
 /// [encoding] If null uses UTF-8.
 Future<File> saveFile(File file, String data,
-    [Encoding /*!*/ encoding = utf8]) async {
+    [Encoding encoding = utf8]) async {
   return file.writeAsString(data, encoding: encoding, flush: true);
 }
 

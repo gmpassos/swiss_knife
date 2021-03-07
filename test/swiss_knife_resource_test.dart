@@ -17,7 +17,7 @@ class MyResourceLoader extends ResourceLoader {
   }
 
   @override
-  Future<String> readAsString(Uri uri, {Encoding encoding}) async {
+  Future<String> readAsString(Uri uri, {Encoding? encoding}) async {
     return uri.toString().split('://')[1];
   }
 }
@@ -29,7 +29,7 @@ void main() {
     test('ResourceContent', () async {
       var loader = MyResourceLoader();
       var resourceContent =
-          ResourceContent.from(Resource('test://foo', loader: loader));
+          ResourceContent.from(Resource('test://foo', loader: loader))!;
 
       expect(resourceContent.isLoaded, isFalse);
 
@@ -79,11 +79,11 @@ void main() {
     var cache = ResourceContentCache();
 
     var resourceContent =
-        ResourceContent.from(Resource('test://foo', loader: loader));
+        ResourceContent.from(Resource('test://foo', loader: loader))!;
 
     expect(resourceContent.isLoaded, isFalse);
 
-    var resourceContentCached = cache.get(resourceContent);
+    var resourceContentCached = cache.get(resourceContent)!;
 
     expect(await resourceContentCached.getContent(), 'foo');
 

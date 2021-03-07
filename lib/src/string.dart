@@ -1,12 +1,12 @@
 import 'math.dart';
 
 /// Returns [true] if [c] is a blank char (space, \t, \n, \r).
-bool isBlankChar(String /*?*/ c) {
+bool isBlankChar(String? c) {
   return c == ' ' || c == '\n' || c == '\t' || c == '\r';
 }
 
 /// Returns ![isBlankChar].
-bool isNonBlankChar(String /*?*/ c) {
+bool isNonBlankChar(String? c) {
   return !isBlankChar(c);
 }
 
@@ -16,7 +16,7 @@ final int _codeUnit_r = '\r'.codeUnitAt(0);
 final int _codeUnit_t = '\t'.codeUnitAt(0);
 
 /// Returns [true] if [c] is a blank char code unit.
-bool isBlankCodeUnit(int /*!*/ c) {
+bool isBlankCodeUnit(int c) {
   return c == _codeUnit_space ||
       c == _codeUnit_n ||
       c == _codeUnit_t ||
@@ -24,22 +24,22 @@ bool isBlankCodeUnit(int /*!*/ c) {
 }
 
 /// Returns ![isBlankCodeUnit].
-bool isNotBlankCodeUnit(int /*!*/ c) {
+bool isNotBlankCodeUnit(int c) {
   return !isBlankCodeUnit(c);
 }
 
 /// Returns [true] if [s] has a blank character.
-bool hasBlankChar(String /*!*/ s) {
+bool hasBlankChar(String s) {
   return hasBlankCharFrom(s, 0);
 }
 
 /// Returns [true] if [s] has a blank character from [offset].
-bool hasBlankCharFrom(String /*!*/ s, [int /*!*/ offset]) {
+bool hasBlankCharFrom(String s, [int offset = 0]) {
   return hasBlankCharInRange(s, offset, s.length - offset);
 }
 
 /// Returns [true] if [s] has a blank character in range [offset]+[length].
-bool hasBlankCharInRange(String /*!*/ s, int /*!*/ offset, int /*!*/ length) {
+bool hasBlankCharInRange(String s, int offset, int length) {
   if (length <= 0) return false;
 
   var end = Math.min(s.length, offset + length);
@@ -53,12 +53,12 @@ bool hasBlankCharInRange(String /*!*/ s, int /*!*/ offset, int /*!*/ length) {
 }
 
 /// Returns [true] if [s] has only blank characters.
-bool isBlankString(String /*!*/ s, [int /*!*/ offset = 0]) {
+bool isBlankString(String s, [int offset = 0]) {
   return isBlankStringInRange(s, offset, s.length - offset);
 }
 
 /// Returns [true] if [s] has only blank characters in range [offset]+[length].
-bool isBlankStringInRange(String /*!*/ s, int /*!*/ offset, int /*!*/ length) {
+bool isBlankStringInRange(String s, int offset, int length) {
   if (length <= 0) return false;
 
   var end = Math.min(s.length, offset + length);
@@ -79,12 +79,12 @@ final int _codeUnit_z = 'z'.codeUnitAt(0);
 final int _codeUnit_A = 'A'.codeUnitAt(0);
 final int _codeUnit_Z = 'Z'.codeUnitAt(0);
 
-bool isDigit(int /*!*/ c) {
+bool isDigit(int c) {
   if (c < _codeUnit_0 || c > _codeUnit_9) return false;
   return true;
 }
 
-bool isAlphaNumeric(int /*!*/ c) {
+bool isAlphaNumeric(int c) {
   if (c < _codeUnit_0 ||
       c > _codeUnit_z ||
       ((c > _codeUnit_9 && c < _codeUnit_A) ||
@@ -94,11 +94,11 @@ bool isAlphaNumeric(int /*!*/ c) {
   return true;
 }
 
-bool isDigitString(String /*!*/ s, [int offset = 0]) {
+bool isDigitString(String s, [int offset = 0]) {
   return isDigitStringInRange(s, offset, s.length - offset);
 }
 
-bool isDigitStringInRange(String /*!*/ s, int offset, int length) {
+bool isDigitStringInRange(String s, int offset, int length) {
   if (length <= 0) return false;
 
   var end = Math.min(s.length, offset + length);
@@ -111,12 +111,11 @@ bool isDigitStringInRange(String /*!*/ s, int offset, int length) {
   return true;
 }
 
-bool isAlphaNumericString(String /*!*/ s, [int offset = 0]) {
+bool isAlphaNumericString(String s, [int offset = 0]) {
   return isAlphaNumericStringInRange(s, offset, s.length - offset);
 }
 
-bool isAlphaNumericStringInRange(
-    String /*!*/ s, int /*!*/ offset, int /*!*/ length) {
+bool isAlphaNumericStringInRange(String s, int offset, int length) {
   if (length <= 0) return false;
 
   var end = Math.min(s.length, offset + length);
@@ -130,7 +129,7 @@ bool isAlphaNumericStringInRange(
 }
 
 /// Removes quotes from [String] [s]
-String unquoteString(String /*!*/ s) {
+String unquoteString(String s) {
   if (s.length <= 1) return s;
 
   if ((s.startsWith('"') && s.endsWith('"')) ||

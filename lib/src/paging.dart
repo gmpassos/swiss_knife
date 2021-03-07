@@ -6,8 +6,7 @@ typedef PagingFormatInstantiator = JSONPaging Function(dynamic json);
 /// A Function that performs a paging request.
 ///
 /// [page] the page of the request.
-typedef PagingRequester = Future<JSONPaging /*?*/ > /*!*/ Function(
-    int /*!*/ page);
+typedef PagingRequester = Future<JSONPaging?> Function(int page);
 
 /// Generic representation of a paging result in JSON.
 abstract class JSONPaging extends MapDelegate<String, dynamic> {
@@ -26,7 +25,7 @@ abstract class JSONPaging extends MapDelegate<String, dynamic> {
     _pagingFormats[matcher] = instantiator;
   }
 
-  factory JSONPaging.from(dynamic json) {
+  static JSONPaging? from(Object? json) {
     if (json == null) return null;
 
     _registerPagingFormats();
@@ -50,28 +49,28 @@ abstract class JSONPaging extends MapDelegate<String, dynamic> {
   Map<String, dynamic> get json => mainMap;
 
   /// Total number of pages.
-  int get totalPages;
+  int? get totalPages;
 
   /// Total elements of request.
-  int get totalElements;
+  int? get totalElements;
 
   /// Current page index, starting from 0.
-  int /*!*/ get currentPage;
+  int get currentPage;
 
   /// Elements in this page.
-  List<dynamic>/*!*/ get elements;
+  List<dynamic> get elements;
 
   /// The json key for elements.
-  String/*!*/ get elementsEntryKey;
+  String get elementsEntryKey;
 
   /// The offset of elements for the request.
-  int /*!*/ get elementsOffset;
+  int get elementsOffset;
 
   /// Current page elements length.
-  int /*!*/ get elementsLength;
+  int get elementsLength;
 
   /// Number of elements used for paging.
-  int/*!*/ get elementsPerPage;
+  int get elementsPerPage;
 
   /// Returns [true] if this is the last page.
   bool get isLastPage {
@@ -95,11 +94,10 @@ abstract class JSONPaging extends MapDelegate<String, dynamic> {
   /// If this is the last page returns the last page index (the current page index).
   int get nextPage {
     var page = currentPage;
-    var totalPages = this.totalPages ;
+    var totalPages = this.totalPages;
     if (totalPages == null) {
-      return page + 1 ;
-    }
-    else {
+      return page + 1;
+    } else {
       var lastPageIndex = totalPages - 1;
       return page < lastPageIndex ? page + 1 : lastPageIndex;
     }
@@ -109,15 +107,15 @@ abstract class JSONPaging extends MapDelegate<String, dynamic> {
   ///
   /// If [totalPages] is 1, returns false.
   bool get needsPaging {
-    var totalPages = this.totalPages ;
+    var totalPages = this.totalPages;
     return totalPages != null && totalPages != 1;
   }
 
   /// Paging implementation format/name.
-  String/*!*/ get pagingFormat;
+  String get pagingFormat;
 
   /// Returns [true] if [format] is the same of current [pagingFormat].
-  bool isOfPagingFormat(String format) {
+  bool isOfPagingFormat(String? format) {
     if (format == null || format.isEmpty) return false;
     var myFormat = pagingFormat;
     return myFormat.trim().toLowerCase() == format.trim().toLowerCase();
@@ -125,26 +123,26 @@ abstract class JSONPaging extends MapDelegate<String, dynamic> {
 
   /// Requesting Function that is able to make new requests to a specific page.
   /// See [PagingRequester].
-  PagingRequester pagingRequester;
+  PagingRequester? pagingRequester;
 
   /// The url for a request using [url] and [page] to build.
   String pagingRequestURL(String url, int page);
 
-  Future<JSONPaging /*?*/ > /*!*/ requestPage(int page) {
+  Future<JSONPaging?> requestPage(int page) async {
     if (pagingRequester == null) return null;
-    return pagingRequester(page);
+    return pagingRequester!(page);
   }
 
   /// Requests next page.
   /// If [isLastPage] returns [this].
-  Future<JSONPaging /*?*/ > /*!*/ requestNextPage() async {
+  Future<JSONPaging?> requestNextPage() async {
     if (isLastPage) return this;
     return requestPage(nextPage);
   }
 
   /// Requests the previous page.
   /// If [isFirstPage] returns [this].
-  Future<JSONPaging /*?*/ > /*!*/ requestPreviousPage() async {
+  Future<JSONPaging?> requestPreviousPage() async {
     if (isFirstPage) return this;
     return requestPage(previousPage);
   }
@@ -191,10 +189,10 @@ class ColossusPaging extends JSONPaging {
   int get elementsPerPage => json['ELEMENTS_PER_PAGE'];
 
   @override
-  int get totalElements => json['TOTAL_ELEMENTS'];
+  int? get totalElements => json['TOTAL_ELEMENTS'];
 
   @override
-  int get totalPages => json['TOTAL_PAGES'];
+  int? get totalPages => json['TOTAL_PAGES'];
 
   @override
   String get pagingFormat => 'Colossus';
@@ -204,8 +202,7 @@ class ColossusPaging extends JSONPaging {
     var uri = Uri.parse(url);
 
     var queryParameters =
-        (Map.from(uri.queryParametersAll) ?? <String, dynamic>{})
-            .cast<String, dynamic>();
+        Map.from(uri.queryParametersAll).cast<String, dynamic>();
 
     var pageEntry = findKeyEntry(queryParameters, ['-PAGE', '--PAGE']);
 
@@ -272,10 +269,10 @@ class SpringBootPaging extends JSONPaging {
   int get elementsPerPage => json['pageable']['pageSize'];
 
   @override
-  int get totalElements => json['totalElements'];
+  int? get totalElements => json['totalElements'];
 
   @override
-  int get totalPages => json['totalPages'];
+  int? get totalPages => json['totalPages'];
 
   @override
   String get pagingFormat => 'SpringBoot';
@@ -284,8 +281,7 @@ class SpringBootPaging extends JSONPaging {
   String pagingRequestURL(String url, int page) {
     var uri = Uri.parse(url);
 
-    var queryParameters =
-        (uri.queryParametersAll ?? {}).cast<String, dynamic>();
+    var queryParameters = uri.queryParametersAll.cast<String, dynamic>();
 
     var pageEntry = findKeyEntry(queryParameters, ['page']);
 

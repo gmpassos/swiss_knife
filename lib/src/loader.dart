@@ -1,6 +1,6 @@
 import 'events.dart';
 
-typedef LoaderFunction = Future<bool /*!*/ > /*!*/ Function();
+typedef LoaderFunction = Future<bool> Function();
 
 /// Controls a load process.
 class LoadController {
@@ -12,43 +12,43 @@ class LoadController {
   String id = (++_idCounter).toString();
 
   /// The actual loading function that is handled by this [LoadController].
-  LoaderFunction /*?*/ loader;
+  LoaderFunction? loader;
 
   final EventStream<LoadController> onLoad = EventStream();
 
-  LoadController([String /*?*/ id]) {
+  LoadController([String? id]) {
     this.id = id ?? _newID();
   }
 
-  LoadController.function(this.loader, [String /*?*/ id]) {
+  LoadController.function(this.loader, [String? id]) {
     if (loader == null) throw ArgumentError('Null LoaderFunction');
     this.id = id ?? _newID();
   }
 
-  Future<bool> /*?*/ _loadFuture;
+  Future<bool>? _loadFuture;
 
-  bool /*!*/ _loaded = false;
+  bool _loaded = false;
 
   /// Returns [true] if is loaded.
-  bool /*!*/ get isLoaded => _loaded;
+  bool get isLoaded => _loaded;
 
   /// Returns [false] if is not loaded.
-  bool /*!*/ get isNotLoaded => !isLoaded;
+  bool get isNotLoaded => !isLoaded;
 
   /// [true] if is loaded and successful.
-  bool /*?*/ _loadSuccessful;
+  bool? _loadSuccessful;
 
   /// Returns [true] if load was successful.
   ///
   /// If load is not completed yet will return null.
-  bool /*?*/ get loadSuccessful => _loadSuccessful;
+  bool? get loadSuccessful => _loadSuccessful;
 
   /// Does the load process.
   ///
   /// - [actualLoader]: the function to use in the load process.
   /// Will throw a [StateError] if [loader] is already set by the constructor.
-  Future<bool /*!*/ > /*!*/ load([LoaderFunction /*?*/ actualLoader]) async {
-    if (_loadFuture != null) return _loadFuture;
+  Future<bool> load([LoaderFunction? actualLoader]) async {
+    if (_loadFuture != null) return _loadFuture!;
 
     if (actualLoader != null) {
       if (loader != null) {
@@ -63,7 +63,7 @@ class LoadController {
           'LoadController[$id] without LoaderFunction: required as parameter when calling load().');
     }
 
-    _loadFuture = loader();
+    _loadFuture = loader!();
     _loadSuccessful = await _loadFuture;
 
     _loaded = true;
@@ -72,7 +72,7 @@ class LoadController {
 
     print(this);
 
-    return _loadSuccessful;
+    return _loadSuccessful!;
   }
 
   @override

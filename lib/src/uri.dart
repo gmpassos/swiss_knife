@@ -4,7 +4,7 @@ import 'package:swiss_knife/src/collections.dart';
 ///
 /// - In the browser is the current window.location.href.
 /// - When not in a Browser is the current working directory.
-Uri /*!*/ getUriBase() {
+Uri getUriBase() {
   return Uri.base;
 }
 
@@ -12,25 +12,25 @@ Uri /*!*/ getUriBase() {
 ///
 /// - In the browser will be current URL with `/` path.
 /// - When not in a Browser will be the `/` directory.
-Uri /*!*/ getUriRoot() {
+Uri getUriRoot() {
   var base = getUriBase();
   return buildUri(base.scheme, base.host, base.port);
 }
 
 /// The scheme of base Uri.
-String /*!*/ getUriBaseScheme() {
+String getUriBaseScheme() {
   var uri = getUriBase();
   return uri.scheme;
 }
 
 /// The host of base Uri.
-String /*!*/ getUriBaseHost() {
+String getUriBaseHost() {
   var uri = getUriBase();
   return uri.host;
 }
 
 /// The port of base Uri.
-int /*!*/ getUriBasePort() {
+int getUriBasePort() {
   var uri = getUriBase();
   return uri.port;
 }
@@ -38,8 +38,7 @@ int /*!*/ getUriBasePort() {
 /// The host and port of base Uri.
 ///
 /// [suppressPort80] if true suppresses port 80 and returns only the host.
-String /*!*/ getUriBaseHostAndPort(
-    {bool /*!*/ suppressPort80 = true, int /*?*/ port}) {
+String getUriBaseHostAndPort({bool suppressPort80 = true, int? port}) {
   var uri = getUriBase();
   port ??= uri.port;
 
@@ -55,7 +54,7 @@ String /*!*/ getUriBaseHostAndPort(
 }
 
 /// Returns base Uri as URL string.
-String getUriRootURL({bool /*!*/ suppressPort80 = true, int /*?*/ port}) {
+String getUriRootURL({bool suppressPort80 = true, int? port}) {
   return getUriBaseScheme() +
       '://' +
       getUriBaseHostAndPort(suppressPort80: suppressPort80, port: port) +
@@ -65,11 +64,8 @@ String getUriRootURL({bool /*!*/ suppressPort80 = true, int /*?*/ port}) {
 /// Builds an Uri with the parameters.
 ///
 /// [path2] appends to [path]. If starts with `/` overwrites it.
-Uri buildUri(String /*?*/ scheme, String /*?*/ host, int /*?*/ port,
-    {String /*?*/ path,
-    String /*?*/ path2,
-    String /*?*/ queryString,
-    String /*?*/ fragment}) {
+Uri buildUri(String? scheme, String? host, int? port,
+    {String? path, String? path2, String? queryString, String? fragment}) {
   var base = getUriBase();
 
   if (isEmptyString(scheme)) scheme = base.scheme;
@@ -233,7 +229,7 @@ Uri buildUri(String /*?*/ scheme, String /*?*/ host, int /*?*/ port,
 }
 
 /// Removes query string from [url] and returns an [Uri].
-Uri removeUriQueryString(String /*!*/ url) {
+Uri removeUriQueryString(String url) {
   var uri = Uri.parse(url);
   var fragment = uri.fragment;
   return buildUri(uri.scheme, uri.host, uri.port,
@@ -241,7 +237,7 @@ Uri removeUriQueryString(String /*!*/ url) {
 }
 
 /// Removes fragment from [url] and returns an [Uri].
-Uri removeUriFragment(String /*!*/ url) {
+Uri removeUriFragment(String url) {
   var uri = Uri.parse(url);
   return buildUri(uri.scheme, uri.host, uri.port,
       path: uri.path, queryString: uri.query);
@@ -254,12 +250,11 @@ Uri removeUriFragment(String /*!*/ url) {
 /// - [baseURL] Base URL to use. If is null will use [baseUri] parameter or [getUriBase] result.
 /// - [baseUri] Base URI to use. If is null will use [getUriBase] result.
 /// - If both [baseUri] and [baseURL] are null, if needed, [getUriBase] will be used.
-Uri /*!*/ resolveUri(String /*!*/ url,
-    {String /*?*/ baseURL, Uri /*?*/ baseUri}) {
+Uri resolveUri(String url, {String? baseURL, Uri? baseUri}) {
   url = url.trim();
 
   var base =
-      baseUri ?? (isNotEmptyString(baseURL) ? Uri.parse(baseURL /*!*/) : null);
+      baseUri ?? (isNotEmptyString(baseURL) ? Uri.parse(baseURL!) : null);
 
   if (url.isEmpty) return base ?? getUriBase();
 
@@ -276,8 +271,7 @@ Uri /*!*/ resolveUri(String /*!*/ url,
 }
 
 /// Same as [resolveUri], but returns [Uri] as URL String.
-String /*!*/ resolveURL(String /*!*/ url,
-    {String /*?*/ baseURL, Uri /*?*/ baseUri}) {
+String resolveURL(String url, {String? baseURL, Uri? baseUri}) {
   var uri = resolveUri(url, baseURL: baseURL, baseUri: baseUri);
   return uri.toString();
 }
@@ -285,24 +279,24 @@ String /*!*/ resolveURL(String /*!*/ url,
 RegExp _REGEXP_localhost = RegExp(r'^(?:localhost|127\.0\.0\.1|0.0.0.0|::1)$');
 
 /// Returns [true] if base Uri is localhost. See [isLocalhost].
-bool /*!*/ isUriBaseLocalhost() {
+bool isUriBaseLocalhost() {
   var host = getUriBaseHost();
   return host.isEmpty || isLocalhost(host);
 }
 
-bool /*!*/ isUriBaseIP() {
+bool isUriBaseIP() {
   var host = getUriBaseHost();
   return isIPAddress(host);
 }
 
 /// Returns [true] if [host] is localhost (also checks for IPv4 and IPv6 addresses).
-bool /*!*/ isLocalhost(String /*?*/ host) {
+bool isLocalhost(String? host) {
   if (host == null || host.isEmpty) return false;
   return _REGEXP_localhost.hasMatch(host);
 }
 
 /// Returns [true] if is a IPv4 or IPv6 address.
-bool /*!*/ isIPAddress(String /*?*/ host) {
+bool isIPAddress(String? host) {
   return isIPv4Address(host) || isIPv6Address(host);
 }
 
@@ -310,7 +304,7 @@ RegExp _REGEXP_IPv4 = RegExp(
     r'^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$');
 
 /// Returns [true] if is a IPv4 address.
-bool /*!*/ isIPv4Address(String /*?*/ host) {
+bool isIPv4Address(String? host) {
   if (host == null) return false;
   return _REGEXP_IPv4.hasMatch(host);
 }
@@ -319,7 +313,7 @@ RegExp _REGEXP_IPv6 = RegExp(
     r'^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$');
 
 /// Returns [true] if is a IPv6 address.
-bool /*!*/ isIPv6Address(String /*?*/ host) {
+bool isIPv6Address(String? host) {
   if (host == null) return false;
   return _REGEXP_IPv6.hasMatch(host) ||
       host == '::/0' ||
@@ -327,7 +321,7 @@ bool /*!*/ isIPv6Address(String /*?*/ host) {
 }
 
 /// Returns [true] if [value] represents a HTTP or HTTPS URL.
-bool /*!*/ isHttpURL(dynamic /*?*/ value) {
+bool isHttpURL(dynamic /*?*/ value) {
   if (value == null) return false;
   if (value is Uri) {
     return value.scheme == 'http' || value.scheme == 'https';
@@ -343,7 +337,7 @@ bool /*!*/ isHttpURL(dynamic /*?*/ value) {
 }
 
 /// Returns the File name of a [path].
-String /*?*/ getPathFileName(String /*?*/ path) {
+String? getPathFileName(String? path) {
   if (path == null) return null;
   path = path.trim();
   if (path.isEmpty) return null;
@@ -356,7 +350,7 @@ String /*?*/ getPathFileName(String /*?*/ path) {
 }
 
 /// Returns [path] removing File name if present.
-String /*?*/ getPathWithoutFileName(String /*?*/ path) {
+String? getPathWithoutFileName(String? path) {
   if (path == null) return null;
   path = path.trim();
   if (path.isEmpty) return null;
@@ -369,7 +363,7 @@ String /*?*/ getPathWithoutFileName(String /*?*/ path) {
 }
 
 /// Returns the File extension of a [path].
-String /*?*/ getPathExtension(String /*?*/ path) {
+String? getPathExtension(String? path) {
   if (path == null) return null;
   path = path.trim();
   if (path.isEmpty) return null;

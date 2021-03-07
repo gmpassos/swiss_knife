@@ -1,16 +1,17 @@
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:swiss_knife/src/collections.dart';
 import 'package:test/test.dart';
 
 class MyNode {
-  MyNode _parent;
+  MyNode? _parent;
 
-  MyNode get parent => _parent;
+  MyNode? get parent => _parent;
 
-  Set<MyNode> children = {};
+  final Set<MyNode> children = {};
 
   String text;
 
-  MyNode(this.text, {List<MyNode> children}) {
+  MyNode(this.text, {List<MyNode>? children}) {
     if (children != null) {
       for (var child in children) {
         add(child);
@@ -32,10 +33,10 @@ class MyNode {
 class MyTree extends TreeReferenceMap<MyNode, String> {
   MyTree(
     root, {
-    bool autoPurge,
-    bool keepPurgedKeys,
-    Duration purgedEntriesTimeout,
-    int maxPurgedEntries,
+    bool autoPurge = false,
+    bool keepPurgedKeys = false,
+    Duration? purgedEntriesTimeout,
+    int? maxPurgedEntries,
   }) : super(root,
             autoPurge: autoPurge,
             keepPurgedKeys: keepPurgedKeys,
@@ -43,15 +44,14 @@ class MyTree extends TreeReferenceMap<MyNode, String> {
             maxPurgedEntries: maxPurgedEntries);
 
   @override
-  MyNode getParentOf(MyNode key) => key?.parent;
+  MyNode? getParentOf(MyNode key) => key.parent;
 
   @override
   bool isChildOf(MyNode parent, MyNode child, bool deep) {
-    if (parent == null || child == null) return false;
-    if (deep ?? false) {
+    if (deep) {
       if (parent.children.contains(child)) return true;
-      var found = parent.children
-          .firstWhere((e) => isChildOf(e, child, true), orElse: () => null);
+      var found =
+          parent.children.firstWhereOrNull((e) => isChildOf(e, child, true));
       return found != null;
     } else {
       return parent.children.contains(child);
@@ -59,7 +59,7 @@ class MyTree extends TreeReferenceMap<MyNode, String> {
   }
 
   @override
-  Iterable<MyNode> getChildrenOf(MyNode key) => key?.children?.toList();
+  Iterable<MyNode> getChildrenOf(MyNode key) => key.children.toList();
 }
 
 void main() {
@@ -100,11 +100,11 @@ void main() {
       expect(tree.get(b21), equals('B21'));
       expect(tree.get(c), equals('C'));
 
-      expect(tree.getParentKey(a).text, equals('root'));
-      expect(tree.getParentKey(b).text, equals('root'));
-      expect(tree.getParentKey(b1).text, equals('b'));
-      expect(tree.getParentKey(b2).text, equals('b'));
-      expect(tree.getParentKey(b21).text, equals('b'));
+      expect(tree.getParentKey(a)!.text, equals('root'));
+      expect(tree.getParentKey(b)!.text, equals('root'));
+      expect(tree.getParentKey(b1)!.text, equals('b'));
+      expect(tree.getParentKey(b2)!.text, equals('b'));
+      expect(tree.getParentKey(b21)!.text, equals('b'));
 
       expect(tree.getParentValue(a), equals('ROOT'));
       expect(tree.getParentValue(b), equals('ROOT'));

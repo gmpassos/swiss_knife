@@ -4,12 +4,13 @@ version: 3.0.0
 homepage: https://github.com/gmpassos/swiss_knife
 
 environment:
-  sdk: '>=2.6.0 <3.0.0'
+  sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
   intl: ^0.17.0
   resource_portable: ^3.0.0
     #path: ../resource_portable
+  collection: ^1.15.0
 
 dev_dependencies:
   pedantic: ^1.11.0

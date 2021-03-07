@@ -6,14 +6,14 @@ import 'package:swiss_knife/src/collections.dart';
 ///
 /// [delayMs] is milliseconds. If null or <= 0 won't have a delay.
 Future callAsync(int delayMs, Function() function) {
-  if (delayMs == null || delayMs <= 0) {
+  if (delayMs <= 0) {
     return Future.microtask(function);
   }
   return Future.delayed(Duration(milliseconds: delayMs), function);
 }
 
 /// Encodes [parameters] as a query string.
-String encodeQueryString(Map<String, String> parameters) {
+String encodeQueryString(Map<String, String>? parameters) {
   if (parameters == null || parameters.isEmpty) return '';
 
   var pairs = [];
@@ -29,7 +29,7 @@ String encodeQueryString(Map<String, String> parameters) {
 }
 
 /// Decodes [queryString] to a [Map<String,String>].
-Map<String, String> decodeQueryString(String queryString) {
+Map<String, String> decodeQueryString(String? queryString) {
   if (queryString == null || queryString.isEmpty) return {};
 
   var pairs = queryString.split('&');
@@ -54,10 +54,10 @@ Map<String, String> decodeQueryString(String queryString) {
 
 /// Formats [s] with initial character to Upper case.
 String toUpperCaseInitials(String s) {
-  if (s == null || s.isEmpty) return s;
+  if (s.isEmpty) return s;
   return s.toLowerCase().replaceAllMapped(RegExp(r'(\s|^)(\S)'), (m) {
-    var m1 = m[1] /*!*/;
-    var m2 = m[2] /*!*/;
+    var m1 = m[1]!;
+    var m2 = m[2]!;
     return '$m1${m2.toUpperCase()}';
   });
 }
@@ -73,11 +73,8 @@ String toCamelCase(String s) {
 /// [limit] The maximum elements to return.
 ///
 /// Note: Standard Dart split doesn't have [limit] parameter.
-List<String /*!*/ > /*!*/ split(String /*!*/ s, Pattern delimiter,
-    [int limit]) {
-  if (delimiter == null) {
-    return [s];
-  } else if (delimiter is String) {
+List<String> split(String s, Pattern delimiter, [int? limit]) {
+  if (delimiter is String) {
     return _split(s, delimiter, limit);
   } else if (delimiter is RegExp) {
     return _split_RegExp(s, delimiter, limit);
@@ -86,7 +83,7 @@ List<String /*!*/ > /*!*/ split(String /*!*/ s, Pattern delimiter,
   }
 }
 
-List<String /*!*/ > /*!*/ _split(String /*!*/ s, String delimiter, int limit) {
+List<String> _split(String s, String delimiter, int? limit) {
   if (limit == null) return s.split(delimiter);
   if (limit == 1) return [s];
 
@@ -123,8 +120,7 @@ List<String /*!*/ > /*!*/ _split(String /*!*/ s, String delimiter, int limit) {
   return parts;
 }
 
-List<String /*!*/ > /*!*/ _split_RegExp(
-    String /*!*/ s, RegExp delimiter, int limit) {
+List<String> _split_RegExp(String s, RegExp delimiter, int? limit) {
   if (limit == null) return s.split(delimiter);
   if (limit == 1) return [s];
 
@@ -166,18 +162,18 @@ class Parameter<A> {
 
   Parameter(this.a);
 
-  Parameter<A> copy() => Parameter(deepCopy(a));
+  Parameter<A?> copy() => Parameter(deepCopy(a));
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) || other is Parameter && isEqualsDeep(a, other.a);
 
-  int /*?*/ _hashCode;
+  int? _hashCode;
 
   @override
   int get hashCode {
     _hashCode ??= computeHashCode;
-    return _hashCode;
+    return _hashCode!;
   }
 
   int get computeHashCode => deepHashCode(a);
@@ -194,7 +190,7 @@ class Parameters2<A, B> extends Parameter<A> {
   Parameters2(A a, this.b) : super(a);
 
   @override
-  Parameters2<A, B> copy() => Parameters2(deepCopy(a), deepCopy(b));
+  Parameters2<A?, B?> copy() => Parameters2(deepCopy(a), deepCopy(b));
 
   @override
   bool operator ==(Object other) =>
@@ -216,7 +212,7 @@ class Parameters3<A, B, C> extends Parameters2<A, B> {
   Parameters3(A a, B b, this.c) : super(a, b);
 
   @override
-  Parameters3<A, B, C> copy() =>
+  Parameters3<A?, B?, C?> copy() =>
       Parameters3(deepCopy(a), deepCopy(b), deepCopy(c));
 
   @override
@@ -239,7 +235,7 @@ class Parameters4<A, B, C, D> extends Parameters3<A, B, C> {
   Parameters4(A a, B b, C c, this.d) : super(a, b, c);
 
   @override
-  Parameters4<A, B, C, D> copy() =>
+  Parameters4<A?, B?, C?, D?> copy() =>
       Parameters4(deepCopy(a), deepCopy(b), deepCopy(c), deepCopy(d));
 
   @override
@@ -260,12 +256,12 @@ class Parameters4<A, B, C, D> extends Parameters3<A, B, C> {
 class CachedComputation<R, T, K> {
   final R Function(T) function;
 
-  final K Function(T) keyGenerator;
+  final K? Function(T) keyGenerator;
 
-  CachedComputation(this.function, [K Function(T) keyGenerator])
+  CachedComputation(this.function, [K Function(T)? keyGenerator])
       : keyGenerator = keyGenerator ?? ((T value) => deepCopy(value as K));
 
-  final Map<K, R> _cache = {};
+  final Map<K?, R> _cache = {};
 
   int get cacheSize => _cache.length;
 
@@ -274,7 +270,7 @@ class CachedComputation<R, T, K> {
     _cache.clear();
   }
 
-  K generateKey(T value) => keyGenerator(value);
+  K? generateKey(T value) => keyGenerator(value);
 
   int _computationCount = 0;
 

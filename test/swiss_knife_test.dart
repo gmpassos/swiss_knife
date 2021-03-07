@@ -77,7 +77,7 @@ void main() {
           equals(MapEntry('Aa', 11).toString()));
 
       expect(getIgnoreCase({'Aa': 11, 'b': 22}, 'aa'), equals(11));
-      expect(getEntryIgnoreCase({'Aa': 11, 'b': 22}, 'aa').value, equals(11));
+      expect(getEntryIgnoreCase({'Aa': 11, 'b': 22}, 'aa')!.value, equals(11));
 
       {
         var map = {'Aa': 11.0, 'b': 22};
@@ -180,7 +180,8 @@ void main() {
         ]
       };
 
-      deepReplaceValues(deepObj2, (c, k, v) => k == 'id', (c, k, v) => (v as int) * 10);
+      deepReplaceValues(
+          deepObj2, (c, k, v) => k == 'id', (c, k, v) => (v as int) * 10);
 
       expect(
           isEqualsDeep(deepObj2, {
@@ -413,11 +414,16 @@ void main() {
       expect(formatPercent(3.3), equals('3.3%'));
 
       expect(formatPercent(0.33, precision: 2, isRatio: true), equals('33%'));
-      expect(formatPercent(0.333, precision: 2, isRatio:true), equals('33.30%'));
-      expect(formatPercent(0.3333, precision: 2, isRatio:true), equals('33.33%'));
-      expect(formatPercent(1 / 3, precision: 2, isRatio:true), equals('33.33%'));
-      expect(formatPercent(1 / 3, precision: 3, isRatio:true), equals('33.333%'));
-      expect(formatPercent(1 / 3, precision: 4, isRatio:true), equals('33.3333%'));
+      expect(
+          formatPercent(0.333, precision: 2, isRatio: true), equals('33.30%'));
+      expect(
+          formatPercent(0.3333, precision: 2, isRatio: true), equals('33.33%'));
+      expect(
+          formatPercent(1 / 3, precision: 2, isRatio: true), equals('33.33%'));
+      expect(
+          formatPercent(1 / 3, precision: 3, isRatio: true), equals('33.333%'));
+      expect(formatPercent(1 / 3, precision: 4, isRatio: true),
+          equals('33.3333%'));
 
       expect(formatPercent(33), equals('33%'));
       expect(formatPercent(33.3), equals('33.3%'));
@@ -455,8 +461,8 @@ void main() {
       expect(clipNumber(2, 10, 20), equals(10));
       expect(clipNumber(30, 10, 20), equals(20));
 
-      expect(clipNumber(null, 10, 20, 15), equals(15));
-      expect(clipNumber(null, 10, 20, 150), equals(20));
+      expect(clipNumber<int>(null, 10, 20, 15), equals(15));
+      expect(clipNumber<int>(null, 10, 20, 150), equals(20));
     });
 
     test('isPositiveNumber', () {
@@ -478,13 +484,13 @@ void main() {
     });
 
     test('Scale', () {
-      var s1 = Scale.from([10, -10, 20, 5]);
+      var s1 = Scale.from([10, -10, 20, 5])!;
 
       expect(s1.minimum, equals(-10));
       expect(s1.maximum, equals(20));
       expect(s1.length, equals(30));
 
-      var s2 = ScaleNum.from([10, -10, 20, 5]);
+      var s2 = ScaleNum.from([10, -10, 20, 5])!;
 
       expect(s2.minimum, equals(-10));
       expect(s2.maximum, equals(20));
@@ -518,10 +524,10 @@ void main() {
           equals(true));
 
       expect(
-          DataURLBase64.parse('data:text/plain;base64,$textBase64')
+          DataURLBase64.parse('data:text/plain;base64,$textBase64')!
               .payloadBase64,
           equals(textBase64));
-      expect(DataURLBase64.parse('data:text/plain;base64,$textBase64').payload,
+      expect(DataURLBase64.parse('data:text/plain;base64,$textBase64')!.payload,
           equals(text));
     });
 
@@ -709,7 +715,7 @@ void main() {
       var dialect = RegExpDialect.from({
         's': '[ \t]',
         'commas': ',+',
-      }, multiLine: false, caseSensitive: false);
+      }, multiLine: false, caseSensitive: false)!;
 
       expect(dialect.hasErrors, isFalse);
 
@@ -725,7 +731,10 @@ void main() {
       var dialect = RegExpDialect.from({
         's': '[ \t',
         'commas': ',+',
-      }, multiLine: false, caseSensitive: false, throwCompilationErrors: false);
+      },
+          multiLine: false,
+          caseSensitive: false,
+          throwCompilationErrors: false)!;
 
       expect(dialect.hasErrors, isTrue);
 
@@ -1112,21 +1121,24 @@ void main() {
     });
 
     test('listMatchesAll/listNotMatchesAll', () {
-      expect(listMatchesAll(null, (e) => e == 1), equals(false));
-      expect(listMatchesAll([], (e) => e == 1), equals(false));
+      expect(listMatchesAll(null, (dynamic e) => e == 1), equals(false));
+      expect(listMatchesAll([], (dynamic e) => e == 1), equals(false));
 
-      expect(listMatchesAll([1, 1, 1], (e) => e == 1), equals(true));
-      expect(listMatchesAll([1, 0, 1], (e) => e == 1), equals(false));
-      expect(listMatchesAll([1, 1, 1], (e) => e == 0), equals(false));
-      expect(listMatchesAll([1, 1, null, 1], (e) => e == 0), equals(false));
+      expect(listMatchesAll([1, 1, 1], (dynamic e) => e == 1), equals(true));
+      expect(listMatchesAll([1, 0, 1], (dynamic e) => e == 1), equals(false));
+      expect(listMatchesAll([1, 1, 1], (dynamic e) => e == 0), equals(false));
+      expect(listMatchesAll([1, 1, null, 1], (dynamic e) => e == 0),
+          equals(false));
 
-      expect(listNotMatchesAll(null, (e) => e == 1), equals(false));
-      expect(listNotMatchesAll([], (e) => e == 1), equals(false));
+      expect(listNotMatchesAll(null, (dynamic e) => e == 1), equals(false));
+      expect(listNotMatchesAll([], (dynamic e) => e == 1), equals(false));
 
-      expect(listNotMatchesAll([1, 1, 1], (e) => e == 1), equals(false));
-      expect(listNotMatchesAll([1, 0, 1], (e) => e == 1), equals(true));
-      expect(listNotMatchesAll([1, 1, 1], (e) => e == 0), equals(true));
-      expect(listNotMatchesAll([1, 1, null, 1], (e) => e == 0), equals(true));
+      expect(
+          listNotMatchesAll([1, 1, 1], (dynamic e) => e == 1), equals(false));
+      expect(listNotMatchesAll([1, 0, 1], (dynamic e) => e == 1), equals(true));
+      expect(listNotMatchesAll([1, 1, 1], (dynamic e) => e == 0), equals(true));
+      expect(listNotMatchesAll([1, 1, null, 1], (dynamic e) => e == 0),
+          equals(true));
 
       expect(isListValuesAllEquals([3, 3, 3, 3, 3], 3), equals(true));
       expect(isListValuesAllEquals([3, 3, 3, 3, 3]), equals(true));
@@ -1353,7 +1365,7 @@ void main() {
     test('getDateTimeStartOf/EndOf', () {
       var cachedComputation = CachedComputation<int,
           Parameters2<List<int>, int>, Parameters2<List<int>, int>>((v) {
-        return sumIterable(v.a.map((n) => n * v.b));
+        return sumIterable(v.a.map((n) => n * v.b)) as int;
       });
 
       expect(cachedComputation.cacheSize, equals(0));
