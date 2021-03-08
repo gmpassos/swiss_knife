@@ -458,7 +458,7 @@ List<bool>? parseBoolsFromInlineList(dynamic s, Pattern delimiter,
 RegExp _REGEXP_SPLIT_COMMA = RegExp(r'\s*,\s*');
 
 /// Parses a generic [list] to a [List<num>].
-List<num?> parseNumsFromList(List list) {
+List<num> parseNumsFromList(List list) {
   return list
       .map((e) {
         if (e is dart_math.Point) {
@@ -470,7 +470,7 @@ List<num?> parseNumsFromList(List list) {
         } else if (e is num) {
           return [e];
         } else {
-          return [null];
+          return <num>[];
         }
       })
       .expand((e) => e)

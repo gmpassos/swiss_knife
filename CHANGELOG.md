@@ -1,3 +1,7 @@
+## 3.0.1
+
+- Null safety migration adjustments.
+
 ## 3.0.0
 
 - Dart 2.12.0:

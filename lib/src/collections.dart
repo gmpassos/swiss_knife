@@ -1292,7 +1292,7 @@ MapEntry<String, String>? parseMapEntryOfStrings<K, V>(Object? e,
   if (e is Map) {
     if (e.isNotEmpty) {
       var elem = e.entries.first;
-      if (elem.key == null) return def; /*!!!*/
+      if (elem.key == null) return def;
       return MapEntry<String, String>(
           parseString(elem.key, '')!, parseString(elem.value, '')!);
     } else {
@@ -2268,19 +2268,20 @@ class ObjectCache {
   final Map<String, dynamic> _cacheInstances = {};
 
   final Map<String, Function()> _cacheInstantiators = {};
-  final Map<String, bool Function()> _cacheValidators = {};
+  final Map<String, bool Function(Object o)> _cacheValidators = {};
 
   /// Sets the [instantiator] for [key]
   void setInstantiator<O>(String key, O Function() instantiator) =>
       _cacheInstantiators[key] = instantiator;
 
   /// Sets the [cacheValidator] for [key]
-  void setCacheValidator<O>(String key, bool Function() cacheValidator) =>
+  void setCacheValidator<O>(
+          String key, bool Function(Object o) cacheValidator) =>
       _cacheValidators[key] = cacheValidator;
 
   /// Defines instantiator and cache-validator for [key].
   void define<O>(String key, O Function() instantiator,
-      [bool Function()? cacheValidator]) {
+      [bool Function(Object o)? cacheValidator]) {
     _cacheInstantiators[key] = instantiator;
     if (cacheValidator != null) {
       _cacheValidators[key] = cacheValidator;
@@ -2324,15 +2325,14 @@ class ObjectCache {
   ///
   /// Uses [cacheValidator] (or pre-defined) to validade already cached instance.
   O? get<O>(String key,
-      [O Function()? instantiator, bool Function()? cacheValidator]) {
+      [O Function()? instantiator, bool Function(Object o)? cacheValidator]) {
     var o = _cacheInstances[key];
 
     if (o != null) {
       cacheValidator ??= _cacheValidators[key];
 
       if (cacheValidator != null) {
-        /*!!!*/
-        var ok = cacheValidator();
+        var ok = cacheValidator(o);
         if (ok) {
           return o;
         } else {
@@ -2461,7 +2461,8 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
   }
 
   /// Returns [true] if [key] is in the tree.
-  bool isInTree(K key) {
+  bool isInTree(K? key) {
+    if (key == null) return false;
     if (identical(root, key)) return true;
 
     var cursor = key;
@@ -2478,11 +2479,13 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
   /// Will call [parentGetter].
   ///
   /// Should be overwritten if [parentGetter] is null.
-  K? getParentOf(K key) => parentGetter!(key);
+  K? getParentOf(K? key) => key == null ? null : parentGetter!(key);
 
   /// Return sub values of [key].
-  List<V> getSubValues(K key, {bool includePurgedEntries = false}) {
+  List<V> getSubValues(K? key, {bool includePurgedEntries = false}) {
     var subValues = <V>[];
+    if (key == null) return subValues;
+
     if (includePurgedEntries) {
       _getSubValuesImpl_includePurgedEntries(key, subValues);
     } else {
@@ -2520,7 +2523,9 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
   }
 
   /// Get 1st parent value of [child];
-  V? getParentValue(K child, {bool includePurgedEntries = false}) {
+  V? getParentValue(K? child, {bool includePurgedEntries = false}) {
+    if (child == null) return null;
+
     var parent = getParentKey(child);
     return parent != null
         ? (includePurgedEntries
@@ -2530,7 +2535,7 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
   }
 
   /// Get 1st parent key of [child];
-  K? getParentKey(K child, {bool includePurgedEntries = false}) {
+  K? getParentKey(K? child, {bool includePurgedEntries = false}) {
     if (child == null || identical(child, root)) return null;
 
     if (includePurgedEntries) {
@@ -2562,15 +2567,16 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
   /// Will call [childrenGetter].
   ///
   /// Should be overwritten if [childrenGetter] is null.
-  Iterable<K> getChildrenOf(K key) => childrenGetter!(key);
+  Iterable<K> getChildrenOf(K? key) =>
+      key == null ? <K>[] : childrenGetter!(key);
 
   /// Returns true if [parent] has [child]. If [deep] is true, will check sub nodes children.
   ///
   /// Will call [childChecker].
   ///
   /// Should be overwritten if [childChecker] is null.
-  bool isChildOf(K parent, K child, bool deep) =>
-      childChecker!(parent, child, deep);
+  bool isChildOf(K? parent, K? child, bool deep) =>
+      parent != null && child != null && childChecker!(parent, child, deep);
 
   Map<K, MapEntry<DateTime, V>>? _purged;
 
@@ -2578,8 +2584,8 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
   int get purgedLength => _purged != null ? _purged!.length : 0;
 
   /// Returns [key] value from purged entries. Only relevant if [keepPurgedEntries] is true.
-  V? getFromPurgedEntries(K key) =>
-      _purged != null ? _purged![key]?.value : null;
+  V? getFromPurgedEntries(K? key) =>
+      key == null ? null : (_purged != null ? _purged![key]?.value : null);
 
   /// Disposes purged entries. Only relevant if [keepPurgedEntries] is true.
   void disposePurgedEntries() {

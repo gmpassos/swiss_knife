@@ -104,7 +104,7 @@ class MimeType {
   static MimeType? parse(String? mimeType, [String? defaultMimeType]) {
     mimeType ??= defaultMimeType;
 
-    if (mimeType == null) return null; /*!!!*/
+    if (mimeType == null) return null;
     mimeType = mimeType.trim();
     if (mimeType.isEmpty) mimeType = defaultMimeType;
     if (mimeType == null) return null;

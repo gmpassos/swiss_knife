@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:swiss_knife/src/collections.dart';
 
 class _ListenSignature {
-  final dynamic /*!*/ _identifier;
+  final Object _identifier;
 
   final bool _identifyByInstance;
 

@@ -44,10 +44,12 @@ class MyTree extends TreeReferenceMap<MyNode, String> {
             maxPurgedEntries: maxPurgedEntries);
 
   @override
-  MyNode? getParentOf(MyNode key) => key.parent;
+  MyNode? getParentOf(MyNode? key) => key?.parent;
 
   @override
-  bool isChildOf(MyNode parent, MyNode child, bool deep) {
+  bool isChildOf(MyNode? parent, MyNode? child, bool deep) {
+    if (parent == null || child == null) return false;
+
     if (deep) {
       if (parent.children.contains(child)) return true;
       var found =
@@ -59,7 +61,7 @@ class MyTree extends TreeReferenceMap<MyNode, String> {
   }
 
   @override
-  Iterable<MyNode> getChildrenOf(MyNode key) => key.children.toList();
+  Iterable<MyNode> getChildrenOf(MyNode? key) => key?.children.toList() ?? [];
 }
 
 void main() {

@@ -8,7 +8,7 @@ import 'collections.dart';
 /// Parses [json] to a JSON tree.
 ///
 /// [def] The default value if [json] is null, empty or a blank String.
-dynamic /*?*/ parseJSON(dynamic /*?*/ json, [dynamic /*?*/ def]) {
+dynamic parseJSON(Object? json, [Object? def]) {
   if (json == null) return def;
 
   if (json is String) {
@@ -25,11 +25,11 @@ dynamic /*?*/ parseJSON(dynamic /*?*/ json, [dynamic /*?*/ def]) {
 /// [indent] By default uses 2 spaces: `  `.
 /// [clearNullEntries] If true will apply [removeNullEntries] and remove any null entry in tree.
 /// [toEncodable] Function to transform an object to JSON.
-String encodeJSON(dynamic /*?*/ json,
+String encodeJSON(Object? json,
     {String? indent,
     bool withIndent = false,
     bool clearNullEntries = false,
-    Object? Function(dynamic object) toEncodable = toEncodableJSON}) {
+    Object? Function(Object? object) toEncodable = toEncodableJSON}) {
   if (clearNullEntries) {
     removeNullEntries(json);
   }
@@ -65,17 +65,17 @@ T? removeNullEntries<T>(T? json) {
 }
 
 /// Returns [true] if [value] is a JSON.
-bool isJSON(dynamic /*?*/ value) {
+bool isJSON(Object? value) {
   return isJSONPrimitive(value) || isJSONList(value) || isJSONMap(value);
 }
 
 /// Returns [true] if [value] is a JSON primitive (String, bool, num, int, double, or null).
-bool isJSONPrimitive(dynamic /*?*/ value) {
+bool isJSONPrimitive(Object? value) {
   return value == null || value is String || value is num || value is bool;
 }
 
 /// Returns [true] if [value] is a JSON List.
-bool isJSONList(dynamic /*?*/ json) {
+bool isJSONList(Object? json) {
   if (json == null) return false;
 
   if (json is List<String>) return true;
@@ -92,7 +92,7 @@ bool isJSONList(dynamic /*?*/ json) {
 }
 
 /// Returns [true] if [value] is a JSON Map<String,?>.
-bool isJSONMap(dynamic /*?*/ json) {
+bool isJSONMap(Object? json) {
   if (json == null) return false;
 
   if (json is Map<String, String>) return true;
@@ -111,7 +111,7 @@ bool isJSONMap(dynamic /*?*/ json) {
 }
 
 /// Ensures that [o] is an encodable JSON tree.
-dynamic /*?*/ toEncodableJSON(dynamic /*?*/ o) {
+Object? toEncodableJSON(Object? o) {
   if (o == null) return null;
   if (o is num) return o;
   if (o is bool) return o;
@@ -121,10 +121,11 @@ dynamic /*?*/ toEncodableJSON(dynamic /*?*/ o) {
   if (o is Map) return toEncodableJSONMap(o);
   if (o is Set) return toEncodableJSONList(o.toList());
 
-  dynamic encodable;
+  Object encodable;
   try {
-    if (o.toJson != null) {
-      encodable = o.toJson();
+    dynamic d = o;
+    if (d.toJson != null) {
+      encodable = d.toJson();
     } else {
       encodable = o.toString();
     }
