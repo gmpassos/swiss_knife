@@ -284,7 +284,7 @@ final RegExp STRING_PLACEHOLDER_PATTERN = RegExp(r'{{(/?\w+(?:/\w+)*/?)}}');
 /// Builds a string using as place holders in the format `{{key}}`
 /// from [parameters] and [extraParameters].
 String? buildStringPattern(String? pattern, Map? parameters,
-    [List<Map>? extraParameters]) {
+    [List<Map?>? extraParameters]) {
   if (pattern == null) return null;
 
   return replaceStringMarks(pattern, STRING_PLACEHOLDER_PATTERN, (varName) {
@@ -300,7 +300,7 @@ String? buildStringPattern(String? pattern, Map? parameters,
 
     if (val == null && extraParameters != null) {
       for (var parameters2 in extraParameters) {
-        if (parameters2.isNotEmpty) {
+        if (parameters2 != null && parameters2.isNotEmpty) {
           val = findKeyPathValue(parameters2, varName);
           if (val != null) break;
         }
