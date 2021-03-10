@@ -582,7 +582,7 @@ Map<String, String>? copyMapString(Map<String, String>? m) {
 }
 
 /// Gets a [map] entry ignoring key case.
-MapEntry<String, V>? getEntryIgnoreCase<V>(Map<String, V> map, String? key) {
+MapEntry<String, V?>? getEntryIgnoreCase<V>(Map<String, V?> map, String? key) {
   if (key == null) return null;
   var val = map[key];
   if (val != null) return MapEntry(key, val);
@@ -591,8 +591,8 @@ MapEntry<String, V>? getEntryIgnoreCase<V>(Map<String, V> map, String? key) {
 
   for (var k in map.keys) {
     if (k.toLowerCase() == keyLC) {
-      V value = map[k]!;
-      return MapEntry<String, V>(k, value);
+      var value = map[k];
+      return MapEntry<String, V?>(k, value);
     }
   }
 
@@ -659,7 +659,7 @@ typedef CompareMapEntryFunction<K, V> = int Function(
     MapEntry<K, V> entry1, MapEntry<K, V> entry2);
 
 /// Returns a Map sorted by keys.
-Map<K, V> sortMapEntriesByKey<K, V>(Map<K, V> map, [bool reversed = false]) =>
+Map<K, V?> sortMapEntriesByKey<K, V>(Map<K, V?> map, [bool reversed = false]) =>
     sortMapEntries(
         map, (a, b) => parseComparable(a.key)!.compareTo(b.key), reversed);
 
@@ -1059,31 +1059,31 @@ Set<T> toNonNullSet<T>(Set? set, {bool forceTypeCast = true}) {
 /// Finds in [map] a entry that has one of [keys].
 ///
 /// [ignoreCase] If [true] ignores the case of the keys.
-MapEntry<K, V>? findKeyEntry<K, V>(Map<K, V>? map, List<K>? keys,
+MapEntry<K, V?>? findKeyEntry<K, V>(Map<K?, V?>? map, List<K>? keys,
     [bool ignoreCase = false]) {
-  if (map == null || keys == null) return null;
+  if (map == null || keys == null || map.isEmpty || keys.isEmpty) return null;
 
   if (ignoreCase) {
     for (var key in keys) {
       if (map.containsKey(key)) {
-        V value = map[key]!;
-        return MapEntry(key, value);
+        var value = map[key];
+        return MapEntry<K, V?>(key, value);
       }
 
       var keyLC = key.toString().toLowerCase();
 
-      for (var k in map.keys) {
+      for (var k in map.keys.whereType<K>()) {
         if (k.toString().toLowerCase() == keyLC) {
-          V value = map[k]!;
-          return MapEntry<K, V>(k, value);
+          var value = map[k];
+          return MapEntry<K, V?>(k, value);
         }
       }
     }
   } else {
     for (var key in keys) {
       if (map.containsKey(key)) {
-        V value = map[key]!;
-        return MapEntry(key, value);
+        var value = map[key];
+        return MapEntry<K, V?>(key, value);
       }
     }
   }
@@ -1094,7 +1094,7 @@ MapEntry<K, V>? findKeyEntry<K, V>(Map<K, V>? map, List<K>? keys,
 /// Finds in [map] a value that has one of [keys].
 ///
 /// [ignoreCase] If [true] ignores the case of the keys.
-V? findKeyValue<K, V>(Map<K, V>? map, List<K>? keys,
+V? findKeyValue<K, V>(Map<K?, V?>? map, List<K>? keys,
     [bool ignoreCase = false]) {
   var entry = findKeyEntry(map, keys, ignoreCase);
   return entry != null ? entry.value : null;
@@ -1147,7 +1147,8 @@ V? findKeyPathValue<V>(Map? map, String? keyPath,
 /// Finds in [map] a key that has one of [keys].
 ///
 /// [ignoreCase] If [true] ignores the case of the keys.
-K? findKeyName<K, V>(Map<K, V>? map, List<K>? keys, [bool ignoreCase = false]) {
+K? findKeyName<K, V>(Map<K?, V?>? map, List<K>? keys,
+    [bool ignoreCase = false]) {
   var entry = findKeyEntry(map, keys, ignoreCase);
   return entry != null ? entry.key : null;
 }
@@ -2171,7 +2172,7 @@ class NNField<T> {
   final bool deepHashcode;
 
   /// Optional value filter to apply before set.
-  final T Function(Object? value)? filter;
+  final T Function(dynamic value)? filter;
 
   /// Optional value to apply before get.
   final T Function(T value)? resolver;
