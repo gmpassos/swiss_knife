@@ -1,3 +1,7 @@
+## 3.0.3
+
+- Null safety migration adjustments.
+
 ## 3.0.2
 
 - Null safety migration adjustments.

@@ -313,11 +313,11 @@ class ContextualResource<T, C extends Comparable<C>>
   /// The contexts, that implements [Comparable].
   final C? context;
 
-  static S? _resolveContext<T, S>(T resource, dynamic context) {
+  static S? _resolveContext<T, S>(T resource, Object? context) {
     if (context == null) return null;
 
     if (context is S) {
-      return context;
+      return context as S;
     } else if (context is Function) {
       var v = context(resource);
       return _resolveContext(resource, v);
@@ -326,7 +326,7 @@ class ContextualResource<T, C extends Comparable<C>>
     throw StateError("Can't resolve resource ($resource) context: $context");
   }
 
-  ContextualResource(T resource, dynamic context)
+  ContextualResource(T resource, Object? context)
       : resource = resource,
         context = _resolveContext<T, C>(resource, context);
 

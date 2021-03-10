@@ -13,7 +13,7 @@ int getCurrentTimeMillis() {
 /// Returns [true] if [n] is in range of a Unix epoch time.
 ///
 /// [inMilliseconds] If true check range in milliseconds. Default: [true].
-bool isInUnixEpochRange(dynamic value, [bool inMilliseconds = true]) {
+bool isInUnixEpochRange(Object? value, [bool inMilliseconds = true]) {
   if (!isInt(value)) return false;
   var n = parseInt(value);
   if (n == null) return false;
@@ -77,7 +77,7 @@ String _dateFormat(String format, [int? time]) {
 /// Parses [date] as [DateTime].
 ///
 /// Can be a [num] (Milliseconds since Epoch).
-DateTime? parseDateTime(dynamic /*?*/ date, [DateTime? def]) {
+DateTime? parseDateTime(Object? date, [DateTime? def]) {
   if (date == null) return def;
 
   if (date is DateTime) {
@@ -104,7 +104,7 @@ DateTime? parseDateTime(dynamic /*?*/ date, [DateTime? def]) {
 }
 
 /// Converts [o] to a [List<DateTime>].
-List<DateTime>? parseDateTimeFromInlineList(dynamic /*?*/ o,
+List<DateTime>? parseDateTimeFromInlineList(Object? o,
     [Pattern delimiter = ',', List<DateTime>? def]) {
   if (o == null) return def;
   if (o is DateTime) return [o];
@@ -265,7 +265,7 @@ Unit? getUnitByName(String? name, [Unit? def]) {
   }
 }
 
-Unit? parseUnit(dynamic /*?*/ unit, [Unit? def]) {
+Unit? parseUnit(Object? unit, [Unit? def]) {
   if (unit == null) {
     return def;
   } else if (unit is Unit) {
@@ -279,7 +279,7 @@ Unit? parseUnit(dynamic /*?*/ unit, [Unit? def]) {
   }
 }
 
-int? _getUnitMilliseconds(dynamic /*?*/ unit) {
+int? _getUnitMilliseconds(Object? unit) {
   if (unit == null) return null;
 
   var unitParsed = parseUnit(unit);
@@ -308,12 +308,12 @@ int? _getUnitMilliseconds(dynamic /*?*/ unit) {
   }
 }
 
-int getUnitAsMilliseconds(dynamic unit, [int amount = 1]) {
+int getUnitAsMilliseconds(Object? unit, [int amount = 1]) {
   var ms = _getUnitMilliseconds(unit)!;
   return ms * amount;
 }
 
-double? getMillisecondsAsUnit(int? ms, dynamic /*?*/ unit, [double? def]) {
+double? getMillisecondsAsUnit(int? ms, Object? unit, [double? def]) {
   if (ms == null) return def;
   if (ms == 0) return 0;
 
@@ -748,7 +748,7 @@ Pair<DateTime> getDateTimeRange(DateRangeType rangeType,
 ///
 /// [weekFirstDay] the desired first day of week for computation behavior.
 /// [locale] Locale code to use if [weekFirstDay] is null and need to be defined.
-DateTime? getDateTimeStartOf(DateTime time, dynamic unit,
+DateTime? getDateTimeStartOf(DateTime time, Object? unit,
     {DateTimeWeekDay? weekFirstDay, String? locale}) {
   var unitParsed = parseUnit(unit);
   if (unitParsed == null) return null;
@@ -791,7 +791,7 @@ DateTime? getDateTimeStartOf(DateTime time, dynamic unit,
 ///
 /// [weekFirstDay] the desired first day of week for computation behavior.
 /// [locale] Locale code to use if [weekFirstDay] is null and need to be defined.
-DateTime? getDateTimeEndOf(DateTime time, dynamic unit,
+DateTime? getDateTimeEndOf(DateTime time, Object? unit,
     {DateTimeWeekDay? weekFirstDay, String? locale}) {
   var unitParsed = parseUnit(unit);
   if (unitParsed == null) return null;

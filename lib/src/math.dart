@@ -283,7 +283,7 @@ class Math {
 /// Parses [v] to [int].
 ///
 /// [def] The default value if [v] is invalid.
-int? parseInt(dynamic /*?*/ v, [int? def]) {
+int? parseInt(Object? v, [int? def]) {
   if (v == null) return def;
 
   if (v is int) return v;
@@ -317,7 +317,7 @@ int? parseInt(dynamic /*?*/ v, [int? def]) {
 /// Parses [v] to [double].
 ///
 /// [def] The default value if [v] is invalid.
-double? parseDouble(dynamic /*?*/ v, [double? def]) {
+double? parseDouble(Object? v, [double? def]) {
   if (v == null) return def;
 
   if (v is double) return v;
@@ -341,7 +341,7 @@ double? parseDouble(dynamic /*?*/ v, [double? def]) {
 /// Parses [v] to [num].
 ///
 /// [def] The default value if [v] is invalid.
-num? parseNum(dynamic /*?*/ v, [num? def]) {
+num? parseNum(Object? v, [num? def]) {
   if (v == null) return def;
 
   if (v is num) return v;
@@ -370,7 +370,7 @@ num? parseNum(dynamic /*?*/ v, [num? def]) {
 /// if [v] is [String]: true when [v == "true"|"yes"|"ok"|"1"|"y"|"s"|"t"|"+"
 ///
 /// [def] The default value if [v] is invalid.
-bool? parseBool(dynamic /*?*/ v, [bool? def]) {
+bool? parseBool(Object? v, [bool? def]) {
   if (v == null) return def;
 
   if (v is bool) return v;
@@ -402,7 +402,7 @@ bool? parseBool(dynamic /*?*/ v, [bool? def]) {
 ///
 /// [delimiter] pattern for delimiter if [s] is a [String].
 /// [def] the default value if [s] is invalid.
-List<int>? parseIntsFromInlineList(dynamic s,
+List<int>? parseIntsFromInlineList(Object? s,
     [Pattern delimiter = ',', List<int>? def]) {
   if (s == null) return def;
   if (s is int) return [s];
@@ -420,7 +420,7 @@ List<int>? parseIntsFromInlineList(dynamic s,
 ///
 /// [delimiter] pattern for delimiter if [s] is a [String].
 /// [def] the default value if [s] is invalid.
-List<num>? parseNumsFromInlineList(dynamic s,
+List<num>? parseNumsFromInlineList(Object? s,
     [Pattern delimiter = ',', List<num>? def]) {
   if (s == null) return def;
   if (s is num) return [s];
@@ -433,8 +433,8 @@ List<num>? parseNumsFromInlineList(dynamic s,
 ///
 /// [delimiter] pattern for delimiter if [s] is a [String].
 /// [def] the default value if [s] is invalid.
-List<double>? parseDoublesFromInlineList(dynamic s,
-    [Pattern delimiter /*!*/ = ',', List<double>? def]) {
+List<double>? parseDoublesFromInlineList(Object? s,
+    [Pattern delimiter = ',', List<double>? def]) {
   if (s == null) return def;
   if (s is double) return [s];
   if (s is List) return s.map((e) => parseDouble(e)).toList() as List<double>?;
@@ -446,7 +446,7 @@ List<double>? parseDoublesFromInlineList(dynamic s,
 ///
 /// [delimiter] pattern for delimiter if [s] is a [String].
 /// [def] the default value if [s] is invalid.
-List<bool>? parseBoolsFromInlineList(dynamic s, Pattern delimiter,
+List<bool>? parseBoolsFromInlineList(Object? s, Pattern delimiter,
     [List<bool>? def]) {
   if (s == null) return def;
   if (s is bool) return [s];
@@ -480,7 +480,7 @@ List<num> parseNumsFromList(List list) {
 /// Parses [v] as a percentage from 0..100.
 ///
 /// [def] the default value if [v] is invalid.
-num? parsePercent(dynamic v, [double? def]) {
+num? parsePercent(Object? v, [double? def]) {
   if (v == null) return null;
 
   if (v is num) {
@@ -509,7 +509,7 @@ num? parsePercent(dynamic v, [double? def]) {
 ///
 /// [precision] amount of decimal places.
 /// [decimalSeparator] decimal separator, usually `.` or `,`.
-String? formatDecimal(dynamic value,
+String? formatDecimal(Object? value,
     {int precision = 2, String decimalSeparator = '.'}) {
   if (value == null) return null;
 
@@ -548,7 +548,7 @@ String? formatDecimal(dynamic value,
 ///
 /// [precision] amount of decimal places.
 /// [isRatio] if true the [percent] parameter is in the range 0..1.
-String formatPercent(dynamic percent,
+String formatPercent(Object? percent,
     {int precision = 2, bool isRatio = false}) {
   if (percent == null) return '0%';
 
@@ -584,7 +584,7 @@ String formatPercent(dynamic percent,
 }
 
 /// Returns true if [value] is [int]. Can be a int as string too.
-bool isInt(dynamic value) {
+bool isInt(Object? value) {
   if (value == null) return false;
   if (value is int) return true;
   if (value is num) return value.toInt() == value;
@@ -594,13 +594,13 @@ bool isInt(dynamic value) {
 }
 
 /// Returns [true] if is a list of [int]. Can be a string of int too.
-bool isIntList(dynamic value, [String delimiter = ',']) {
+bool isIntList(Object? value, [String delimiter = ',']) {
   if (value == null) return false;
 
   if (value is List<int>) return true;
 
   if (value is Iterable) {
-    return listMatchesAll(value, (dynamic e) => e is int);
+    return listMatchesAll(value, (e) => e is int);
   }
 
   var s = value.toString();
@@ -608,7 +608,7 @@ bool isIntList(dynamic value, [String delimiter = ',']) {
 }
 
 /// Returns true if [value] is [num]. Can be a num as string too.
-bool isNum(dynamic value) {
+bool isNum(Object? value) {
   if (value == null) return false;
   if (value is num) return true;
 
@@ -617,7 +617,7 @@ bool isNum(dynamic value) {
 }
 
 /// Returns [true] if is a list of [num]. Can be a string of num too.
-bool isNumList(dynamic value, [String delimiter = ',']) {
+bool isNumList(Object? value, [String delimiter = ',']) {
   if (value == null) return false;
 
   if (value is List<num>) return true;
@@ -625,7 +625,7 @@ bool isNumList(dynamic value, [String delimiter = ',']) {
   if (value is List<double>) return true;
 
   if (value is Iterable) {
-    return listMatchesAll(value, (dynamic e) => e is num);
+    return listMatchesAll(value, (e) => e is num);
   }
 
   var s = value.toString();
@@ -634,7 +634,7 @@ bool isNumList(dynamic value, [String delimiter = ',']) {
 }
 
 /// Returns true if [value] is [double]. Can be a double as string too.
-bool isDouble(dynamic value) {
+bool isDouble(Object? value) {
   if (value == null) return false;
   if (value is double) return true;
   if (value is num) return value.toDouble() == value;
@@ -644,13 +644,13 @@ bool isDouble(dynamic value) {
 }
 
 /// Returns [true] if is a list of [double]. Can be a string of double too.
-bool isDoubleList(dynamic value, [String delimiter = ',']) {
+bool isDoubleList(Object? value, [String delimiter = ',']) {
   if (value == null) return false;
 
   if (value is List<double>) return true;
 
   if (value is Iterable) {
-    return listMatchesAll(value, (dynamic e) => e is double);
+    return listMatchesAll(value, (e) => e is double);
   }
 
   var s = value.toString();
@@ -661,7 +661,7 @@ bool isDoubleList(dynamic value, [String delimiter = ',']) {
 final RegExp _REGEXP_bool = RegExp(r'^(?:true|false|yes|no)$');
 
 /// Returns true if [value] is [bool]. Can be a bool as string too.
-bool isBool(dynamic value) {
+bool isBool(Object? value) {
   if (value == null) return false;
   if (value is bool) return true;
 
@@ -670,13 +670,13 @@ bool isBool(dynamic value) {
 }
 
 /// Returns [true] if is a list of [bool]. Can be a string of bool too.
-bool isBoolList(dynamic value, [String delimiter = ',']) {
+bool isBoolList(Object? value, [String delimiter = ',']) {
   if (value == null) return false;
 
   if (value is List<bool>) return true;
 
   if (value is Iterable) {
-    return listMatchesAll(value, (dynamic e) => e is bool);
+    return listMatchesAll(value, (e) => e is bool);
   }
 
   var s = value.toString().toLowerCase();
@@ -747,7 +747,7 @@ class Scale<T> {
   }
 
   /// Converts a [value] to [T].
-  T toValue(dynamic value) {
+  T toValue(Object? value) {
     if (value is T) {
       return value;
     } else if (T == num) {

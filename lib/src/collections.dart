@@ -67,7 +67,7 @@ class Pair<T> {
 /// Represents a [width] X [height] dimension.
 class Dimension implements Comparable<Dimension> {
   /// Extra parsers.
-  static Set<Dimension? Function(dynamic value)> parsers = {};
+  static Set<Dimension? Function(Object? value)> parsers = {};
 
   /// Width of the dimension.
   final int width;
@@ -492,14 +492,13 @@ bool isListEntriesAllOfSameType(Iterable? list) {
   if (list == null || list.isEmpty) return false;
   if (list.length == 1) return true;
   var t = list.first.runtimeType;
-  return listMatchesAll(list, (dynamic e) => e != null && e.runtimeType == t);
+  return listMatchesAll(list, (e) => e != null && e.runtimeType == t);
 }
 
 /// Returns [true] if all [list] elements are of [type].
 bool isListEntriesAllOfType(Iterable? list, Type type) {
   if (list == null || list.isEmpty) return false;
-  return listMatchesAll(
-      list, (dynamic e) => e != null && e.runtimeType == type);
+  return listMatchesAll(list, (e) => e != null && e.runtimeType == type);
 }
 
 /// Returns [true] if all [list] elements are [identical].
@@ -699,21 +698,21 @@ bool isListOfStrings(Iterable? list) {
 /// Returns [o] as a [List<String>]. Converts it if needed.
 List<String>? asListOfString(Object? o) {
   if (o == null) return null;
-  var l = o as List<dynamic>;
-  return l.map((e) => e.toString()).toList();
+  var l = o as List<Object?>;
+  return l.map((e) => e != null ? e.toString() : '').toList();
 }
 
 /// Returns [o] as a [Map<String,String>]. Converts it if needed.
 Map<String, String>? asMapOfString(Object? o) {
   if (o == null) return null;
-  var m = o as Map<dynamic, dynamic>;
+  var m = o as Map;
   return m.map((k, v) => MapEntry('$k', '$v'));
 }
 
 /// Maps [tree]:
 /// - If [tree] is a [Map] to a [Map<String,dynamic].
 /// - If [tree] is a [List] to a [List<Map<String,dynamic>].
-dynamic /*?*/ asTreeOfKeyString(Object? tree) {
+dynamic asTreeOfKeyString(Object? tree) {
   if (tree == null) return null;
 
   if (tree is Map) {
@@ -787,7 +786,7 @@ bool isListOfString(Iterable? list) {
   if (list is List<String>) return true;
   if (list.isEmpty) return false;
 
-  if (listNotMatchesAll(list, (dynamic e) => (e is String))) return false;
+  if (listNotMatchesAll(list, (e) => (e is String))) return false;
 
   return true;
 }
@@ -798,7 +797,7 @@ bool isListOfNum(Iterable? list) {
   if (list is List<num>) return true;
   if (list.isEmpty) return false;
 
-  if (listNotMatchesAll(list, (dynamic e) => (e is num))) return false;
+  if (listNotMatchesAll(list, (e) => (e is num))) return false;
 
   return true;
 }
@@ -811,7 +810,7 @@ bool isListOfType<T>(Iterable? list) {
   if (list is List<T>) return true;
   if (list.isEmpty) return false;
 
-  if (listNotMatchesAll(list, (dynamic e) => (e is T))) return false;
+  if (listNotMatchesAll(list, (e) => (e is T))) return false;
 
   return true;
 }
@@ -823,7 +822,7 @@ bool isListOfTypes<A, B>(Iterable? list) {
   if (list is List<B>) return true;
   if (list.isEmpty) return false;
 
-  if (listNotMatchesAll(list, (dynamic e) => (e is A) || (e is B))) {
+  if (listNotMatchesAll(list, (e) => (e is A) || (e is B))) {
     return false;
   }
 
@@ -852,46 +851,49 @@ bool listContainsAll(Iterable? list, Iterable? entries) {
 }
 
 /// Returns [true] if [list] elements are all of type [List].
-bool isListOfList(Iterable? list) {
-  if (list == null) return false;
+bool isListOfList(Object? list) {
+  if (list == null || list is! List) return false;
+
   if (list is List<List>) return true;
   if (list.isEmpty) return false;
 
-  if (listNotMatchesAll(list, (dynamic e) => (e is List))) return false;
+  if (listNotMatchesAll(list, (e) => (e is List))) return false;
 
   return true;
 }
 
 /// Returns [true] if [list] elements are all of type [List<List>].
-bool isListOfListOfList(Iterable? list) {
-  if (list == null) return false;
+bool isListOfListOfList(Object? list) {
+  if (list == null || list is! List) return false;
+
   if (list is List<List<List>>) return true;
   if (list.isEmpty) return false;
 
-  if (listNotMatchesAll(list, (dynamic e) => isListOfList(e))) return false;
+  if (listNotMatchesAll(list, (e) => isListOfList(e))) return false;
 
   return true;
 }
 
 /// Returns [true] if [list] elements are all of type [Map].
-bool isListOfMap(Iterable? list) {
-  if (list == null) return false;
+bool isListOfMap(Object? list) {
+  if (list == null || list is! List) return false;
+
   if (list is List<Map>) return true;
   if (list.isEmpty) return false;
 
-  if (listNotMatchesAll(list, (dynamic e) => (e is Map))) return false;
+  if (listNotMatchesAll(list, (e) => (e is Map))) return false;
 
   return true;
 }
 
 /// Returns [true] if [list] elements are all equals to [value].
-bool isListValuesAllEquals(Iterable? list, [Object? eqValue]) {
-  if (list == null) return false;
+bool isListValuesAllEquals(Object? list, [Object? eqValue]) {
+  if (list == null || list is! List) return false;
   if (list.isEmpty) return false;
 
   eqValue ??= list.first;
 
-  return listMatchesAll(list, (dynamic v) => v == eqValue);
+  return listMatchesAll(list, (v) => v == eqValue);
 }
 
 /// Returns [true] if [list] elements are all equals to value
@@ -899,6 +901,7 @@ bool isListValuesAllEquals(Iterable? list, [Object? eqValue]) {
 bool isListOfListValuesAllEquals(Iterable<List>? list,
     {Object? eqValue, int? eqValueIndex}) {
   if (list == null) return false;
+
   if (list.isEmpty) return false;
 
   eqValue ??= eqValueIndex != null
@@ -906,9 +909,9 @@ bool isListOfListValuesAllEquals(Iterable<List>? list,
       : list.firstWhere((e) => e.isNotEmpty).first;
 
   if (eqValueIndex != null) {
-    return listMatchesAll(list, (dynamic v) => v[eqValueIndex] == eqValue);
+    return listMatchesAll(list, (v) => v is List && v[eqValueIndex] == eqValue);
   } else {
-    return listMatchesAll(list, (dynamic v) => v == eqValue);
+    return listMatchesAll(list, (v) => v == eqValue);
   }
 }
 
@@ -947,8 +950,8 @@ bool isMapOfString(Map? map) {
   if (map is Map<String, String>) return true;
   if (map.isEmpty) return false;
 
-  if (listNotMatchesAll(map.keys, (dynamic k) => (k is String))) return false;
-  if (listNotMatchesAll(map.values, (dynamic k) => (k is String))) return false;
+  if (listNotMatchesAll(map.keys, (k) => (k is String))) return false;
+  if (listNotMatchesAll(map.values, (k) => (k is String))) return false;
 
   return true;
 }
@@ -960,7 +963,7 @@ bool isMapOfStringKeys(Map? map) {
   if (map is Map<String, dynamic>) return true;
   if (map.isEmpty) return false;
 
-  if (listNotMatchesAll(map.keys, (dynamic k) => (k is String))) return false;
+  if (listNotMatchesAll(map.keys, (k) => (k is String))) return false;
 
   return true;
 }
@@ -990,6 +993,67 @@ bool isMapOfStringKeysAndNumValues(Map? map) {
       map.entries, (e) => (e.key is String) && (e.value is num))) return false;
 
   return true;
+}
+
+/// Converts [map] to a `Map<K,V>` ignoring any entry with null key or null value.
+///
+/// - [forceTypeCast]: if true, will try to cast key as [K] and values as [V].
+/// if false, will ignore any entry that can't be cast.
+Map<K, V> toNonNullMap<K, V>(Map? map, {bool forceTypeCast = true}) {
+  if (map == null || map.isEmpty) {
+    return <K, V>{};
+  }
+
+  Iterable<MapEntry<K, V>> entries;
+
+  if (forceTypeCast) {
+    entries = map.entries
+        .where((e) => e.key != null && e.value != null)
+        .map((e) => MapEntry(e.key! as K, e.value! as V));
+  } else {
+    entries = map.entries
+        .where((e) => e.key is K && e.value is V)
+        .map((e) => MapEntry(e.key! as K, e.value! as V));
+  }
+
+  var map2 = Map<K, V>.fromEntries(entries);
+  return map2;
+}
+
+/// Converts [list] to a `List<T>` ignoring any null element.
+///
+/// - [forceTypeCast]: if true, will try to cast elements as [T].
+/// if false, will ignore any element that can't be cast.
+List<T> toNonNullList<T>(List? list, {bool forceTypeCast = true}) {
+  if (list == null || list.isEmpty) {
+    return <T>[];
+  }
+
+  List<T> list2;
+  if (forceTypeCast) {
+    list2 = list.where((e) => e != null).map((e) => e! as T).toList();
+  } else {
+    list2 = list.whereType<T>().toList();
+  }
+  return list2;
+}
+
+/// Converts [set] to a `Set<T>` ignoring any null element.
+///
+/// - [forceTypeCast]: if true, will try to cast elements as [T].
+/// if false, will ignore any element that can't be cast.
+Set<T> toNonNullSet<T>(Set? set, {bool forceTypeCast = true}) {
+  if (set == null || set.isEmpty) {
+    return <T>{};
+  }
+
+  Set<T> set2;
+  if (forceTypeCast) {
+    set2 = set.where((e) => e != null).map((e) => e! as T).toSet();
+  } else {
+    set2 = set.whereType<T>().toSet();
+  }
+  return set2;
 }
 
 /// Finds in [map] a entry that has one of [keys].
@@ -1041,7 +1105,7 @@ V? findKeyValue<K, V>(Map<K, V>? map, List<K>? keys,
 /// [keyDelimiter] The key path delimiter.
 /// [isValidValue] validates a matching value.
 V? findKeyPathValue<V>(Map? map, String? keyPath,
-    {String keyDelimiter = '/', bool Function(dynamic value)? isValidValue}) {
+    {String keyDelimiter = '/', bool Function(Object? value)? isValidValue}) {
   if (map == null || map.isEmpty || keyPath == null || keyPath.isEmpty) {
     return null;
   }
@@ -1582,7 +1646,7 @@ T? getSetEntryInstance<T>(Set<T>? set, T? value) {
 
 /// A [Map] that delegates to another [_map].
 /// Useful to extend [Map] features.
-class MapDelegate<K /*!*/, V /*!*/ > implements Map<K, V> {
+class MapDelegate<K, V> implements Map<K, V> {
   final Map<K, V> _map;
 
   MapDelegate(this._map);
@@ -1725,7 +1789,7 @@ class MapProperties extends MapDelegate<String, dynamic> {
   /// [mapper] Maps the value to [T].
   /// [def] The default value if [key] not found.
   // ignore: use_function_type_syntax_for_parameters
-  T? getPropertyAs<T>(String key, T? mapper(dynamic v), [T? def]) {
+  T? getPropertyAs<T>(String key, T? mapper(Object? v), [T? def]) {
     var val = findKeyValue(_map, [key], true);
     return val != null ? mapper(val) : def;
   }
@@ -1735,7 +1799,7 @@ class MapProperties extends MapDelegate<String, dynamic> {
   /// [mapper] Maps the value to [T].
   /// [def] The default value if [key] not found.
   // ignore: use_function_type_syntax_for_parameters
-  T? findPropertyAs<T>(List<String> keys, T? mapper(dynamic v), [T? def]) {
+  T? findPropertyAs<T>(List<String> keys, T? mapper(Object? v), [T? def]) {
     var val = findKeyValue(_map, keys, true);
     return val != null ? mapper(val) : def;
   }
@@ -1964,7 +2028,7 @@ class MapProperties extends MapDelegate<String, dynamic> {
   }
 
   /// put property [value] to [key].
-  dynamic put(String key, dynamic value) {
+  dynamic put(String key, Object? value) {
     var valueStr = toStringValue(value);
 
     var prev = this[key];
@@ -2107,7 +2171,7 @@ class NNField<T> {
   final bool deepHashcode;
 
   /// Optional value filter to apply before set.
-  final T Function(dynamic value)? filter;
+  final T Function(Object? value)? filter;
 
   /// Optional value to apply before get.
   final T Function(T value)? resolver;
@@ -2122,7 +2186,7 @@ class NNField<T> {
   /// The filed value as [T].
   T get value => get();
 
-  set value(dynamic value) => set(value);
+  set value(Object? value) => set(value);
 
   /// Returns the current filed [value].
   T get() {
@@ -2202,19 +2266,19 @@ class NNField<T> {
   bool? get asBool => parseBool(_value);
 
   /// Operator [*], using [asNum] for [this.value] and [parseNum(value)] for parameter.
-  num operator *(dynamic value) => asNum! * parseNum(value)!;
+  num operator *(Object? value) => asNum! * parseNum(value)!;
 
   /// Operator [/], using [asNum] for [this.value] and [parseNum(value)] for parameter.
-  num operator /(dynamic value) => asNum! / parseNum(value)!;
+  num operator /(Object? value) => asNum! / parseNum(value)!;
 
   /// Operator [+], using [asNum] for [this.value] and [parseNum(value)] for parameter.
-  num operator +(dynamic value) => asNum! + parseNum(value)!;
+  num operator +(Object? value) => asNum! + parseNum(value)!;
 
   /// Operator [-], using [asNum] for [this.value] and [parseNum(value)] for parameter.
-  num operator -(dynamic value) => asNum! - parseNum(value)!;
+  num operator -(Object? value) => asNum! - parseNum(value)!;
 
   /// Operator [^], using [asInt] for [this.value] and [parseInt(value)] for parameter.
-  num operator ^(dynamic value) => asInt! ^ parseInt(value)!;
+  num operator ^(Object? value) => asInt! ^ parseInt(value)!;
 
   /// Operator [>], using [asNum] for [this.value] and [parseNum(value)] for parameter.
   bool operator >(num value) => asNum! > parseNum(value)!;
@@ -2229,14 +2293,14 @@ class NNField<T> {
   bool operator <=(num value) => asNum! <= parseNum(value)!;
 
   /// Increments: [this.value] + [value]
-  num? increment(dynamic value) {
+  num? increment(Object? value) {
     var result = parseNum(_value)! + parseNum(value)!;
     set(result);
     return asNum;
   }
 
   /// Decrements: [this.value] - [value]
-  num? decrement(dynamic value) {
+  num? decrement(Object? value) {
     var result = parseNum(_value)! - parseNum(value)!;
     set(result);
     return asNum;

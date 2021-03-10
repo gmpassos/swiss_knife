@@ -437,7 +437,7 @@ class MimeType {
   }
 
   /// Parses a [mimeType] to a MIME-Type string.
-  static String? asString(dynamic mimeType, [String? defaultMimeType]) {
+  static String? asString(Object? mimeType, [String? defaultMimeType]) {
     if (mimeType == null) return defaultMimeType;
 
     if (mimeType is String) {
@@ -595,7 +595,7 @@ final REGEXP_EMAIL = RegExp(
     r'''^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?)*$''');
 
 /// Returns [true] if [value] represents an e-mail address.
-bool isEmail(dynamic value) {
+bool isEmail(Object? value) {
   return value is String && value.contains('@') && REGEXP_EMAIL.hasMatch(value);
 }
 
@@ -701,9 +701,11 @@ class Geolocation {
 }
 
 /// Parses [value] as a [Rectangle].
-Rectangle<num>? parseRectangle(dynamic value) {
+Rectangle<num>? parseRectangle(Object? value) {
   if (value is List) return parseRectangleFromList(value);
-  if (value is Map) return parseRectangleFromMap(value);
+  if (value is Map) {
+    return parseRectangleFromMap(toNonNullMap<String, Object>(value));
+  }
   if (value is String) return parseRectangleFromString(value);
   return null;
 }
@@ -717,7 +719,7 @@ Rectangle<num>? parseRectangleFromList(List list) {
 }
 
 /// Parses [map] as a [Rectangle].
-Rectangle<num>? parseRectangleFromMap(Map? map) {
+Rectangle<num>? parseRectangleFromMap(Map<String, Object>? map) {
   if (map == null || map.isEmpty) return null;
 
   var x = parseNum(findKeyValue(map, ['x', 'left'], true));
@@ -746,7 +748,7 @@ Rectangle<num>? parseRectangleFromString(String? s) {
 }
 
 /// Parses [value] as a [Point].
-Point<num>? parsePoint(dynamic value) {
+Point<num>? parsePoint(Object? value) {
   if (value is List) return parsePointFromList(value);
   if (value is Map) return parsePointFromMap(value);
   if (value is String) return parsePointFromString(value);
@@ -763,8 +765,10 @@ Point<num>? parsePointFromList(List? list) {
 
 /// Parses [map] as a [Point].
 Point<num>? parsePointFromMap(Map map) {
-  var x = parseNum(findKeyValue(map, ['x', 'left'], true));
-  var y = parseNum(findKeyValue(map, ['y', 'top'], true));
+  var x = parseNum(
+      findKeyValue(toNonNullMap<String, Object>(map), ['x', 'left'], true));
+  var y = parseNum(
+      findKeyValue(toNonNullMap<String, Object>(map), ['y', 'top'], true));
   if (x == null || y == null) return null;
   return Point<num>(x, y);
 }

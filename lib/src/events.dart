@@ -12,7 +12,7 @@ class _ListenSignature {
   _ListenSignature(
       this._identifier, this._identifyByInstance, this._cancelOnError);
 
-  dynamic get identifier => _identifier;
+  Object get identifier => _identifier;
 
   bool get identifyByInstance => _identifyByInstance;
 
@@ -184,7 +184,7 @@ class EventStream<T> implements Stream<T> {
 
   @override
   Stream<T> handleError(Function onError,
-      {bool Function(dynamic error)? test}) {
+      {bool Function(Object? error)? test}) {
     return _stream.handleError(onError, test: test);
   }
 
@@ -221,7 +221,7 @@ class EventStream<T> implements Stream<T> {
   }
 
   /// Cancels [StreamSubscription] associated with [singletonIdentifier].
-  bool cancelSingletonSubscription(dynamic /*!*/ singletonIdentifier,
+  bool cancelSingletonSubscription(Object singletonIdentifier,
       [bool singletonIdentifyByInstance = true]) {
     var signature =
         _getListenSignature(singletonIdentifier, singletonIdentifyByInstance);
@@ -235,16 +235,15 @@ class EventStream<T> implements Stream<T> {
   }
 
   /// Returns a [StreamSubscription] associated with [singletonIdentifier].
-  StreamSubscription<T?>? getSingletonSubscription(
-      dynamic /*!*/ singletonIdentifier,
+  StreamSubscription<T?>? getSingletonSubscription(Object singletonIdentifier,
       [bool singletonIdentifyByInstance = true]) {
     var signature =
         _getListenSignature(singletonIdentifier, singletonIdentifyByInstance);
     return signature?.subscription as StreamSubscription<T?>?;
   }
 
-  _ListenSignature? _getListenSignature(dynamic /*!*/ singletonIdentifier,
-      [bool singletonIdentifyByInstance /*!*/ = true]) {
+  _ListenSignature? _getListenSignature(Object singletonIdentifier,
+      [bool singletonIdentifyByInstance = true]) {
     var listenSignature = _ListenSignature(
         singletonIdentifier, singletonIdentifyByInstance, false);
 
@@ -324,7 +323,7 @@ class EventStream<T> implements Stream<T> {
       {Function? onError,
       void Function()? onDone,
       required bool cancelOnError,
-      dynamic singletonIdentifier,
+      Object? singletonIdentifier,
       bool? singletonIdentifyByInstance = true}) {
     var listenerWrapper = ListenerWrapper<T>(this, onData,
         onError: onError,
@@ -701,7 +700,7 @@ class EventStreamDelegator<T> implements EventStream<T> {
 
   @override
   Stream<T> handleError(Function onError,
-          {bool Function(dynamic error)? test}) =>
+          {bool Function(Object? error)? test}) =>
       eventStream!.handleError(onError, test: test);
 
   @override
@@ -1048,7 +1047,7 @@ InteractionCompleter listenStreamWithInteractionCompleter<T>(
     onData(event is T ? event : null);
   });
 
-  stream.listen((dynamic event) {
+  stream.listen((Object? event) {
     lastEvent.clear();
     lastEvent.add(event);
     interactionCompleter.interact();
@@ -1065,7 +1064,7 @@ class AsyncValue<T> {
     _future = future.then((v) => _onLoad(v)!, onError: _onError);
   }
 
-  factory AsyncValue.from(dynamic /*!*/ value) {
+  factory AsyncValue.from(Object? value) {
     if (value is Future) {
       return AsyncValue(value as Future<T>);
     } else if (value is Future<T> Function()) {
@@ -1109,9 +1108,9 @@ class AsyncValue<T> {
   /// Returns [true] if [isLoaded] and has an [error]
   bool get isLoadedWithError => _loaded && _error != null;
 
-  dynamic /*?*/ _error;
+  Object? _error;
 
-  dynamic get error => _error;
+  Object? get error => _error;
 
   /// Returns [true] if the value has an execution [error].
   bool get hasError => _error != null;
@@ -1172,7 +1171,7 @@ class ListenerWrapper<T> {
 
   final bool cancelOnError;
 
-  final dynamic /*?*/ singletonIdentifier;
+  final Object? singletonIdentifier;
 
   final bool singletonIdentifyByInstance;
 
@@ -1252,7 +1251,7 @@ class ListenerWrapper<T> {
     if (stream is EventStream) {
       var eventStream = stream as EventStream;
       _subscription = eventStream.listen(
-              onDataWrapper as void Function(dynamic),
+              onDataWrapper as void Function(Object?),
               onError: onErrorWrapper,
               onDone: onDoneWrapper,
               cancelOnError: cancelOnError,

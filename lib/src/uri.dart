@@ -321,7 +321,7 @@ bool isIPv6Address(String? host) {
 }
 
 /// Returns [true] if [value] represents a HTTP or HTTPS URL.
-bool isHttpURL(dynamic /*?*/ value) {
+bool isHttpURL(dynamic value) {
   if (value == null) return false;
   if (value is Uri) {
     return value.scheme == 'http' || value.scheme == 'https';

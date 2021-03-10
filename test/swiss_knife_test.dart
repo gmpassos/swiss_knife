@@ -1121,24 +1121,21 @@ void main() {
     });
 
     test('listMatchesAll/listNotMatchesAll', () {
-      expect(listMatchesAll(null, (dynamic e) => e == 1), equals(false));
-      expect(listMatchesAll([], (dynamic e) => e == 1), equals(false));
+      expect(listMatchesAll(null, (e) => e == 1), equals(false));
+      expect(listMatchesAll([], (e) => e == 1), equals(false));
 
-      expect(listMatchesAll([1, 1, 1], (dynamic e) => e == 1), equals(true));
-      expect(listMatchesAll([1, 0, 1], (dynamic e) => e == 1), equals(false));
-      expect(listMatchesAll([1, 1, 1], (dynamic e) => e == 0), equals(false));
-      expect(listMatchesAll([1, 1, null, 1], (dynamic e) => e == 0),
-          equals(false));
+      expect(listMatchesAll([1, 1, 1], (e) => e == 1), equals(true));
+      expect(listMatchesAll([1, 0, 1], (e) => e == 1), equals(false));
+      expect(listMatchesAll([1, 1, 1], (e) => e == 0), equals(false));
+      expect(listMatchesAll([1, 1, null, 1], (e) => e == 0), equals(false));
 
-      expect(listNotMatchesAll(null, (dynamic e) => e == 1), equals(false));
-      expect(listNotMatchesAll([], (dynamic e) => e == 1), equals(false));
+      expect(listNotMatchesAll(null, (e) => e == 1), equals(false));
+      expect(listNotMatchesAll([], (e) => e == 1), equals(false));
 
-      expect(
-          listNotMatchesAll([1, 1, 1], (dynamic e) => e == 1), equals(false));
-      expect(listNotMatchesAll([1, 0, 1], (dynamic e) => e == 1), equals(true));
-      expect(listNotMatchesAll([1, 1, 1], (dynamic e) => e == 0), equals(true));
-      expect(listNotMatchesAll([1, 1, null, 1], (dynamic e) => e == 0),
-          equals(true));
+      expect(listNotMatchesAll([1, 1, 1], (e) => e == 1), equals(false));
+      expect(listNotMatchesAll([1, 0, 1], (e) => e == 1), equals(true));
+      expect(listNotMatchesAll([1, 1, 1], (e) => e == 0), equals(true));
+      expect(listNotMatchesAll([1, 1, null, 1], (e) => e == 0), equals(true));
 
       expect(isListValuesAllEquals([3, 3, 3, 3, 3], 3), equals(true));
       expect(isListValuesAllEquals([3, 3, 3, 3, 3]), equals(true));

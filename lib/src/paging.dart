@@ -1,6 +1,6 @@
 import 'collections.dart';
 
-typedef PagingFormatMatcher = bool Function(dynamic json);
+typedef PagingFormatMatcher = bool Function(Object? json);
 typedef PagingFormatInstantiator = JSONPaging Function(dynamic json);
 
 /// A Function that performs a paging request.
