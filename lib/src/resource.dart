@@ -143,8 +143,6 @@ class ResourceContent {
     }
 
     var resolvedURL = resolveUri(url, baseURL: baseURL);
-    if (content == null) return null;
-
     return ResourceContent.fromURI(resolvedURL, content);
   }
 

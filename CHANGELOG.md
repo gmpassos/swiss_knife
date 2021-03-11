@@ -1,3 +1,7 @@
+## 3.0.5
+
+- Null safety migration adjustments. 
+
 ## 3.0.4
 
 - `collections`: improve Null Safety usage. 

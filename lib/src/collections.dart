@@ -1059,14 +1059,14 @@ Set<T> toNonNullSet<T>(Set? set, {bool forceTypeCast = true}) {
 /// Finds in [map] a entry that has one of [keys].
 ///
 /// [ignoreCase] If [true] ignores the case of the keys.
-MapEntry<K, V?>? findKeyEntry<K, V>(Map<K?, V?>? map, List<K>? keys,
+MapEntry<K, V?>? findKeyEntry<K, V>(Map? map, List<K>? keys,
     [bool ignoreCase = false]) {
   if (map == null || keys == null || map.isEmpty || keys.isEmpty) return null;
 
   if (ignoreCase) {
     for (var key in keys) {
       if (map.containsKey(key)) {
-        var value = map[key];
+        var value = map[key] as V?;
         return MapEntry<K, V?>(key, value);
       }
 
@@ -1074,7 +1074,7 @@ MapEntry<K, V?>? findKeyEntry<K, V>(Map<K?, V?>? map, List<K>? keys,
 
       for (var k in map.keys.whereType<K>()) {
         if (k.toString().toLowerCase() == keyLC) {
-          var value = map[k];
+          var value = map[k] as V?;
           return MapEntry<K, V?>(k, value);
         }
       }
@@ -1082,7 +1082,7 @@ MapEntry<K, V?>? findKeyEntry<K, V>(Map<K?, V?>? map, List<K>? keys,
   } else {
     for (var key in keys) {
       if (map.containsKey(key)) {
-        var value = map[key];
+        var value = map[key] as V?;
         return MapEntry<K, V?>(key, value);
       }
     }
@@ -1094,9 +1094,8 @@ MapEntry<K, V?>? findKeyEntry<K, V>(Map<K?, V?>? map, List<K>? keys,
 /// Finds in [map] a value that has one of [keys].
 ///
 /// [ignoreCase] If [true] ignores the case of the keys.
-V? findKeyValue<K, V>(Map<K?, V?>? map, List<K>? keys,
-    [bool ignoreCase = false]) {
-  var entry = findKeyEntry(map, keys, ignoreCase);
+V? findKeyValue<K, V>(Map? map, List<K>? keys, [bool ignoreCase = false]) {
+  var entry = findKeyEntry<K, V>(map, keys, ignoreCase);
   return entry != null ? entry.value : null;
 }
 
@@ -1147,8 +1146,7 @@ V? findKeyPathValue<V>(Map? map, String? keyPath,
 /// Finds in [map] a key that has one of [keys].
 ///
 /// [ignoreCase] If [true] ignores the case of the keys.
-K? findKeyName<K, V>(Map<K?, V?>? map, List<K>? keys,
-    [bool ignoreCase = false]) {
+K? findKeyName<K, V>(Map? map, List<K>? keys, [bool ignoreCase = false]) {
   var entry = findKeyEntry(map, keys, ignoreCase);
   return entry != null ? entry.key : null;
 }
