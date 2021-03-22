@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:swiss_knife/src/collections.dart';
 
+import 'math.dart';
+
 class _ListenSignature {
   final Object _identifier;
 
@@ -322,7 +324,7 @@ class EventStream<T> implements Stream<T> {
   ListenerWrapper<T>? listenOneShot(void Function(T event) onData,
       {Function? onError,
       void Function()? onDone,
-      required bool cancelOnError,
+      bool cancelOnError = false,
       Object? singletonIdentifier,
       bool? singletonIdentifyByInstance = true}) {
     var listenerWrapper = ListenerWrapper<T>(this, onData,
@@ -421,20 +423,21 @@ class EventStream<T> implements Stream<T> {
 class EventStreamDelegator<T> implements EventStream<T> {
   EventStream<T>? _eventStream;
 
-  final EventStream<T> Function()? _eventStreamProvider;
+  final EventStream<T>? Function()? _eventStreamProvider;
 
   EventStreamDelegator(EventStream<T> eventStream)
       : _eventStream = eventStream,
         _eventStreamProvider = null;
 
-  EventStreamDelegator.provider(EventStream<T> Function() eventStreamProvider)
+  EventStreamDelegator.provider(EventStream<T>? Function() eventStreamProvider)
       : _eventStream = null,
         _eventStreamProvider = eventStreamProvider;
 
   /// Returns the main [EventStream].
   EventStream<T>? get eventStream {
     if (_eventStream == null) {
-      _eventStream = _eventStreamProvider!();
+      _eventStream =
+          _eventStreamProvider != null ? _eventStreamProvider!() : null;
       if (_eventStream != null) {
         flush();
       }
@@ -1272,5 +1275,141 @@ class ListenerWrapper<T> {
   void cancel() {
     _subscription?.cancel();
     _subscription = null;
+  }
+}
+
+/// Ensures that a call is executed only 1 per time.
+class UniqueCaller<R> {
+  final FutureOr<R?> Function() function;
+
+  final void Function(UniqueCaller<R> caller)? onDuplicatedCall;
+
+  final _IdentifierWrapper _identifier;
+
+  static String stackTraceIdentifier([int stackOffset = 0]) {
+    var stackTracer = StackTrace.current;
+    var stackTraceStr = stackTracer.toString();
+
+    var lines = stackTraceStr.split(RegExp(r'[\r\n]+', multiLine: false));
+
+    var start = Math.min(1 + stackOffset, lines.length - 1);
+    var end = Math.min(3, lines.length);
+
+    lines = lines.sublist(start, Math.max(start, end));
+
+    var s = lines.join('\n');
+    return s;
+  }
+
+  UniqueCaller(this.function,
+      {Object? identifier,
+      StackTrace? stackTraceIdentifier,
+      this.onDuplicatedCall})
+      : _identifier = _IdentifierWrapper(identifier ??
+            stackTraceIdentifier?.toString() ??
+            UniqueCaller.stackTraceIdentifier());
+
+  _IdentifierWrapper get identifier => _identifier;
+
+  static final Set<_IdentifierWrapper> _calling = {};
+
+  static final Map<_IdentifierWrapper, Future> _callsFuture = {};
+
+  static Future<R?> getCallFuture<R>(Object identifier) {
+    var identifierWrapper = _IdentifierWrapper(identifier);
+    return _callsFuture[identifierWrapper] as Future<R?>;
+  }
+
+  static List<Future> get calling {
+    return _callsFuture.values.toList();
+  }
+
+  Future<R?> callAsync() async {
+    if (_calling.contains(_identifier)) {
+      if (onDuplicatedCall != null) onDuplicatedCall!(this);
+      return Future<R?>.value(null);
+    }
+
+    _calling.add(_identifier);
+    try {
+      var ret = function();
+      if (ret is Future) {
+        _callsFuture[_identifier] = ret as Future;
+        return await ret;
+      } else {
+        return ret;
+      }
+    } finally {
+      _finalizeCall();
+    }
+  }
+
+  R? call() {
+    if (_calling.contains(_identifier)) {
+      if (onDuplicatedCall != null) onDuplicatedCall!(this);
+      return null;
+    }
+
+    _calling.add(_identifier);
+    try {
+      var ret = function();
+      if (ret is Future) {
+        var future = ret as Future;
+        _callsFuture[_identifier] = future;
+        future.then((value) {
+          _finalizeCall();
+          return value;
+        });
+        return null;
+      } else {
+        _finalizeCall();
+        return ret;
+      }
+    } catch (e) {
+      _finalizeCall();
+      rethrow;
+    }
+  }
+
+  void _finalizeCall() {
+    // ignore: unawaited_futures
+    _callsFuture.remove(_identifier);
+    _calling.remove(_identifier);
+  }
+}
+
+class _IdentifierWrapper {
+  final Object identifier;
+
+  _IdentifierWrapper(this.identifier);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is _IdentifierWrapper &&
+          runtimeType == other.runtimeType &&
+          _identical(identifier, other.identifier);
+
+  bool _identical(Object? o1, Object? o2) {
+    if (o1 == null && o2 == null) return true;
+    if (identical(o1, o2)) return true;
+    if (o1 != null && o2 == null) return false;
+    if (o1 == null && o2 != null) return false;
+
+    if (o1.runtimeType != o2.runtimeType) return false;
+
+    if (o1 is Future || o1 is Function) {
+      return false;
+    } else {
+      return o1 == o2;
+    }
+  }
+
+  @override
+  int get hashCode => identifier.hashCode;
+
+  @override
+  String toString() {
+    return '_IdentifierWrapper{hashCode: $hashCode ; identifier: $identifier}';
   }
 }

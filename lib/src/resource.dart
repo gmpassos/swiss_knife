@@ -329,7 +329,7 @@ class ContextualResource<T, C extends Comparable<C>>
         context = _resolveContext<T, C>(resource, context);
 
   static List<ContextualResource<T, C>> toList<T, C extends Comparable<C>>(
-          Iterable<T> resources, C Function(T resource) context) =>
+          Iterable<T> resources, C? Function(T resource) context) =>
       resources.map((r) => ContextualResource<T, C>(r, context)).toList();
 
   @override
@@ -482,14 +482,14 @@ class ContextualResourceResolver<T, C extends Comparable<C>> {
     var low = 0;
     var high = options.length - 1;
 
-    var comparator = contextComparator as int Function(C?, C)?;
+    var comparator = contextComparator;
 
     while (low <= high) {
       var mid = (low + high) ~/ 2;
       var midVal = options[mid];
 
       var cmp = comparator != null
-          ? comparator(midVal.context, context)
+          ? comparator(midVal.context!, context)
           : midVal.compareContext(context);
 
       if (cmp < 0) {

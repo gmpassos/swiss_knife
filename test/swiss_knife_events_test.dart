@@ -6,6 +6,18 @@ Future<void> _sleep(int delayMs) async {
   await Future.delayed(Duration(milliseconds: delayMs), () {});
 }
 
+void _asyncCall(List<String> calls) async {
+  var callID = DateTime.now().microsecondsSinceEpoch;
+  calls.add('$callID> a');
+  await Future.delayed(Duration(seconds: 2));
+  calls.add('$callID> b');
+}
+
+void _doUniqueCall(List<String> calls) async {
+  var uniqueCaller = UniqueCaller(() => _asyncCall(calls));
+  uniqueCaller.call();
+}
+
 void main() {
   group('Events', () {
     setUp(() {});
@@ -67,6 +79,40 @@ void main() {
       await _sleep(2000);
       expect(interactionCompleter.isTriggerScheduled, isFalse);
       expect(counter.value, equals(1));
+    });
+
+    test('NON UniqueCaller', () async {
+      var calls = <String>[];
+
+      expect(UniqueCaller.calling, isEmpty);
+
+      _asyncCall(calls);
+      _asyncCall(calls);
+
+      expect(UniqueCaller.calling, isEmpty);
+
+      print('NON UniqueCaller> $calls');
+
+      expect(calls.where((e) => e.contains(' a')).length, equals(2));
+    });
+
+    test('UniqueCaller', () async {
+      var calls = <String>[];
+
+      expect(UniqueCaller.calling, isEmpty);
+
+      _doUniqueCall(calls);
+      _doUniqueCall(calls);
+
+      expect(UniqueCaller.calling.length, equals(1));
+
+      await Future.wait(UniqueCaller.calling);
+
+      expect(UniqueCaller.calling.length, equals(0));
+
+      print('UniqueCaller> $calls');
+
+      expect(calls.where((e) => e.contains(' a')).length, equals(1));
     });
   });
 }

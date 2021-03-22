@@ -1,3 +1,8 @@
+## 3.0.6
+
+- Added `UniqueCaller` and `parseIntList`.
+- Null safety migration adjustments. 
+
 ## 3.0.5
 
 - Null safety migration adjustments. 

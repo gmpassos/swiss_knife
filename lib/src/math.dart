@@ -314,6 +314,23 @@ int? parseInt(Object? v, [int? def]) {
   return n as int? ?? def;
 }
 
+/// Parses [l] as [List<int>].
+///
+/// [def] The default value if [l] is invalid.
+List<int>? parseIntList(Object? l, [List<int>? def]) {
+  if (l == null) return def;
+
+  if (l is List) {
+    var l2 = l.map((e) => parseInt(e)).whereType<int>().toList();
+    return l2.isNotEmpty ? l2 : (def ?? l2);
+  } else if (l is String) {
+    var l2 = parseIntsFromInlineList(l, _REGEXP_SPLIT_COMMA);
+    return l2 != null && l2.isNotEmpty ? l2 : (def ?? l2);
+  } else {
+    return def;
+  }
+}
+
 /// Parses [v] to [double].
 ///
 /// [def] The default value if [v] is invalid.
