@@ -323,11 +323,15 @@ void main() {
   group('Math', () {
     setUp(() {});
 
-    test('max,min', () {
+    test('max,min,clamp', () {
       expect(Math.max(11, 22), equals(22));
       expect(Math.min(11, 22), equals(11));
 
       expect(Math.minMax([11, 33, 22]), equals(Pair(11, 33)));
+
+      expect(Math.clamp(15, 11, 22), equals(15));
+      expect(Math.clamp(10, 11, 22), equals(11));
+      expect(Math.clamp(25, 11, 22), equals(22));
     });
 
     test('ceil,floor,round', () {
@@ -454,6 +458,14 @@ void main() {
       expect(formatDecimal(100 / 3), equals('33.33'));
 
       expect(formatDecimal(-100 / 3), equals('-33.33'));
+
+      expect(formatDecimal(1.0E-4 / 3), equals('0.00'));
+
+      expect(formatDecimal(1.0E-20 / 3), equals('3.3e-21'),
+          reason: '${1.0E-20 / 3}');
+      expect(formatDecimal(1.0E10 / 3), equals('3333333333.33'),
+          reason: '${1.0E10 / 3}');
+      expect(formatDecimal(1.0E30), equals('1e+30'), reason: '${1.0E30}');
     });
 
     test('clipNumber', () {

@@ -1,3 +1,8 @@
+## 3.0.7
+
+- Added `Math.clamp`.
+- Fixed `formatDecimal` for scientific notation.
+
 ## 3.0.6
 
 - Added `UniqueCaller` and `parseIntList`.

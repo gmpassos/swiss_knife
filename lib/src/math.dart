@@ -34,6 +34,10 @@ class Math {
   /// Returns the larger of two numbers.
   static T max<T extends num>(T a, T b) => dart_math.max(a, b);
 
+  /// Returns [n] bounded into the inclusive range [min] to [max].
+  static T clamp<T extends num>(T n, T min, T max) =>
+      n < min ? min : (n > max ? max : n);
+
   static double atan2(num a, num b) => dart_math.atan2(a, b);
 
   static num pow(num x, num exponent) => dart_math.pow(x, exponent);
@@ -541,7 +545,15 @@ String? formatDecimal(Object? value,
 
   var idx = pStr.indexOf('.');
 
-  if (idx < 0) return p.toInt().toString();
+  if (idx < 0) {
+    var eIdx = pStr.indexOf('e');
+    var eStr = eIdx >= 0 ? pStr.substring(eIdx) : '';
+    if (eStr.length > 1) {
+      return pStr;
+    } else {
+      return p.toInt().toString();
+    }
+  }
 
   var integer = pStr.substring(0, idx);
   var decimal = pStr.substring(idx + 1);
@@ -551,7 +563,14 @@ String? formatDecimal(Object? value,
   }
 
   if (decimal.length > precision) {
-    decimal = decimal.substring(0, precision);
+    var eIdx = decimal.indexOf('e');
+    var eStr = eIdx >= 0 ? decimal.substring(eIdx) : '';
+    if (eStr.length > 1) {
+      decimal =
+          decimal.substring(0, Math.max(precision - eStr.length, 1)) + eStr;
+    } else {
+      decimal = decimal.substring(0, precision);
+    }
   }
 
   if (decimalSeparator.isEmpty) {
