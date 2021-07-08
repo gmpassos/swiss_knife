@@ -172,15 +172,15 @@ class ResourceContent {
 
     if (resource == null) return null;
 
-    _readFuture ??= resource!.readAsString().then((c) {
+    try {
+      _readFuture = resource!.readAsString();
+      var c = await _readFuture;
       _onLoad(c, false);
       return c;
-    }, onError: (e) {
+    } catch (e) {
       _onLoad(null, true);
       return null;
-    });
-
-    return _readFuture;
+    }
   }
 
   /// Returns the content if [isLoaded].

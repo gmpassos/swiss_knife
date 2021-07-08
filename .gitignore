@@ -12,6 +12,8 @@ doc/api/
 
 swiss_knife.iml
 
+# test_cov files:
 coverage/
+test/.test_cov.dart
 test/.test_coverage.dart
 coverage_badge.svg

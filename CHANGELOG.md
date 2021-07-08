@@ -1,3 +1,8 @@
+## 3.0.8
+
+- Test coverage.
+- Added FOSSA Status.
+
 ## 3.0.7
 
 - Added `Math.clamp`.

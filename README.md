@@ -2,7 +2,6 @@
 
 [![pub package](https://img.shields.io/pub/v/swiss_knife.svg?logo=dart&logoColor=00b9fc)](https://pub.dartlang.org/packages/swiss_knife)
 [![Null Safety](https://img.shields.io/badge/null-safety-brightgreen)](https://dart.dev/null-safety)
-
 [![CI](https://img.shields.io/github/workflow/status/gmpassos/swiss_knife/Dart%20CI/master?logo=github-actions&logoColor=white)](https://github.com/gmpassos/swiss_knife/actions)
 [![GitHub Tag](https://img.shields.io/github/v/tag/gmpassos/swiss_knife?logo=git&logoColor=white)](https://github.com/gmpassos/swiss_knife/releases)
 [![New Commits](https://img.shields.io/github/commits-since/gmpassos/swiss_knife/latest?logo=git&logoColor=white)](https://github.com/gmpassos/swiss_knife/network)
@@ -10,6 +9,7 @@
 [![Pull Requests](https://img.shields.io/github/issues-pr/gmpassos/swiss_knife?logo=github&logoColor=white)](https://github.com/gmpassos/swiss_knife/pulls)
 [![Code size](https://img.shields.io/github/languages/code-size/gmpassos/swiss_knife?logo=github&logoColor=white)](https://github.com/gmpassos/swiss_knife)
 [![License](https://img.shields.io/github/license/gmpassos/swiss_knife?logo=open-source-initiative&logoColor=green)](https://github.com/gmpassos/swiss_knife/blob/master/LICENSE)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fgmpassos%2Fswiss_knife.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fgmpassos%2Fswiss_knife?ref=badge_shield)
 
 Dart Useful Tools:
 
@@ -76,3 +76,5 @@ Graciliano M. Passos: [gmpassos@GitHub][github].
 ## License
 
 Dart free & open-source [license](https://github.com/dart-lang/stagehand/blob/master/LICENSE).
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fgmpassos%2Fswiss_knife.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fgmpassos%2Fswiss_knife?ref=badge_large)
