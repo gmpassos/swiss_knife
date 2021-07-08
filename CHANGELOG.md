@@ -1,5 +1,6 @@
 ## 3.0.8
 
+- Fixed `ResourceContent` load with errors.
 - Test coverage.
 - Added FOSSA Status.
 
