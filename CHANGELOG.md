@@ -1,3 +1,8 @@
+## 3.1.1
+
+- `parseBool`:
+ - Improve possible valid values.
+
 ## 3.1.0
 
 - Migrate to `lints`:

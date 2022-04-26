@@ -388,7 +388,7 @@ num? parseNum(Object? v, [num? def]) {
 ///
 /// if [v] is [num]: true when [v > 0]
 ///
-/// if [v] is [String]: true when [v == "true"|"yes"|"ok"|"1"|"y"|"s"|"t"|"+"
+/// if [v] is [String]: true when [v == "true"|"yes"|"ok"|"on"|"enabled"|"1"|"y"|"s"|"t"|"+"
 ///
 /// [def] The default value if [v] is invalid.
 bool? parseBool(Object? v, [bool? def]) {
@@ -412,6 +412,11 @@ bool? parseBool(Object? v, [bool? def]) {
   return s == 'true' ||
       s == 'yes' ||
       s == 'ok' ||
+      s == 'on' ||
+      s == 'enabled' ||
+      s == 'active' ||
+      s == 'activated' ||
+      s == 'selected' ||
       s == '1' ||
       s == 'y' ||
       s == 's' ||

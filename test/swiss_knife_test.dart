@@ -347,6 +347,41 @@ void main() {
       expect(Math.mean([2, 4]), equals(3));
     });
 
+    test('parseBool', () {
+      expect(parseBool(true), isTrue);
+      expect(parseBool(false), isFalse);
+
+      expect(parseBool('true'), isTrue);
+      expect(parseBool('false'), isFalse);
+
+      expect(parseBool(1), isTrue);
+      expect(parseBool(0), isFalse);
+
+      expect(parseBool('1'), isTrue);
+      expect(parseBool('0'), isFalse);
+
+      expect(parseBool('yes'), isTrue);
+      expect(parseBool('no'), isFalse);
+
+      expect(parseBool('ok'), isTrue);
+      expect(parseBool('no'), isFalse);
+
+      expect(parseBool('on'), isTrue);
+      expect(parseBool('off'), isFalse);
+
+      expect(parseBool('On'), isTrue);
+      expect(parseBool('Off'), isFalse);
+
+      expect(parseBool('enabled'), isTrue);
+      expect(parseBool('disabled'), isFalse);
+
+      expect(parseBool('active'), isTrue);
+      expect(parseBool('disabled'), isFalse);
+
+      expect(parseBool('activated'), isTrue);
+      expect(parseBool('deactivated'), isFalse);
+    });
+
     test('parseNum', () {
       expect(parseNum(0), equals(0));
       expect(parseNum(1), equals(1));
