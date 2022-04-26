@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:swiss_knife/src/collections.dart';
+import 'collections.dart';
 
 /// Calls a function with a [delayMs].
 ///
@@ -77,7 +77,7 @@ List<String> split(String s, Pattern delimiter, [int? limit]) {
   if (delimiter is String) {
     return _split(s, delimiter, limit);
   } else if (delimiter is RegExp) {
-    return _split_RegExp(s, delimiter, limit);
+    return _splitRegExp(s, delimiter, limit);
   } else {
     throw ArgumentError('Invalid delimiter type: $delimiter');
   }
@@ -120,7 +120,7 @@ List<String> _split(String s, String delimiter, int? limit) {
   return parts;
 }
 
-List<String> _split_RegExp(String s, RegExp delimiter, int? limit) {
+List<String> _splitRegExp(String s, RegExp delimiter, int? limit) {
   if (limit == null) return s.split(delimiter);
   if (limit == 1) return [s];
 
@@ -192,6 +192,13 @@ class Parameters2<A, B> extends Parameter<A> {
   @override
   Parameters2<A?, B?> copy() => Parameters2(deepCopy(a), deepCopy(b));
 
+  int? _hashCode2;
+
+  @override
+  int get hashCode => super.hashCode ^ (_hashCode2 ??= computeHashCode2);
+
+  int get computeHashCode2 => deepHashCode(b);
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -215,6 +222,13 @@ class Parameters3<A, B, C> extends Parameters2<A, B> {
   Parameters3<A?, B?, C?> copy() =>
       Parameters3(deepCopy(a), deepCopy(b), deepCopy(c));
 
+  int? _hashCode3;
+
+  @override
+  int get hashCode => super.hashCode ^ (_hashCode3 ??= computeHashCode3);
+
+  int get computeHashCode3 => deepHashCode(c);
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -237,6 +251,13 @@ class Parameters4<A, B, C, D> extends Parameters3<A, B, C> {
   @override
   Parameters4<A?, B?, C?, D?> copy() =>
       Parameters4(deepCopy(a), deepCopy(b), deepCopy(c), deepCopy(d));
+
+  int? _hashCode4;
+
+  @override
+  int get hashCode => super.hashCode ^ (_hashCode4 ??= computeHashCode4);
+
+  int get computeHashCode4 => deepHashCode(d);
 
   @override
   bool operator ==(Object other) =>

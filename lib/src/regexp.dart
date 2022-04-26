@@ -1,4 +1,4 @@
-import 'package:swiss_knife/src/collections.dart';
+import 'collections.dart';
 
 /// Returns [true] if [regExp] has any match at [s].
 ///
@@ -210,10 +210,10 @@ class RegExpDialect {
     }
   }
 
-  static final _PATTERN_WORD_PLACEHOLDER = RegExp(r'(\\\$|\$)(\w+)');
+  static final _patternWordPlaceholder = RegExp(r'(\\\$|\$)(\w+)');
 
   RegExp _compileWordPattern(Map<String, String> words, String pattern) {
-    var translated = pattern.replaceAllMapped(_PATTERN_WORD_PLACEHOLDER, (m) {
+    var translated = pattern.replaceAllMapped(_patternWordPlaceholder, (m) {
       var mark = m.group(1);
       var key = m.group(2);
 
@@ -244,7 +244,7 @@ class RegExpDialect {
         throw StateError("Can't use word with compilation error! Word: $word");
       }
 
-      var patternWords = _PATTERN_WORD_PLACEHOLDER
+      var patternWords = _patternWordPlaceholder
           .allMatches(pattern)
           .map((m) => m.group(2))
           .toList();
@@ -279,7 +279,7 @@ class RegExpDialect {
   }
 }
 
-final RegExp STRING_PLACEHOLDER_PATTERN = RegExp(r'{{(/?\w+(?:/\w+)*/?)}}');
+final RegExp stringPlaceholderPattern = RegExp(r'{{(/?\w+(?:/\w+)*/?)}}');
 
 /// Builds a string using as place holders in the format `{{key}}`
 /// from [parameters] and [extraParameters].
@@ -287,7 +287,7 @@ String? buildStringPattern(String? pattern, Map? parameters,
     [List<Map?>? extraParameters]) {
   if (pattern == null) return null;
 
-  return replaceStringMarks(pattern, STRING_PLACEHOLDER_PATTERN, (varName) {
+  return replaceStringMarks(pattern, stringPlaceholderPattern, (varName) {
     while (varName.startsWith('/')) {
       varName = varName.substring(1);
     }
@@ -332,7 +332,7 @@ String? replaceStringMarks(String? s, RegExp marksPattern,
 
     var val = markResolver(markName);
 
-    strFilled += '$val';
+    strFilled += val;
 
     pos = match.end;
   }

@@ -5,28 +5,28 @@ import 'collections.dart';
 /// Common mathematical functions and constants.
 class Math {
   /// Base of the natural logarithms (Euler's number).
-  static double get E => dart_math.e;
+  static double get e => dart_math.e;
 
   /// Natural logarithm of 2.
-  static double get LN2 => dart_math.ln2;
+  static double get ln2 => dart_math.ln2;
 
   /// Natural logarithm of 10.
-  static double get LN10 => dart_math.ln10;
+  static double get ln10 => dart_math.ln10;
 
   /// Base-2 logarithm of [e].
-  static double get Log2E => dart_math.log2e;
+  static double get log2E => dart_math.log2e;
 
   /// Base-10 logarithm of [e].
-  static double get Log10E => dart_math.log10e;
+  static double get log10E => dart_math.log10e;
 
   /// The PI constant.
-  static double get PI => dart_math.pi;
+  static double get pi => dart_math.pi;
 
   /// Square root of 1/2.
-  static double get Sqrt1_2 => dart_math.sqrt1_2;
+  static double get sqrtHalf => dart_math.sqrt1_2;
 
   /// Square root of 2.
-  static double get Sqrt2 => dart_math.sqrt2;
+  static double get sqrt2 => dart_math.sqrt2;
 
   /// Returns the lesser of two numbers.
   static T min<T extends num>(T a, T b) => dart_math.min(a, b);
@@ -103,10 +103,10 @@ class Math {
     return (diff >= 0.5) ? n + 1 : n;
   }
 
-  static final dart_math.Random _RANDOM = dart_math.Random();
+  static final dart_math.Random _random = dart_math.Random();
 
   /// Global random generator.
-  static double random() => _RANDOM.nextDouble();
+  static double random() => _random.nextDouble();
 
   /// If [ns] has a NaN value.
   static bool hasNaN(Iterable<num> ns) {
@@ -131,7 +131,7 @@ class Math {
   static double subtract(Iterable<num> ns) {
     if (ns.length <= 1) return 0;
 
-    var total;
+    num? total;
     for (var n in ns) {
       if (total == null) {
         total = n;
@@ -140,14 +140,14 @@ class Math {
       }
     }
 
-    return total;
+    return total!.toDouble();
   }
 
   /// Multiply in sequence [ns] entries.
   static double multiply(Iterable<num> ns) {
     if (ns.length <= 1) return 0;
 
-    var total;
+    num? total;
     for (var n in ns) {
       if (total == null) {
         total = n;
@@ -156,14 +156,14 @@ class Math {
       }
     }
 
-    return total;
+    return total!.toDouble();
   }
 
   /// Divide in sequence [ns] entries.
   static double divide(Iterable<num> ns) {
     if (ns.length <= 1) return 0;
 
-    var total;
+    num? total;
     for (var n in ns) {
       if (total == null) {
         total = n;
@@ -172,7 +172,7 @@ class Math {
       }
     }
 
-    return total;
+    return total!.toDouble();
   }
 
   /// Mean value of [ns] entries.
@@ -328,7 +328,7 @@ List<int>? parseIntList(Object? l, [List<int>? def]) {
     var l2 = l.map((e) => parseInt(e)).whereType<int>().toList();
     return l2.isNotEmpty ? l2 : (def ?? l2);
   } else if (l is String) {
-    var l2 = parseIntsFromInlineList(l, _REGEXP_SPLIT_COMMA);
+    var l2 = parseIntsFromInlineList(l, _regexpSplitComma);
     return l2 != null && l2.isNotEmpty ? l2 : (def ?? l2);
   } else {
     return def;
@@ -476,7 +476,7 @@ List<bool>? parseBoolsFromInlineList(Object? s, Pattern delimiter,
       s.toString(), delimiter, parseBool as bool Function(String)?, def);
 }
 
-RegExp _REGEXP_SPLIT_COMMA = RegExp(r'\s*,\s*');
+RegExp _regexpSplitComma = RegExp(r'\s*,\s*');
 
 /// Parses a generic [list] to a [List<num>].
 List<num> parseNumsFromList(List list) {
@@ -485,7 +485,7 @@ List<num> parseNumsFromList(List list) {
         if (e is dart_math.Point) {
           return [e.x, e.y];
         } else if (e is String) {
-          var parts = e.trim().split(_REGEXP_SPLIT_COMMA);
+          var parts = e.trim().split(_regexpSplitComma);
           var nums = parts.map((e) => parseNum(e)).toList();
           return nums.whereType<num>().toList();
         } else if (e is num) {
@@ -694,7 +694,7 @@ bool isDoubleList(Object? value, [String delimiter = ',']) {
       .hasMatch(s);
 }
 
-final RegExp _REGEXP_bool = RegExp(r'^(?:true|false|yes|no)$');
+final RegExp _regexpBool = RegExp(r'^(?:true|false|yes|no)$');
 
 /// Returns true if [value] is [bool]. Can be a bool as string too.
 bool isBool(Object? value) {
@@ -702,7 +702,7 @@ bool isBool(Object? value) {
   if (value is bool) return true;
 
   var s = value.toString().toLowerCase();
-  return _REGEXP_bool.hasMatch(s);
+  return _regexpBool.hasMatch(s);
 }
 
 /// Returns [true] if is a list of [bool]. Can be a string of bool too.
@@ -814,8 +814,8 @@ class Scale<T> {
     throw UnimplementedError();
   }
 
-  /// Denormalizes a [value] from range 0..1 to this scale.
-  T denormalize(double value) {
+  /// Denormalizes a [valueNormalized] from range 0..1 to this scale.
+  T denormalize(double valueNormalized) {
     throw UnimplementedError();
   }
 

@@ -545,59 +545,53 @@ void main() {
 
     test('MimeType', () {
       expect(
-          MimeType.parse('text/plain').toString(), equals(MimeType.TEXT_PLAIN));
+          MimeType.parse('text/plain').toString(), equals(MimeType.textPlain));
       expect(
-          MimeType.byExtension('txt').toString(), equals(MimeType.TEXT_PLAIN));
+          MimeType.byExtension('txt').toString(), equals(MimeType.textPlain));
       expect(
-          MimeType.byExtension('text').toString(), equals(MimeType.TEXT_PLAIN));
+          MimeType.byExtension('text').toString(), equals(MimeType.textPlain));
       expect(MimeType.byExtension('foo.txt').toString(),
-          equals(MimeType.TEXT_PLAIN));
+          equals(MimeType.textPlain));
 
       expect(
-          MimeType.parse('image/jpeg').toString(), equals(MimeType.IMAGE_JPEG));
-      expect(MimeType.parse('jpeg').toString(), equals(MimeType.IMAGE_JPEG));
+          MimeType.parse('image/jpeg').toString(), equals(MimeType.imageJPEG));
+      expect(MimeType.parse('jpeg').toString(), equals(MimeType.imageJPEG));
       expect(
-          MimeType.byExtension('jpeg').toString(), equals(MimeType.IMAGE_JPEG));
+          MimeType.byExtension('jpeg').toString(), equals(MimeType.imageJPEG));
       expect(
-          MimeType.byExtension('jpg').toString(), equals(MimeType.IMAGE_JPEG));
+          MimeType.byExtension('jpg').toString(), equals(MimeType.imageJPEG));
 
-      expect(
-          MimeType.parse('image/png').toString(), equals(MimeType.IMAGE_PNG));
-      expect(MimeType.parse('png').toString(), equals(MimeType.IMAGE_PNG));
-      expect(
-          MimeType.byExtension('png').toString(), equals(MimeType.IMAGE_PNG));
+      expect(MimeType.parse('image/png').toString(), equals(MimeType.imagePNG));
+      expect(MimeType.parse('png').toString(), equals(MimeType.imagePNG));
+      expect(MimeType.byExtension('png').toString(), equals(MimeType.imagePNG));
 
-      expect(
-          MimeType.parse('image/gif').toString(), equals(MimeType.IMAGE_GIF));
-      expect(MimeType.parse('gif').toString(), equals(MimeType.IMAGE_GIF));
-      expect(
-          MimeType.byExtension('gif').toString(), equals(MimeType.IMAGE_GIF));
+      expect(MimeType.parse('image/gif').toString(), equals(MimeType.imageGIF));
+      expect(MimeType.parse('gif').toString(), equals(MimeType.imageGIF));
+      expect(MimeType.byExtension('gif').toString(), equals(MimeType.imageGIF));
 
+      expect(MimeType.parse('text/html').toString(), equals(MimeType.textHTML));
+      expect(MimeType.parse('html').toString(), equals(MimeType.textHTML));
       expect(
-          MimeType.parse('text/html').toString(), equals(MimeType.TEXT_HTML));
-      expect(MimeType.parse('html').toString(), equals(MimeType.TEXT_HTML));
-      expect(
-          MimeType.byExtension('html').toString(), equals(MimeType.TEXT_HTML));
-      expect(
-          MimeType.byExtension('htm').toString(), equals(MimeType.TEXT_HTML));
+          MimeType.byExtension('html').toString(), equals(MimeType.textHTML));
+      expect(MimeType.byExtension('htm').toString(), equals(MimeType.textHTML));
 
-      expect(MimeType.parse('text/css').toString(), equals(MimeType.TEXT_CSS));
-      expect(MimeType.parse('css').toString(), equals(MimeType.TEXT_CSS));
-      expect(MimeType.byExtension('css').toString(), equals(MimeType.TEXT_CSS));
+      expect(MimeType.parse('text/css').toString(), equals(MimeType.textCSS));
+      expect(MimeType.parse('css').toString(), equals(MimeType.textCSS));
+      expect(MimeType.byExtension('css').toString(), equals(MimeType.textCSS));
 
       expect(MimeType.parse('application/json').toString(),
-          equals(MimeType.APPLICATION_JSON));
+          equals(MimeType.applicationJson));
       expect(
-          MimeType.parse('json').toString(), equals(MimeType.APPLICATION_JSON));
+          MimeType.parse('json').toString(), equals(MimeType.applicationJson));
       expect(MimeType.byExtension('json').toString(),
-          equals(MimeType.APPLICATION_JSON));
+          equals(MimeType.applicationJson));
 
       expect(MimeType.parse('javascript').toString(),
-          equals(MimeType.APPLICATION_JAVASCRIPT));
+          equals(MimeType.applicationJavaScript));
       expect(MimeType.parse('js').toString(),
-          equals(MimeType.APPLICATION_JAVASCRIPT));
+          equals(MimeType.applicationJavaScript));
       expect(MimeType.byExtension('js').toString(),
-          equals(MimeType.APPLICATION_JAVASCRIPT));
+          equals(MimeType.applicationJavaScript));
 
       expect(MimeType.parse('zip').toString(), equals('application/zip'));
       expect(MimeType.byExtension('zip').toString(), equals('application/zip'));
@@ -741,7 +735,7 @@ void main() {
 
     test('RegExpDialect error', () {
       var dialect = RegExpDialect.from({
-        's': '[ \t',
+        's': r'[ \t',
         'commas': ',+',
       },
           multiLine: false,
@@ -753,8 +747,7 @@ void main() {
       var errorWords = dialect.errorWords;
       expect(errorWords, equals(['s']));
 
-      expect(dialect.getWordErrorMessage('s'),
-          contains('FormatException: Unterminated character'));
+      expect(dialect.getWordErrorMessage('s'), contains('FormatException: '));
     });
 
     test('buildStringPattern', () {
@@ -1331,7 +1324,7 @@ void main() {
     test('getDateTimeStartOf/EndOf', () {
       expect(
           getDateTimeStartOf(
-              DateTime(2020, 03, 12, 10, 30, 59, 300), Unit.Seconds),
+              DateTime(2020, 03, 12, 10, 30, 59, 300), Unit.seconds),
           equals(DateTime(2020, 03, 12, 10, 30, 59, 0)));
       expect(getDateTimeEndOf(DateTime(2020, 03, 12, 10, 30, 59, 300), 'sec'),
           equals(DateTime(2020, 03, 12, 10, 30, 59, 999)));
@@ -1357,13 +1350,13 @@ void main() {
           equals(DateTime(2020, 03, 1, 0, 0, 0, 0)));
       expect(
           getDateTimeEndOf(
-              DateTime(2020, 03, 12, 10, 30, 59, 300), Unit.Months),
+              DateTime(2020, 03, 12, 10, 30, 59, 300), Unit.months),
           equals(DateTime(2020, 03, 31, 23, 59, 59, 999)));
 
       expect(getDateTimeStartOf(DateTime(2020, 03, 12, 10, 30, 59, 300), 'y'),
           equals(DateTime(2020, 01, 1, 0, 0, 0, 0)));
       expect(
-          getDateTimeEndOf(DateTime(2020, 03, 12, 10, 30, 59, 300), Unit.Years),
+          getDateTimeEndOf(DateTime(2020, 03, 12, 10, 30, 59, 300), Unit.years),
           equals(DateTime(2020, 12, 31, 23, 59, 59, 999)));
     });
   });

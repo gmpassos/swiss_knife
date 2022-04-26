@@ -1,7 +1,9 @@
 import 'package:resource_portable/resource.dart';
-import 'package:swiss_knife/src/events.dart';
-import 'package:swiss_knife/src/uri.dart';
-import 'package:swiss_knife/swiss_knife.dart';
+
+import 'collections.dart';
+import 'data.dart';
+import 'events.dart';
+import 'uri.dart';
 
 /// A cache for [ResourceContent].
 class ResourceContentCache {
@@ -246,7 +248,7 @@ class ResourceContent {
     return resolveURLFromReference(this, url);
   }
 
-  static final RegExp PATTERN_URL_INIT = RegExp(r'\w+://');
+  static final RegExp patternUrlInit = RegExp(r'\w+://');
 
   /// Resolves an [url] using another [ResourceContent] as [reference] (base [Uri]).
   static Future<Uri?> resolveURLFromReference(
@@ -254,7 +256,7 @@ class ResourceContent {
     if (url == null) return null;
     url = url.trim();
 
-    if (url.startsWith(PATTERN_URL_INIT)) {
+    if (url.startsWith(patternUrlInit)) {
       return Uri.parse(url);
     }
 
@@ -271,7 +273,7 @@ class ResourceContent {
       var uriPathParts = uriPath.split('/');
       if (uriPath.endsWith('/')) uriPathParts.removeLast();
 
-      var resolvedPath;
+      String? resolvedPath;
       if (uriPathParts.isNotEmpty) {
         uriPathParts.removeLast();
         uriPathParts.add(url.substring(2));
@@ -324,9 +326,8 @@ class ContextualResource<T, C extends Comparable<C>>
     throw StateError("Can't resolve resource ($resource) context: $context");
   }
 
-  ContextualResource(T resource, Object? context)
-      : resource = resource,
-        context = _resolveContext<T, C>(resource, context);
+  ContextualResource(this.resource, Object? context)
+      : context = _resolveContext<T, C>(resource, context);
 
   static List<ContextualResource<T, C>> toList<T, C extends Comparable<C>>(
           Iterable<T> resources, C? Function(T resource) context) =>

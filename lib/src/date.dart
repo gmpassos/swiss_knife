@@ -1,9 +1,9 @@
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/date_symbols.dart';
 import 'package:intl/intl.dart';
-import 'package:swiss_knife/src/math.dart';
 
 import 'collections.dart';
+import 'math.dart';
 
 /// Returns the current time in milliseconds since epoch.
 int getCurrentTimeMillis() {
@@ -31,6 +31,7 @@ void _initializeDateFormatting() {
   initializeDateFormatting(locale, null);
 }
 
+// ignore: non_constant_identifier_names
 String dateFormat_YYYY_MM_dd_HH_mm_ss(
     [int? time, String delimiter = '-', String hourDelimiter = ':']) {
   return _dateFormat(
@@ -38,28 +39,34 @@ String dateFormat_YYYY_MM_dd_HH_mm_ss(
       time);
 }
 
+// ignore: non_constant_identifier_names
 String dateFormat_YYYY_MM_dd_HH_mm(
     [int? time, String delimiter = '-', String hourDelimiter = ':']) {
   return _dateFormat(
       'yyyy${delimiter}MM${delimiter}dd HH${hourDelimiter}mm', time);
 }
 
+// ignore: non_constant_identifier_names
 String dateFormat_YYYY_MM_dd_HH([int? time, String delimiter = '-']) {
   return _dateFormat('yyyy${delimiter}MM-dd HH', time);
 }
 
+// ignore: non_constant_identifier_names
 String dateFormat_YYYY_MM_dd([int? time, String delimiter = '-']) {
   return _dateFormat('yyyy${delimiter}MM${delimiter}dd', time);
 }
 
+// ignore: non_constant_identifier_names
 String dateFormat_YY_MM_dd([int? time, String delimiter = '-']) {
   return _dateFormat('yy${delimiter}MM${delimiter}dd', time);
 }
 
+// ignore: non_constant_identifier_names
 String dateFormat_YY_MM([int? time, String delimiter = '-']) {
   return _dateFormat('yy${delimiter}MM', time);
 }
 
+// ignore: non_constant_identifier_names
 String dateFormat_YYYY_MM([int? time, String delimiter = '-']) {
   return _dateFormat('yyyy${delimiter}MM', time);
 }
@@ -177,16 +184,16 @@ Duration? parseDuration(String? unit, [int amount = 0, Duration? def]) {
 }
 
 enum Unit {
-  Microseconds,
-  Milliseconds,
-  Seconds,
-  Minutes,
-  Hours,
-  Days,
-  Weeks,
-  Months,
-  Quarters,
-  Years,
+  microseconds,
+  milliseconds,
+  seconds,
+  minutes,
+  hours,
+  days,
+  weeks,
+  months,
+  quarters,
+  years,
 }
 
 Unit? getUnitByIndex(int? index, [Unit? def]) {
@@ -203,52 +210,52 @@ Unit? getUnitByName(String? name, [Unit? def]) {
     case 'y':
     case 'year':
     case 'years':
-      return Unit.Years;
+      return Unit.years;
 
     case 'q':
     case 'quarter':
     case 'quarters':
-      return Unit.Quarters;
+      return Unit.quarters;
 
     case 'month':
     case 'months':
-      return Unit.Months;
+      return Unit.months;
 
     case 'w':
     case 'week':
     case 'weeks':
-      return Unit.Weeks;
+      return Unit.weeks;
 
     case 'd':
     case 'day':
     case 'days':
-      return Unit.Days;
+      return Unit.days;
 
     case 'h':
     case 'hr':
     case 'hrs':
     case 'hour':
     case 'hours':
-      return Unit.Hours;
+      return Unit.hours;
 
     case 'm':
     case 'min':
     case 'minute':
     case 'minutes':
-      return Unit.Minutes;
+      return Unit.minutes;
 
     case 's':
     case 'sec':
     case 'second':
     case 'seconds':
-      return Unit.Seconds;
+      return Unit.seconds;
 
     case 'ms':
     case 'milli':
     case 'millis':
     case 'millisecond':
     case 'milliseconds':
-      return Unit.Milliseconds;
+      return Unit.milliseconds;
 
     case 'µs':
     case 'µsec':
@@ -258,7 +265,7 @@ Unit? getUnitByName(String? name, [Unit? def]) {
     case 'micros':
     case 'microsecond':
     case 'microseconds':
-      return Unit.Microseconds;
+      return Unit.microseconds;
 
     default:
       return def;
@@ -285,23 +292,23 @@ int? _getUnitMilliseconds(Object? unit) {
   var unitParsed = parseUnit(unit);
 
   switch (unitParsed) {
-    case Unit.Milliseconds:
+    case Unit.milliseconds:
       return 1;
-    case Unit.Seconds:
+    case Unit.seconds:
       return 1000;
-    case Unit.Minutes:
+    case Unit.minutes:
       return 1000 * 60;
-    case Unit.Hours:
+    case Unit.hours:
       return 1000 * 60 * 60;
-    case Unit.Days:
+    case Unit.days:
       return 1000 * 60 * 60 * 24;
-    case Unit.Weeks:
+    case Unit.weeks:
       return 1000 * 60 * 60 * 24 * 7;
-    case Unit.Months:
+    case Unit.months:
       return 1000 * 60 * 60 * 24 * 30;
-    case Unit.Quarters:
+    case Unit.quarters:
       return 1000 * 60 * 60 * 24 * 90;
-    case Unit.Years:
+    case Unit.years:
       return 1000 * 60 * 60 * 24 * 365;
     default:
       return null;
@@ -350,13 +357,13 @@ int getDateHour([int? time]) {
   return int.parse(s);
 }
 
-const int ONE_SECOND = 1000;
+const int ondeSecond = 1000;
 
-const int ONE_MINUTE = ONE_SECOND * 60;
+const int oneMinute = ondeSecond * 60;
 
-const int ONE_HOUR = ONE_MINUTE * 60;
+const int oneHour = oneMinute * 60;
 
-const int ONE_DAY = ONE_HOUR * 24;
+const int oneDay = oneHour * 24;
 
 String formatTimeMillis(int? time) {
   if (time == null || time == 0) return '0';
@@ -368,28 +375,28 @@ String formatTimeMillis(int? time) {
     time = -time;
   }
 
-  if (time < ONE_SECOND) {
+  if (time < ondeSecond) {
     return '$sig$time ms';
-  } else if (time < ONE_MINUTE) {
-    var t = time / ONE_SECOND;
+  } else if (time < oneMinute) {
+    var t = time / ondeSecond;
     var f = formatDecimal(t);
     return '$sig$f sec';
-  } else if (time < ONE_HOUR) {
-    var t = time / ONE_MINUTE;
+  } else if (time < oneHour) {
+    var t = time / oneMinute;
 
     var min = t.toInt();
     var sec = ((t - min) * 60).toInt();
 
     return sec > 0 ? '$sig$min min $sec s' : ('$sig$min min');
-  } else if (time < ONE_DAY) {
-    var t = time / ONE_HOUR;
+  } else if (time < oneDay) {
+    var t = time / oneHour;
 
     var hour = t.toInt();
     var min = ((t - hour) * 60).toInt();
 
     return min > 0 ? '$sig$hour h $min min' : '$sig$hour h';
   } else {
-    var t = time / ONE_DAY;
+    var t = time / oneDay;
 
     var day = t.toInt();
     var hour = ((t - day) * 24).toInt();
@@ -400,13 +407,13 @@ String formatTimeMillis(int? time) {
 
 /// Represents a Week day.
 enum DateTimeWeekDay {
-  Monday,
-  Tuesday,
-  Wednesday,
-  Thursday,
-  Friday,
-  Saturday,
-  Sunday
+  monday,
+  tuesday,
+  wednesday,
+  thursday,
+  friday,
+  saturday,
+  sunday
 }
 
 /// Gets index of DateTimeWeekDay, starting from 1 (Monday) to 7 (Sunday), same range as [ DateTime.wednesday ].
@@ -414,19 +421,19 @@ int? getDateTimeWeekDayIndex(DateTimeWeekDay? weekDay) {
   if (weekDay == null) return null;
 
   switch (weekDay) {
-    case DateTimeWeekDay.Monday:
+    case DateTimeWeekDay.monday:
       return 1;
-    case DateTimeWeekDay.Tuesday:
+    case DateTimeWeekDay.tuesday:
       return 2;
-    case DateTimeWeekDay.Wednesday:
+    case DateTimeWeekDay.wednesday:
       return 3;
-    case DateTimeWeekDay.Thursday:
+    case DateTimeWeekDay.thursday:
       return 4;
-    case DateTimeWeekDay.Friday:
+    case DateTimeWeekDay.friday:
       return 5;
-    case DateTimeWeekDay.Saturday:
+    case DateTimeWeekDay.saturday:
       return 6;
-    case DateTimeWeekDay.Sunday:
+    case DateTimeWeekDay.sunday:
       return 7;
     default:
       return null;
@@ -439,19 +446,19 @@ DateTimeWeekDay? getDateTimeWeekDay(int? weekDayIndex) {
 
   switch (weekDayIndex) {
     case 1:
-      return DateTimeWeekDay.Monday;
+      return DateTimeWeekDay.monday;
     case 2:
-      return DateTimeWeekDay.Tuesday;
+      return DateTimeWeekDay.tuesday;
     case 3:
-      return DateTimeWeekDay.Wednesday;
+      return DateTimeWeekDay.wednesday;
     case 4:
-      return DateTimeWeekDay.Thursday;
+      return DateTimeWeekDay.thursday;
     case 5:
-      return DateTimeWeekDay.Friday;
+      return DateTimeWeekDay.friday;
     case 6:
-      return DateTimeWeekDay.Saturday;
+      return DateTimeWeekDay.saturday;
     case 7:
-      return DateTimeWeekDay.Sunday;
+      return DateTimeWeekDay.sunday;
     default:
       throw ArgumentError(
           'Invalid DateTime weekDay index. Should be of range 1-7, where Monday is 1 and Sunday is 7 (Monday-to-Sunday week).');
@@ -461,24 +468,25 @@ DateTimeWeekDay? getDateTimeWeekDay(int? weekDayIndex) {
 /// Returns enum [DateTimeWeekDay] using [weekDayIndex] compliant with ISO 8601.
 ///
 /// [weekDayIndex] From 0 (Monday) to 6 (Sunday).
+// ignore: non_constant_identifier_names
 DateTimeWeekDay? getDateTimeWeekDay_from_ISO_8601_index(int? weekDayIndex) {
   if (weekDayIndex == null) return null;
 
   switch (weekDayIndex) {
     case 0:
-      return DateTimeWeekDay.Monday;
+      return DateTimeWeekDay.monday;
     case 1:
-      return DateTimeWeekDay.Tuesday;
+      return DateTimeWeekDay.tuesday;
     case 2:
-      return DateTimeWeekDay.Wednesday;
+      return DateTimeWeekDay.wednesday;
     case 3:
-      return DateTimeWeekDay.Thursday;
+      return DateTimeWeekDay.thursday;
     case 4:
-      return DateTimeWeekDay.Friday;
+      return DateTimeWeekDay.friday;
     case 5:
-      return DateTimeWeekDay.Saturday;
+      return DateTimeWeekDay.saturday;
     case 6:
-      return DateTimeWeekDay.Sunday;
+      return DateTimeWeekDay.sunday;
     default:
       throw ArgumentError(
           'Invalid ISO 8601 weekDay index. Should be of range 0-6, where Monday is 0 and Sunday is 6 (Monday-to-Sunday week).');
@@ -493,19 +501,19 @@ DateTimeWeekDay? getDateTimeWeekDayByName(String? weekDayName) {
 
   switch (weekDayName) {
     case 'monday':
-      return DateTimeWeekDay.Monday;
+      return DateTimeWeekDay.monday;
     case 'tuesday':
-      return DateTimeWeekDay.Tuesday;
+      return DateTimeWeekDay.tuesday;
     case 'wednesday':
-      return DateTimeWeekDay.Wednesday;
+      return DateTimeWeekDay.wednesday;
     case 'thursday':
-      return DateTimeWeekDay.Thursday;
+      return DateTimeWeekDay.thursday;
     case 'friday':
-      return DateTimeWeekDay.Friday;
+      return DateTimeWeekDay.friday;
     case 'saturday':
-      return DateTimeWeekDay.Saturday;
+      return DateTimeWeekDay.saturday;
     case 'sunday':
-      return DateTimeWeekDay.Sunday;
+      return DateTimeWeekDay.sunday;
     default:
       throw ArgumentError('Invalid DateTime week day name. Should in English.');
   }
@@ -642,7 +650,7 @@ int getLastDayOfMonth(int month, {int? year}) {
 /// [weekFirstDay] the desired first day of week for computation behavior.
 /// [time] if null uses [ DateTime.now ].
 DateTime getDateTimeWeekStart([DateTimeWeekDay? weekFirstDay, DateTime? time]) {
-  weekFirstDay ??= DateTimeWeekDay.Monday;
+  weekFirstDay ??= DateTimeWeekDay.monday;
   time ??= DateTime.now();
 
   var weekFirstDayIndex = getDateTimeWeekDayIndex(weekFirstDay);
@@ -659,7 +667,7 @@ DateTime getDateTimeWeekStart([DateTimeWeekDay? weekFirstDay, DateTime? time]) {
 /// [weekFirstDay] the desired first day of week for computation behavior.
 /// [time] if null uses [ DateTime.now ].
 DateTime getDateTimeWeekEnd([DateTimeWeekDay? weekFirstDay, DateTime? now]) {
-  weekFirstDay ??= DateTimeWeekDay.Monday;
+  weekFirstDay ??= DateTimeWeekDay.monday;
   now ??= DateTime.now();
 
   var weekStart = getDateTimeWeekStart(weekFirstDay, now);
@@ -672,34 +680,34 @@ DateTime getDateTimeWeekEnd([DateTimeWeekDay? weekFirstDay, DateTime? now]) {
 /// Enum for types of date ranges.
 enum DateRangeType {
   /// Today.
-  TODAY,
+  today,
 
   /// Yesterday.
-  YESTERDAY,
+  yesterday,
 
   /// Last 7 days.
-  LAST_7_DAYS,
+  last7Days,
 
   /// Current week.
-  THIS_WEEK,
+  thisWeek,
 
   /// Previous week.
-  LAST_WEEK,
+  lastWeek,
 
   /// Last 30 days.
-  LAST_30_DAYS,
+  last30Days,
 
   /// Last 60 days.
-  LAST_60_DAYS,
+  last60Days,
 
   /// Last 90 days.
-  LAST_90_DAYS,
+  last90Days,
 
   /// Previous month.
-  LAST_MONTH,
+  lastMonth,
 
   /// Current month.
-  THIS_MONTH,
+  thisMonth,
 }
 
 /// Returns start and end of date range [rangeType].
@@ -714,30 +722,30 @@ Pair<DateTime> getDateTimeRange(DateRangeType rangeType,
   var nowEnd = getDateTimeDayEnd(time);
 
   switch (rangeType) {
-    case DateRangeType.TODAY:
+    case DateRangeType.today:
       return Pair(nowStart, nowEnd);
-    case DateRangeType.YESTERDAY:
+    case DateRangeType.yesterday:
       {
         var timeYesterday = getDateTimeYesterday(time);
         return Pair(timeYesterday, getDateTimeDayEnd(timeYesterday));
       }
 
-    case DateRangeType.LAST_7_DAYS:
+    case DateRangeType.last7Days:
       return getDateTimeLastNDays(6, nowEnd);
-    case DateRangeType.THIS_WEEK:
+    case DateRangeType.thisWeek:
       return getDateTimeThisWeek(weekFirstDay, nowStart);
-    case DateRangeType.LAST_WEEK:
+    case DateRangeType.lastWeek:
       return getDateTimeLastWeek(weekFirstDay, nowStart);
 
-    case DateRangeType.LAST_30_DAYS:
+    case DateRangeType.last30Days:
       return getDateTimeLastNDays(29, time);
-    case DateRangeType.LAST_60_DAYS:
+    case DateRangeType.last60Days:
       return getDateTimeLastNDays(59, time);
-    case DateRangeType.LAST_90_DAYS:
+    case DateRangeType.last90Days:
       return getDateTimeLastNDays(89, time);
-    case DateRangeType.LAST_MONTH:
+    case DateRangeType.lastMonth:
       return getDateTimeLastMonth(time);
-    case DateRangeType.THIS_MONTH:
+    case DateRangeType.thisMonth:
       return getDateTimeThisMonth(time);
     default:
       throw UnsupportedError("Can't handle: $rangeType");
@@ -754,26 +762,26 @@ DateTime? getDateTimeStartOf(DateTime time, Object? unit,
   if (unitParsed == null) return null;
 
   switch (unitParsed) {
-    case Unit.Years:
+    case Unit.years:
       return DateTime(time.year);
-    case Unit.Quarters:
+    case Unit.quarters:
       return DateTime(time.year, (time.month ~/ 3) * 3);
-    case Unit.Weeks:
+    case Unit.weeks:
       {
         weekFirstDay ??= getWeekFirstDay(locale);
         var dateTimeRange =
-            getDateTimeRange(DateRangeType.THIS_WEEK, time, weekFirstDay);
+            getDateTimeRange(DateRangeType.thisWeek, time, weekFirstDay);
         return dateTimeRange.a;
       }
-    case Unit.Months:
+    case Unit.months:
       return DateTime(time.year, time.month);
-    case Unit.Days:
+    case Unit.days:
       return DateTime(time.year, time.month, time.day);
-    case Unit.Hours:
+    case Unit.hours:
       return DateTime(time.year, time.month, time.day, time.hour);
-    case Unit.Minutes:
+    case Unit.minutes:
       return DateTime(time.year, time.month, time.day, time.hour, time.minute);
-    case Unit.Seconds:
+    case Unit.seconds:
       return DateTime(
           time.year, time.month, time.day, time.hour, time.minute, time.second);
     default:
@@ -797,27 +805,27 @@ DateTime? getDateTimeEndOf(DateTime time, Object? unit,
   if (unitParsed == null) return null;
 
   switch (unitParsed) {
-    case Unit.Years:
+    case Unit.years:
       return DateTime(time.year, 12, 31, 23, 59, 59, 999);
-    case Unit.Quarters:
+    case Unit.quarters:
       return getDateTimeThisMonth(getDateTimeStartOf(time, unitParsed)).b;
-    case Unit.Weeks:
+    case Unit.weeks:
       {
         weekFirstDay ??= getWeekFirstDay(locale);
         var dateTimeRange =
-            getDateTimeRange(DateRangeType.THIS_WEEK, time, weekFirstDay);
+            getDateTimeRange(DateRangeType.thisWeek, time, weekFirstDay);
         return dateTimeRange.b;
       }
-    case Unit.Months:
+    case Unit.months:
       return getDateTimeThisMonth(DateTime(time.year, time.month, 1)).b;
-    case Unit.Days:
+    case Unit.days:
       return DateTime(time.year, time.month, time.day, 23, 59, 59, 999);
-    case Unit.Hours:
+    case Unit.hours:
       return DateTime(time.year, time.month, time.day, time.hour, 59, 59, 999);
-    case Unit.Minutes:
+    case Unit.minutes:
       return DateTime(
           time.year, time.month, time.day, time.hour, time.minute, 59, 999);
-    case Unit.Seconds:
+    case Unit.seconds:
       return DateTime(time.year, time.month, time.day, time.hour, time.minute,
           time.second, 999);
     default:

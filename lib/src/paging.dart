@@ -150,10 +150,9 @@ abstract class JSONPaging extends MapDelegate<String, dynamic> {
 
 /// Implementation for Colossus.services DB and Nodes.
 class ColossusPaging extends JSONPaging {
-  static final PagingFormatMatcher MATCHER = matches;
+  static final PagingFormatMatcher matcher = matches;
 
-  static final PagingFormatInstantiator INSTANTIATOR =
-      (json) => ColossusPaging(json);
+  static JSONPaging instantiator(json) => ColossusPaging(json);
 
   static bool matches(dynamic json) {
     if (isMapOfStringKeys(json)) {
@@ -225,10 +224,9 @@ class ColossusPaging extends JSONPaging {
 
 /// Implementation for Spring Boot.
 class SpringBootPaging extends JSONPaging {
-  static final PagingFormatMatcher MATCHER = matches;
+  static final PagingFormatMatcher matcher = matches;
 
-  static final PagingFormatInstantiator INSTANTIATOR =
-      (json) => SpringBootPaging(json);
+  static JSONPaging instantiator(json) => SpringBootPaging(json);
 
   static bool matches(dynamic json) {
     if (isMapOfStringKeys(json)) {
@@ -309,9 +307,9 @@ bool _registerPagingFormats() {
   _registerPagingFormatsCalled = true;
 
   JSONPaging._registerPagingFormatImpl(
-      ColossusPaging.MATCHER, ColossusPaging.INSTANTIATOR);
+      ColossusPaging.matcher, ColossusPaging.instantiator);
   JSONPaging._registerPagingFormatImpl(
-      SpringBootPaging.MATCHER, SpringBootPaging.INSTANTIATOR);
+      SpringBootPaging.matcher, SpringBootPaging.instantiator);
 
   return true;
 }

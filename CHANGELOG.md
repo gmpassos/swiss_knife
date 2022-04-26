@@ -1,3 +1,12 @@
+## 3.1.0
+
+- Migrate to `lints`:
+  - NOTE: some constants were renamed to lowercase camel case.
+- Improved GitHub CI.
+- Added browser tests.
+- lints: ^1.0.1
+- coverage: ^1.0.4
+
 ## 3.0.8
 
 - Fixed `ResourceContent` load with errors.

@@ -109,7 +109,7 @@ class Dimension implements Comparable<Dimension> {
     return null;
   }
 
-  static final RegExp _REGEXP_NON_DIGIT =
+  static final RegExp _regexpNonDigit =
       RegExp(r'\D', multiLine: false, caseSensitive: true);
 
   /// Parsers [wh] String, trying to split with [delimiter] between 2 numbers
@@ -136,10 +136,10 @@ class Dimension implements Comparable<Dimension> {
       var nextInt = nextC.isNotEmpty || isInt(nextC);
 
       if (prevInt && nextInt) {
-        var idxPrev = prev.lastIndexOf(_REGEXP_NON_DIGIT);
+        var idxPrev = prev.lastIndexOf(_regexpNonDigit);
         if (idxPrev >= 0) prev = prev.substring(idxPrev + 1);
 
-        var idxNext = next.indexOf(_REGEXP_NON_DIGIT);
+        var idxNext = next.indexOf(_regexpNonDigit);
         if (idxNext >= 0) next = next.substring(0, idxNext);
 
         params.add(prev);
@@ -602,7 +602,7 @@ MapEntry<String, V?>? getEntryIgnoreCase<V>(Map<String, V?> map, String? key) {
 /// Gets a [map] value ignoring [key] case.
 V? getIgnoreCase<V>(Map<String, V> map, String? key) {
   var entry = getEntryIgnoreCase(map, key);
-  return entry != null ? entry.value : null;
+  return entry?.value;
 }
 
 /// Puts a [map] value ignoring [key] case.
@@ -650,8 +650,8 @@ List<Map>? asListOfMap(Object? o) {
   }
 
   var s = o.toString();
-  var map = parseFromInlineMap(s, _INLINE_PROPERTIES_DELIMITER_PAIRS,
-      _INLINE_PROPERTIES_DELIMITER_KEYS_VALUES);
+  var map = parseFromInlineMap(
+      s, _inlinePropertiesDelimiterPairs, _inlinePropertiesDelimiterKeysValues);
   return [map!];
 }
 
@@ -689,7 +689,7 @@ bool isListOfStrings(Iterable? list) {
   if (list == null || list.isEmpty) return false;
 
   for (var value in list) {
-    if (!(value is String)) return false;
+    if (value is! String) return false;
   }
 
   return true;
@@ -726,7 +726,7 @@ dynamic asTreeOfKeyString(Object? tree) {
   }
 }
 
-final RegExp _toListOfStrings_delimiter = RegExp(r'\s+');
+final RegExp _toListOfStringsDelimiter = RegExp(r'\s+');
 
 /// Converts [s] to a [List<String>].
 /// Converts any collection to a flat list of strings.
@@ -734,7 +734,7 @@ List<String> toFlatListOfStrings(Object? s,
     {Pattern? delimiter, bool trim = true, bool ignoreEmpty = true}) {
   if (s == null) return [];
 
-  delimiter ??= _toListOfStrings_delimiter;
+  delimiter ??= _toListOfStringsDelimiter;
 
   List<String> list;
 
@@ -1096,7 +1096,7 @@ MapEntry<K, V?>? findKeyEntry<K, V>(Map? map, List<K>? keys,
 /// [ignoreCase] If [true] ignores the case of the keys.
 V? findKeyValue<K, V>(Map? map, List<K>? keys, [bool ignoreCase = false]) {
   var entry = findKeyEntry<K, V>(map, keys, ignoreCase);
-  return entry != null ? entry.value : null;
+  return entry?.value;
 }
 
 /// Finds in [map] a value that is in key path [keyPath]
@@ -1148,7 +1148,7 @@ V? findKeyPathValue<V>(Map? map, String? keyPath,
 /// [ignoreCase] If [true] ignores the case of the keys.
 K? findKeyName<K, V>(Map? map, List<K>? keys, [bool ignoreCase = false]) {
   var entry = findKeyEntry(map, keys, ignoreCase);
-  return entry != null ? entry.key : null;
+  return entry?.key;
 }
 
 /// Returns [true] if [s] is empty or null.
@@ -1280,16 +1280,16 @@ List<T>? parseFromInlineList<T>(String? s, Pattern delimiter,
   return list;
 }
 
-final RegExp _INLINE_PROPERTIES_DELIMITER_PAIRS = RegExp(r'\s*;\s*');
-final RegExp _INLINE_PROPERTIES_DELIMITER_KEYS_VALUES = RegExp(r'\s*[:=]\s*');
+final RegExp _inlinePropertiesDelimiterPairs = RegExp(r'\s*;\s*');
+final RegExp _inlinePropertiesDelimiterKeysValues = RegExp(r'\s*[:=]\s*');
 
 /// Parses an inline properties, like inline CSS, to a [Map<String,String>].
 Map<String, String>? parseFromInlineProperties(String s,
     [StringMapper<String>? mapperKey,
     StringMapper<String>? mapperValue,
     Map<String, String>? def]) {
-  return parseFromInlineMap(s, _INLINE_PROPERTIES_DELIMITER_PAIRS,
-      _INLINE_PROPERTIES_DELIMITER_KEYS_VALUES, mapperKey, mapperValue, def);
+  return parseFromInlineMap(s, _inlinePropertiesDelimiterPairs,
+      _inlinePropertiesDelimiterKeysValues, mapperKey, mapperValue, def);
 }
 
 /// Parses [v] as [String].
@@ -1370,14 +1370,14 @@ MapEntry<String, String>? parseMapEntryOfStrings<K, V>(Object? e,
       return MapEntry('${e[0]}', '${e[1]}');
     } else {
       var values = e.sublist(1);
-      return MapEntry('${e[0]}', '${values.join(',')}');
+      return MapEntry('${e[0]}', values.join(','));
     }
   } else {
     delimiter ??= RegExp(r'\s*[,;:]\s*');
     var s = parseString(e)!;
     var list = split(s, delimiter, 2);
     if (list.length == 2) {
-      return MapEntry('${list[0]}', '${list[1]}');
+      return MapEntry(list[0], list[1]);
     } else {
       var first = list.first;
       if (first.length < s.length) {
@@ -1535,7 +1535,7 @@ void deepReplaceSetValues<T>(
   var entries = set.toList();
 
   for (var val in entries) {
-    var val2;
+    Object? val2;
     if (filter(set, null, val)) {
       val2 = replacer(set, null, val);
     } else {
@@ -1808,7 +1808,7 @@ class MapProperties extends MapDelegate<String, dynamic> {
   /// [def] The default value if [key] not found.
   String? getPropertyAsStringTrimLC(String key, [String? def]) {
     var val = getPropertyAsStringTrim(key, def);
-    return val != null ? val.toLowerCase() : null;
+    return val?.toLowerCase();
   }
 
   /// Finds a property with [keys]. Returns the value in lower case and trimmed.
@@ -1816,7 +1816,7 @@ class MapProperties extends MapDelegate<String, dynamic> {
   /// [def] The default value if [keys] not found.
   String? findPropertyAsStringTrimLC(List<String> keys, [String? def]) {
     var val = findPropertyAsStringTrim(keys, def);
-    return val != null ? val.toLowerCase() : null;
+    return val?.toLowerCase();
   }
 
   /// Gets a property with [key]. Returns the value in upper case and trimmed.
@@ -1824,7 +1824,7 @@ class MapProperties extends MapDelegate<String, dynamic> {
   /// [def] The default value if [key] not found.
   String? getPropertyAsStringTrimUC(String key, [String? def]) {
     var val = getPropertyAsStringTrim(key, def);
-    return val != null ? val.toUpperCase() : null;
+    return val?.toUpperCase();
   }
 
   /// Finds a property with [keys]. Returns the value in upper case and trimmed.
@@ -1832,7 +1832,7 @@ class MapProperties extends MapDelegate<String, dynamic> {
   /// [def] The default value if [keys] not found.
   String? findPropertyAsStringTrimUC(List<String> keys, [String? def]) {
     var val = findPropertyAsStringTrim(keys, def);
-    return val != null ? val.toUpperCase() : null;
+    return val?.toUpperCase();
   }
 
   /// Gets a property with [key]. Returns the value trimmed.
@@ -1840,7 +1840,7 @@ class MapProperties extends MapDelegate<String, dynamic> {
   /// [def] The default value if [key] not found.
   String? getPropertyAsStringTrim(String key, [String? def]) {
     var val = getPropertyAsString(key, def);
-    return val != null ? val.trim() : null;
+    return val?.trim();
   }
 
   /// Finds a property with [keys]. Returns the value trimmed.
@@ -1848,7 +1848,7 @@ class MapProperties extends MapDelegate<String, dynamic> {
   /// [def] The default value if [keys] not found.
   String? findPropertyAsStringTrim(List<String> keys, [String? def]) {
     var val = findPropertyAsString(keys, def);
-    return val != null ? val.trim() : null;
+    return val?.trim();
   }
 
   /// Gets a property with [key]. Returns the value as [String].
@@ -2178,9 +2178,8 @@ class NNField<T> {
   T _value;
 
   NNField(this.defaultValue,
-      {bool deepHashcode = false, this.filter, this.resolver})
-      : deepHashcode = deepHashcode,
-        _value = defaultValue;
+      {this.deepHashcode = false, this.filter, this.resolver})
+      : _value = defaultValue;
 
   /// The filed value as [T].
   T get value => get();
@@ -2490,15 +2489,14 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
   final bool Function(K parent, K child, bool deep)? childChecker;
 
   TreeReferenceMap(this.root,
-      {bool autoPurge = false,
+      {this.autoPurge = false,
       bool keepPurgedKeys = false,
       this.purgedEntriesTimeout,
       this.maxPurgedEntries,
       this.parentGetter,
       this.childrenGetter,
       this.childChecker})
-      : autoPurge = autoPurge,
-        keepPurgedEntries = keepPurgedKeys;
+      : keepPurgedEntries = keepPurgedKeys;
 
   final Map<K, V> _map = {};
 
@@ -2550,7 +2548,7 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
     if (key == null) return subValues;
 
     if (includePurgedEntries) {
-      _getSubValuesImpl_includePurgedEntries(key, subValues);
+      _getSubValuesImplIncludePurgedEntries(key, subValues);
     } else {
       _getSubValuesImpl(key, subValues);
     }
@@ -2571,7 +2569,7 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
     }
   }
 
-  void _getSubValuesImpl_includePurgedEntries(K key, List<V> subValues) {
+  void _getSubValuesImplIncludePurgedEntries(K key, List<V> subValues) {
     var children = getChildrenOf(key);
     if (children.isEmpty) return;
 
@@ -2580,7 +2578,7 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
       if (value != null) {
         subValues.add(value);
       } else {
-        _getSubValuesImpl_includePurgedEntries(child, subValues);
+        _getSubValuesImplIncludePurgedEntries(child, subValues);
       }
     }
   }

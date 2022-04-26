@@ -10,17 +10,17 @@ bool isNonBlankChar(String? c) {
   return !isBlankChar(c);
 }
 
-final int _codeUnit_space = ' '.codeUnitAt(0);
-final int _codeUnit_n = '\n'.codeUnitAt(0);
-final int _codeUnit_r = '\r'.codeUnitAt(0);
-final int _codeUnit_t = '\t'.codeUnitAt(0);
+final int _codeUnitSpace = ' '.codeUnitAt(0);
+final int _codeUnitN = '\n'.codeUnitAt(0);
+final int _codeUnitR = '\r'.codeUnitAt(0);
+final int _codeUnitT = '\t'.codeUnitAt(0);
 
 /// Returns [true] if [c] is a blank char code unit.
 bool isBlankCodeUnit(int c) {
-  return c == _codeUnit_space ||
-      c == _codeUnit_n ||
-      c == _codeUnit_t ||
-      c == _codeUnit_r;
+  return c == _codeUnitSpace ||
+      c == _codeUnitN ||
+      c == _codeUnitT ||
+      c == _codeUnitR;
 }
 
 /// Returns ![isBlankCodeUnit].
@@ -71,12 +71,19 @@ bool isBlankStringInRange(String s, int offset, int length) {
   return true;
 }
 
+// ignore: non_constant_identifier_names
 final int _codeUnit__ = '_'.codeUnitAt(0);
+// ignore: non_constant_identifier_names
 final int _codeUnit_0 = '0'.codeUnitAt(0);
+// ignore: non_constant_identifier_names
 final int _codeUnit_9 = '9'.codeUnitAt(0);
+// ignore: non_constant_identifier_names
 final int _codeUnit_a = 'a'.codeUnitAt(0);
+// ignore: non_constant_identifier_names
 final int _codeUnit_z = 'z'.codeUnitAt(0);
+// ignore: non_constant_identifier_names
 final int _codeUnit_A = 'A'.codeUnitAt(0);
+// ignore: non_constant_identifier_names
 final int _codeUnit_Z = 'Z'.codeUnitAt(0);
 
 bool isDigit(int c) {

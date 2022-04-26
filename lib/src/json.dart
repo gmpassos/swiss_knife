@@ -1,9 +1,8 @@
 import 'dart:convert' as dart_convert;
 
-import 'package:swiss_knife/src/string.dart';
-import 'package:swiss_knife/swiss_knife.dart';
-
 import 'collections.dart';
+import 'math.dart';
+import 'string.dart';
 
 /// Parses [json] to a JSON tree.
 ///

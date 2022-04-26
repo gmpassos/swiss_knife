@@ -1,7 +1,6 @@
 import 'dart:async';
 
-import 'package:swiss_knife/src/collections.dart';
-
+import 'collections.dart';
 import 'math.dart';
 
 class _ListenSignature {

@@ -21,73 +21,73 @@ import 'utils.dart';
 ///   - pdf: application/pdf
 ///
 class MimeType {
-  static const APPLICATION_JSON = 'application/json';
+  static const applicationJson = 'application/json';
 
-  static const JSON = APPLICATION_JSON;
+  static const json = applicationJson;
 
-  static const APPLICATION_JAVASCRIPT = 'application/javascript';
+  static const applicationJavaScript = 'application/javascript';
 
-  static const JAVASCRIPT = APPLICATION_JAVASCRIPT;
+  static const javaScript = applicationJavaScript;
 
-  static const APPLICATION_ZIP = 'application/zip';
+  static const applicationZip = 'application/zip';
 
-  static const ZIP = APPLICATION_ZIP;
+  static const zip = applicationZip;
 
-  static const APPLICATION_GZIP = 'application/gzip';
+  static const applicationGzip = 'application/gzip';
 
-  static const GZIP = APPLICATION_GZIP;
+  static const gzip = applicationGzip;
 
-  static const APPLICATION_PDF = 'application/pdf';
+  static const applicationPDF = 'application/pdf';
 
-  static const PDF = APPLICATION_PDF;
+  static const pdf = applicationPDF;
 
-  static const IMAGE_JPEG = 'image/jpeg';
+  static const imageJPEG = 'image/jpeg';
 
-  static const JPEG = IMAGE_JPEG;
+  static const jpeg = imageJPEG;
 
-  static const IMAGE_PNG = 'image/png';
+  static const imagePNG = 'image/png';
 
-  static const PNG = IMAGE_PNG;
+  static const png = imagePNG;
 
-  static const IMAGE_GIF = 'image/gif';
+  static const imageGIF = 'image/gif';
 
-  static const GIF = IMAGE_GIF;
+  static const gif = imageGIF;
 
-  static const IMAGE_ICON = 'image/x-icon';
+  static const imageIcon = 'image/x-icon';
 
-  static const ICON = IMAGE_ICON;
+  static const icon = imageIcon;
 
-  static const IMAGE_SVG = 'image/svg+xml';
+  static const imageSVG = 'image/svg+xml';
 
-  static const SVG = IMAGE_SVG;
+  static const svg = imageSVG;
 
-  static const TEXT_HTML = 'text/html';
+  static const textHTML = 'text/html';
 
-  static const HTML = TEXT_HTML;
+  static const html = textHTML;
 
-  static const TEXT_CSS = 'text/css';
+  static const textCSS = 'text/css';
 
-  static const CSS = TEXT_CSS;
+  static const css = textCSS;
 
-  static const TEXT_PLAIN = 'text/plain';
+  static const textPlain = 'text/plain';
 
-  static const TEXT = TEXT_PLAIN;
+  static const text = textPlain;
 
-  static const APPLICATION_XML = 'application/xml';
+  static const applicationXML = 'application/xml';
 
-  static const XML = APPLICATION_XML;
+  static const xml = applicationXML;
 
-  static const APPLICATION_XHTML = 'application/xhtml+xml';
+  static const applicationXHTML = 'application/xhtml+xml';
 
-  static const XHTML = APPLICATION_XHTML;
+  static const xhtml = applicationXHTML;
 
-  static const VIDEO_MPEG = 'video/mpeg';
+  static const videoMPEG = 'video/mpeg';
 
-  static const MPEG = VIDEO_MPEG;
+  static const mpeg = videoMPEG;
 
-  static const AUDIO_MPEG = 'audio/mpeg';
+  static const audioMPEG = 'audio/mpeg';
 
-  static const MP3 = AUDIO_MPEG;
+  static const mp3 = audioMPEG;
 
   /// Parses a [mimeType] string and returns as a normalized MIME-Type string.
   /// Note that this can resolve aliases like `JSON`.
@@ -95,7 +95,7 @@ class MimeType {
   /// [defaultMimeType] if [mimeType] is invalid.
   static String? parseAsString(String? mimeType, [String? defaultMimeType]) {
     var m = MimeType.parse(mimeType, defaultMimeType);
-    return m != null ? m.toString() : null;
+    return m?.toString();
   }
 
   /// Constructor that parses a [mimeType] string.
@@ -222,45 +222,45 @@ class MimeType {
 
     switch (extension) {
       case 'zip':
-        return MimeType.parse(ZIP);
+        return MimeType.parse(zip);
       case 'gzip':
       case 'gz':
-        return MimeType.parse(GZIP);
+        return MimeType.parse(gzip);
       case 'png':
-        return MimeType.parse(PNG);
+        return MimeType.parse(png);
       case 'jpeg':
       case 'jpg':
-        return MimeType.parse(JPEG);
+        return MimeType.parse(jpeg);
       case 'gif':
-        return MimeType.parse(GIF);
+        return MimeType.parse(gif);
       case 'css':
-        return MimeType.parse(CSS);
+        return MimeType.parse(css);
       case 'json':
-        return MimeType.parse(JSON);
+        return MimeType.parse(json);
       case 'js':
       case 'javascript':
-        return MimeType.parse(JAVASCRIPT);
+        return MimeType.parse(javaScript);
       case 'html':
       case 'htm':
-        return MimeType.parse(HTML);
+        return MimeType.parse(html);
       case 'xhtml':
-        return MimeType.parse(XHTML);
+        return MimeType.parse(xhtml);
       case 'text':
       case 'txt':
-        return MimeType.parse(TEXT);
+        return MimeType.parse(text);
       case 'pdf':
-        return MimeType.parse(PDF);
+        return MimeType.parse(pdf);
       case 'mp3':
-        return MimeType.parse(MP3);
+        return MimeType.parse(mp3);
       case 'mpeg':
-        return MimeType.parse(MPEG);
+        return MimeType.parse(mpeg);
       case 'xml':
-        return MimeType.parse(XML);
+        return MimeType.parse(xml);
       case 'icon':
       case 'ico':
-        return MimeType.parse(ICON);
+        return MimeType.parse(icon);
       case 'svg':
-        return MimeType.parse(SVG);
+        return MimeType.parse(svg);
       default:
         {
           if (defaultAsApplication) {
@@ -288,7 +288,7 @@ class MimeType {
   final String? charset;
 
   MimeType(this.type, this.subType, [String? charSet])
-      : charset = charSet != null ? charSet.trim() : null;
+      : charset = charSet?.trim();
 
   /// Returns [true] if [charset] is defined.
   bool get hasCharset => charset != null && charset!.isNotEmpty;
@@ -591,24 +591,24 @@ class DataURLBase64 {
   }
 }
 
-final REGEXP_EMAIL = RegExp(
+final regExpEmail = RegExp(
     r'''^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?)*$''');
 
 /// Returns [true] if [value] represents an e-mail address.
 bool isEmail(Object? value) {
-  return value is String && value.contains('@') && REGEXP_EMAIL.hasMatch(value);
+  return value is String && value.contains('@') && regExpEmail.hasMatch(value);
 }
 
 /// Represents a Geo Location in latitude and longitude.
 class Geolocation {
-  static final RegExp GEOLOCATION_FORMAT =
+  static final RegExp geolocationFormat =
       RegExp(r'([-=]?)(\d+[,.]?\d*)\s*[°o]?\s*(\w)');
 
   static num? parseLatitudeOrLongitudeValue(String? s,
       [bool onlyWithCardinals = false]) {
     if (s == null) return null;
 
-    var match = GEOLOCATION_FORMAT.firstMatch(s);
+    var match = geolocationFormat.firstMatch(s);
     if (match == null) return null;
 
     var signal = match.group(1);
@@ -799,7 +799,7 @@ Point<num>? parsePointFromString(String? s) {
 String? dataSizeFormat(int? size, {bool? decimalBase, bool? binaryBase}) {
   if (size == null) return null;
 
-  var baseDecimal;
+  bool? baseDecimal;
 
   if (decimalBase != null) {
     baseDecimal = decimalBase;
