@@ -357,9 +357,9 @@ int getDateHour([int? time]) {
   return int.parse(s);
 }
 
-const int ondeSecond = 1000;
+const int oneSecond = 1000;
 
-const int oneMinute = ondeSecond * 60;
+const int oneMinute = oneSecond * 60;
 
 const int oneHour = oneMinute * 60;
 
@@ -375,10 +375,10 @@ String formatTimeMillis(int? time) {
     time = -time;
   }
 
-  if (time < ondeSecond) {
+  if (time < oneSecond) {
     return '$sig$time ms';
   } else if (time < oneMinute) {
-    var t = time / ondeSecond;
+    var t = time / oneSecond;
     var f = formatDecimal(t);
     return '$sig$f sec';
   } else if (time < oneHour) {
