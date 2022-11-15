@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:convert';
 
 import 'package:swiss_knife/swiss_knife.dart';
 import 'package:test/test.dart';
@@ -576,6 +577,14 @@ void main() {
           equals(textBase64));
       expect(DataURLBase64.parse('data:text/plain;base64,$textBase64')!.payload,
           equals(text));
+
+      expect(DataURLBase64.from(text).payload, equals(text));
+      expect(DataURLBase64.from(textBase64).payload, equals(text));
+      expect(DataURLBase64.from('data:text/plain;base64,$textBase64').payload,
+          equals(text));
+      expect(DataURLBase64.from(utf8.encode(text)).payload, equals(text));
+      expect(
+          DataURLBase64.from(DataURLBase64.from(text)).payload, equals(text));
     });
 
     test('MimeType', () {

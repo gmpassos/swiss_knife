@@ -503,21 +503,44 @@ class DataURLBase64 {
   String? _payload;
 
   /// The decoded payload as [String].
-  String? get payload {
-    _payload ??= Base64.decode(payloadBase64);
-    return _payload;
-  }
+  String get payload => _payload ??= Base64.decode(payloadBase64);
 
   Uint8List? _payloadArrayBuffer;
 
   /// The decoded payload as array buffer.
-  Uint8List? get payloadArrayBuffer {
-    _payloadArrayBuffer ??= Base64.decodeAsArrayBuffer(payloadBase64);
-    return _payloadArrayBuffer;
-  }
+  Uint8List get payloadArrayBuffer =>
+      _payloadArrayBuffer ??= Base64.decodeAsArrayBuffer(payloadBase64);
 
   DataURLBase64(this.payloadBase64, [String? mimeType])
       : mimeType = MimeType.parse(mimeType);
+
+  /// Instantiates a [DataURLBase64] automatically resolving [payload] and [mimeType].
+  factory DataURLBase64.from(Object payload, [Object? mimeType]) {
+    String? m =
+        mimeType is MimeType ? mimeType.toString() : mimeType?.toString();
+
+    if (payload is List<int>) {
+      return DataURLBase64(base64.encode(payload), m);
+    } else if (payload is DataURLBase64) {
+      return DataURLBase64(
+          payload.payloadBase64, m ?? payload.mimeTypeAsString);
+    } else {
+      var s = payload.toString();
+
+      var dataUrl = DataURLBase64.parse(s);
+      if (dataUrl != null) {
+        return DataURLBase64(
+            dataUrl.payloadBase64, m ?? dataUrl.mimeTypeAsString);
+      } else {
+        var bs = _decodeBase64(s);
+        if (bs != null) {
+          return DataURLBase64(s, m);
+        } else {
+          return DataURLBase64(Base64.encode(s), m ?? 'text/plain');
+        }
+      }
+    }
+  }
 
   /// Parses only the [MimeType] of the Data URL [s].
   ///
@@ -580,14 +603,18 @@ class DataURLBase64 {
   ///
   /// Example: `data:text/plain;base64,SGVsbG8=`
   /// that encodes `Hello` with MIME-Type `text/plain`.
-  String? asDataURLString() {
-    _dataURLString ??= 'data:$mimeTypeAsString;base64,$payloadBase64';
-    return _dataURLString;
-  }
+  String asDataURLString() =>
+      _dataURLString ??= 'data:$mimeTypeAsString;base64,$payloadBase64';
 
   @override
-  String toString() {
-    return asDataURLString()!;
+  String toString() => asDataURLString();
+}
+
+Uint8List? _decodeBase64(String s) {
+  try {
+    return base64.decode(s);
+  } catch (_) {
+    return null;
   }
 }
 

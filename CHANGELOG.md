@@ -1,3 +1,13 @@
+## 3.1.2
+
+- `DataURLBase64`:
+  - Added constructor `DataURLBase64.from`.
+  - Improved Null Safety code.
+- test: ^1.17.12
+- dependency_validator: ^3.2.2
+- collection: ^1.17.0
+- coverage: ^1.6.1
+
 ## 3.1.1
 
 - `parseBool`:
