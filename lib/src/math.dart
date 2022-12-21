@@ -747,7 +747,11 @@ class Scale<T> {
     // ignore: empty_catches
     catch (ignore) {}
 
-    _length = length!;
+    if (length == null) {
+      throw StateError("Can't compute scale length!");
+    }
+
+    _length = length;
   }
 
   static Scale? from<T>(Iterable? list) {

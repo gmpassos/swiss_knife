@@ -55,10 +55,7 @@ String getUriBaseHostAndPort({bool suppressPort80 = true, int? port}) {
 
 /// Returns base Uri as URL string.
 String getUriRootURL({bool suppressPort80 = true, int? port}) {
-  return getUriBaseScheme() +
-      '://' +
-      getUriBaseHostAndPort(suppressPort80: suppressPort80, port: port) +
-      '/';
+  return '${getUriBaseScheme()}://${getUriBaseHostAndPort(suppressPort80: suppressPort80, port: port)}/';
 }
 
 /// Builds an Uri with the parameters.
@@ -97,7 +94,7 @@ Uri buildUri(String? scheme, String? host, int? port,
       if (fragment == null) {
         fragment = pathFragment;
       } else {
-        fragment = pathFragment + '&' + fragment;
+        fragment = '$pathFragment&$fragment';
       }
 
       fragmentFromPath = true;
@@ -118,7 +115,7 @@ Uri buildUri(String? scheme, String? host, int? port,
       if (queryString == null) {
         queryString = pathQuery;
       } else {
-        queryString = pathQuery + '&' + queryString;
+        queryString = '$pathQuery&$queryString';
       }
 
       queryStringFromPath = true;
@@ -144,7 +141,7 @@ Uri buildUri(String? scheme, String? host, int? port,
           if (fragmentFromPath) {
             fragment = path2Fragment;
           } else {
-            fragment = path2Fragment + '&' + fragment;
+            fragment = '$path2Fragment&$fragment';
           }
         }
 
@@ -172,7 +169,7 @@ Uri buildUri(String? scheme, String? host, int? port,
           if (queryStringFromPath) {
             queryString = path2Query;
           } else {
-            queryString = path2Query + '&' + queryString;
+            queryString = '$path2Query&$queryString';
           }
         }
 

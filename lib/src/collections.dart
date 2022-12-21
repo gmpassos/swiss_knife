@@ -1466,7 +1466,7 @@ Map<K, V>? deepCopyMap<K, V>(Map<K, V>? map, {Copier? copier}) {
   if (map == null) return null;
   if (map.isEmpty) return <K, V>{};
   return map.map((K k, V v) => MapEntry<K, V>(
-      deepCopy(k, copier: copier)!, deepCopy(v, copier: copier)!));
+      deepCopy(k, copier: copier) as K, deepCopy(v, copier: copier) as V));
 }
 
 typedef ValueFilter = bool Function(
@@ -2802,8 +2802,7 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
 
   /// Walks tree from [root] and stops when [walker] returns some [R] object.
   R? walkTree<R>(R Function(K node) walker, {K? root}) {
-    root ??= this.root;
-    return _walkTreeImpl(root!, walker);
+    return _walkTreeImpl(root ?? this.root, walker);
   }
 
   R? _walkTreeImpl<R>(K node, R Function(K node) walker) {

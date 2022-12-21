@@ -673,7 +673,7 @@ class Geolocation {
   }
 
   static String formatGeolocation(Point geo) {
-    return formatLatitude(geo.x) + ' ' + formatLongitude(geo.y);
+    return '${formatLatitude(geo.x)} ${formatLongitude(geo.y)}';
   }
 
   final num _latitude;
@@ -851,9 +851,9 @@ String? dataSizeFormat(int? size, {bool? decimalBase, bool? binaryBase}) {
       var s = '${size ~/ 1000} KB';
       return s;
     } else if (size < 1000 * 1000 * 1000) {
-      return formatDecimal(size / (1000 * 1000))! + ' MB';
+      return '${formatDecimal(size / (1000 * 1000))!} MB';
     } else {
-      return formatDecimal(size / (1000 * 1000 * 1000))! + ' GB';
+      return '${formatDecimal(size / (1000 * 1000 * 1000))!} GB';
     }
   } else {
     if (size < 1024) {
@@ -862,9 +862,9 @@ String? dataSizeFormat(int? size, {bool? decimalBase, bool? binaryBase}) {
       var s = '${size ~/ 1024} KiB';
       return s;
     } else if (size < 1024 * 1024 * 1024) {
-      return formatDecimal(size / (1024 * 1024))! + ' MiB';
+      return '${formatDecimal(size / (1024 * 1024))!} MiB';
     } else {
-      return formatDecimal(size / (1024 * 1024 * 1024))! + ' GiB';
+      return '${formatDecimal(size / (1024 * 1024 * 1024))!} GiB';
     }
   }
 }
