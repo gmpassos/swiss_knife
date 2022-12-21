@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/swiss_knife.svg?logo=dart&logoColor=00b9fc)](https://pub.dartlang.org/packages/swiss_knife)
 [![Null Safety](https://img.shields.io/badge/null-safety-brightgreen)](https://dart.dev/null-safety)
-[![CI](https://img.shields.io/github/workflow/status/gmpassos/swiss_knife/Dart%20CI/master?logo=github-actions&logoColor=white)](https://github.com/gmpassos/swiss_knife/actions)
+[![Dart CI](https://github.com/gmpassos/swiss_knife/actions/workflows/dart.yml/badge.svg?branch=master)](https://github.com/gmpassos/swiss_knife/actions/workflows/dart.yml)
 [![GitHub Tag](https://img.shields.io/github/v/tag/gmpassos/swiss_knife?logo=git&logoColor=white)](https://github.com/gmpassos/swiss_knife/releases)
 [![New Commits](https://img.shields.io/github/commits-since/gmpassos/swiss_knife/latest?logo=git&logoColor=white)](https://github.com/gmpassos/swiss_knife/network)
 [![Last Commits](https://img.shields.io/github/last-commit/gmpassos/swiss_knife?logo=git&logoColor=white)](https://github.com/gmpassos/swiss_knife/commits/master)

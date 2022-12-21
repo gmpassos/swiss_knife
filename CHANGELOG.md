@@ -1,3 +1,11 @@
+## 3.1.3
+
+- Code adjustments for `lints: ^2.0.1`.
+- intl: ^0.18.0
+- resource_portable: ^3.0.1
+- lints: ^2.0.1
+- test: ^1.22.1
+
 ## 3.1.2
 
 - `DataURLBase64`:

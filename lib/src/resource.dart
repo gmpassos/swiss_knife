@@ -268,7 +268,7 @@ class ResourceContent {
       var uri = reference != null ? await reference.uriResolved : null;
       uri ??= await ResourceContent.fromURI('./')!.uriResolved;
 
-      var uriPath = Uri.decodeComponent(uri!.path) + '/';
+      var uriPath = '${Uri.decodeComponent(uri!.path)}/';
 
       var uriPathParts = uriPath.split('/');
       if (uriPath.endsWith('/')) uriPathParts.removeLast();

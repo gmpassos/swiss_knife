@@ -1308,7 +1308,7 @@ class UniqueCaller<R> {
             stackTraceIdentifier?.toString() ??
             UniqueCaller.stackTraceIdentifier());
 
-  _IdentifierWrapper get identifier => _identifier;
+  Object get identifier => _identifier;
 
   static final Set<_IdentifierWrapper> _calling = {};
 

@@ -20,7 +20,7 @@ String encodeQueryString(Map<String, String>? parameters) {
 
   parameters.forEach((key, value) {
     var pair =
-        Uri.encodeQueryComponent(key) + '=' + Uri.encodeQueryComponent(value);
+        '${Uri.encodeQueryComponent(key)}=${Uri.encodeQueryComponent(value)}';
     pairs.add(pair);
   });
 
