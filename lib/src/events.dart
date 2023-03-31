@@ -37,24 +37,26 @@ class _ListenSignature {
 
   bool get isCanceled => _canceled;
 
-  void cancel() {
-    _cancel(true);
-  }
+  bool cancel() => _cancel(true);
 
-  void _cancel(bool cancelSubscription) {
+  bool _cancel(bool cancelSubscription) {
     _canceled = true;
 
-    if (subscription != null) {
-      if (cancelSubscription) {
-        try {
-          subscription!.cancel();
-        } catch (e, s) {
-          print(e);
-          print(s);
-        }
+    var subscription = this.subscription;
+    if (subscription == null) return false;
+
+    this.subscription = null;
+
+    if (cancelSubscription) {
+      try {
+        subscription.cancel();
+      } catch (e, s) {
+        print(e);
+        print(s);
       }
-      subscription = null;
     }
+
+    return true;
   }
 }
 
@@ -227,12 +229,12 @@ class EventStream<T> implements Stream<T> {
     var signature =
         _getListenSignature(singletonIdentifier, singletonIdentifyByInstance);
 
-    if (signature != null && !signature.isCanceled) {
-      signature.cancel();
-      return true;
-    } else {
-      return false;
+    if (signature != null) {
+      _listenSignatures.remove(signature);
+      return signature.cancel();
     }
+
+    return false;
   }
 
   /// Returns a [StreamSubscription] associated with [singletonIdentifier].
@@ -272,7 +274,8 @@ class EventStream<T> implements Stream<T> {
       bool? cancelOnError = false,
       Object? singletonIdentifier,
       bool singletonIdentifyByInstance = true,
-      EventValidatorFunction<T>? eventValidator}) {
+      EventValidatorFunction<T>? eventValidator,
+      bool overwriteSingletonSubscription = false}) {
     try {
       eventValidator ??= this.eventValidator;
 
@@ -294,9 +297,21 @@ class EventStream<T> implements Stream<T> {
         var prevSubscription =
             getSetEntryInstance(_listenSignatures, listenSignature);
 
-        if (prevSubscription != null) {
-          return prevSubscription.subscription! as StreamSubscription<T>;
+        if (overwriteSingletonSubscription && prevSubscription != null) {
+          _listenSignatures.remove(prevSubscription);
+          prevSubscription.cancel();
+          prevSubscription = null;
         }
+
+        if (prevSubscription != null) {
+          var subscription = prevSubscription.subscription;
+          if (subscription != null) {
+            return subscription as StreamSubscription<T>;
+          } else {
+            _listenSignatures.remove(prevSubscription);
+          }
+        }
+
         _listenSignatures.add(listenSignature);
 
         var subscription = _stream.listen(onData, onError: onError, onDone: () {
@@ -462,13 +477,16 @@ class EventStreamDelegator<T> implements EventStream<T> {
     if (es == null) return;
 
     for (var v in _listenBuffer) {
-      es.listen(v[0],
-          onError: v[1],
-          onDone: v[2],
-          cancelOnError: v[3],
-          singletonIdentifier: v[4],
-          singletonIdentifyByInstance: v[5],
-          eventValidator: v[6]);
+      es.listen(
+        v[0],
+        onError: v[1],
+        onDone: v[2],
+        cancelOnError: v[3],
+        singletonIdentifier: v[4],
+        singletonIdentifyByInstance: v[5],
+        eventValidator: v[6],
+        overwriteSingletonSubscription: v[7],
+      );
     }
 
     for (var v in _listenOneShotBuffer) {
@@ -556,7 +574,8 @@ class EventStreamDelegator<T> implements EventStream<T> {
       bool? cancelOnError = false,
       singletonIdentifier,
       bool singletonIdentifyByInstance = true,
-      EventValidatorFunction<T>? eventValidator}) {
+      EventValidatorFunction<T>? eventValidator,
+      bool overwriteSingletonSubscription = false}) {
     var es = eventStream;
     if (es == null) {
       _listenBuffer.add([
@@ -566,7 +585,8 @@ class EventStreamDelegator<T> implements EventStream<T> {
         cancelOnError,
         singletonIdentifier,
         singletonIdentifyByInstance,
-        eventValidator
+        eventValidator,
+        overwriteSingletonSubscription
       ]);
 
       return _StreamSubscriptionProvider(() {
@@ -577,7 +597,8 @@ class EventStreamDelegator<T> implements EventStream<T> {
             cancelOnError: cancelOnError,
             singletonIdentifier: singletonIdentifier,
             singletonIdentifyByInstance: singletonIdentifyByInstance,
-            eventValidator: eventValidator);
+            eventValidator: eventValidator,
+            overwriteSingletonSubscription: overwriteSingletonSubscription);
       });
     } else {
       return es.listen(onData,
@@ -586,7 +607,8 @@ class EventStreamDelegator<T> implements EventStream<T> {
           cancelOnError: cancelOnError,
           singletonIdentifier: singletonIdentifier,
           singletonIdentifyByInstance: singletonIdentifyByInstance,
-          eventValidator: eventValidator);
+          eventValidator: eventValidator,
+          overwriteSingletonSubscription: overwriteSingletonSubscription);
     }
   }
 

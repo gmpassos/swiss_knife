@@ -1,3 +1,11 @@
+## 3.1.4
+
+- `EventStream`:
+  - `listen`: new parameter `overwriteSingletonSubscription`.
+  - `cancelSingletonSubscription`: now ensures that the previous
+     subscription is removed from internal handler. 
+- coverage: ^1.6.3 
+
 ## 3.1.3
 
 - Code adjustments for `lints: ^2.0.1`.
