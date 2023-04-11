@@ -634,6 +634,19 @@ void main() {
           equals(MimeType.applicationJavaScript));
       expect(MimeType.parse('js').toString(),
           equals(MimeType.applicationJavaScript));
+
+      expect(
+          MimeType.parse('yaml').toString(), equals(MimeType.applicationYaml));
+      expect(
+          MimeType.parse('yml').toString(), equals(MimeType.applicationYaml));
+
+      expect(
+          MimeType.parse('markdown').toString(), equals(MimeType.textMarkdown));
+      expect(MimeType.parse('md').toString(), equals(MimeType.textMarkdown));
+
+      expect(
+          MimeType.parse('dart').toString(), equals(MimeType.applicationDart));
+
       expect(MimeType.byExtension('js').toString(),
           equals(MimeType.applicationJavaScript));
 
@@ -651,6 +664,89 @@ void main() {
 
       expect(MimeType.parse('xml').toString(), equals('text/xml'));
       expect(MimeType.byExtension('xml').toString(), equals('text/xml'));
+
+      expect(MimeType.byExtension('yaml').toString(),
+          equals(MimeType.applicationYaml));
+      expect(MimeType.byExtension('yml').toString(),
+          equals(MimeType.applicationYaml));
+
+      expect(
+          MimeType.byExtension('md').toString(), equals(MimeType.textMarkdown));
+
+      expect(MimeType.parse('otf').toString(), equals(MimeType.fontOtf));
+      expect(MimeType.byExtension('otf').toString(), equals(MimeType.fontOtf));
+      expect(MimeType.parse('ttf').toString(), equals(MimeType.fontTtf));
+      expect(MimeType.byExtension('ttf').toString(), equals(MimeType.fontTtf));
+      expect(MimeType.parse('woff').toString(), equals(MimeType.fontWoff));
+      expect(
+          MimeType.byExtension('woff').toString(), equals(MimeType.fontWoff));
+      expect(MimeType.parse('woff2').toString(), equals(MimeType.fontWoff2));
+      expect(
+          MimeType.byExtension('woff2').toString(), equals(MimeType.fontWoff2));
+
+      expect(
+          MimeType.byExtension('webp').toString(), equals(MimeType.imageWebp));
+
+      expect(
+          MimeType.byExtension('weba').toString(), equals(MimeType.audioWebm));
+      expect(
+          MimeType.parse('audio/webm').toString(), equals(MimeType.audioWebm));
+      expect(
+          MimeType.parse('audio/weba').toString(), equals(MimeType.audioWebm));
+      expect(
+          MimeType.byExtension('webm').toString(), equals(MimeType.videoWebm));
+      expect(
+          MimeType.parse('video/webm').toString(), equals(MimeType.videoWebm));
+
+      expect(MimeType.byExtension('dart').toString(),
+          equals(MimeType.applicationDart));
+    });
+
+    test('MimeType charset', () {
+      {
+        var css = MimeType.parse('text/css; charset=utf-8')!;
+        expect(css.toString(), equals('text/css; charset=utf-8'));
+        expect(css.charset, equals('utf-8'));
+        expect(css.isCharsetUTF8, isTrue);
+        expect(css.isCharsetLATIN1, isFalse);
+        expect(css.charsetEncoding, equals(utf8));
+      }
+
+      {
+        var css = MimeType.parse('text/css; charset=utf8')!;
+        expect(css.toString(), equals('text/css; charset=utf8'));
+        expect(css.charset, equals('utf8'));
+        expect(css.isCharsetUTF8, isTrue);
+        expect(css.isCharsetLATIN1, isFalse);
+        expect(css.charsetEncoding, equals(utf8));
+      }
+
+      {
+        var css = MimeType.parse('text/css; charset=latin-1')!;
+        expect(css.toString(), equals('text/css; charset=latin-1'));
+        expect(css.charset, equals('latin-1'));
+        expect(css.isCharsetLATIN1, isTrue);
+        expect(css.isCharsetUTF8, isFalse);
+        expect(css.charsetEncoding, equals(latin1));
+      }
+
+      {
+        var css = MimeType.parse('text/css; charset=iso-8859-1')!;
+        expect(css.toString(), equals('text/css; charset=iso-8859-1'));
+        expect(css.charset, equals('iso-8859-1'));
+        expect(css.isCharsetLATIN1, isTrue);
+        expect(css.isCharsetUTF8, isFalse);
+        expect(css.charsetEncoding, equals(latin1));
+      }
+
+      {
+        expect(getCharsetEncoding(null), isNull);
+        expect(getCharsetEncoding('xpto'), isNull);
+        expect(getCharsetEncoding('utf-16'), isNull);
+        expect(getCharsetEncoding('utf-8'), equals(utf8));
+        expect(getCharsetEncoding('latin-1'), equals(latin1));
+        expect(getCharsetEncoding('iso-8859-1'), equals(latin1));
+      }
     });
 
     test('dataSizeFormat() decimal', () {

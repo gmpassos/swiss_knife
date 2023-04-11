@@ -1,3 +1,10 @@
+## 3.1.5
+
+- `MimeType`:
+  - `parse`: optimize and update recognized types.
+  - `byExtension`: add more extensions.
+- Added `getCharsetEncoding`.
+
 ## 3.1.4
 
 - `EventStream`:

@@ -22,72 +22,87 @@ import 'utils.dart';
 ///
 class MimeType {
   static const applicationJson = 'application/json';
-
   static const json = applicationJson;
 
   static const applicationJavaScript = 'application/javascript';
-
   static const javaScript = applicationJavaScript;
 
   static const applicationZip = 'application/zip';
-
   static const zip = applicationZip;
 
   static const applicationGzip = 'application/gzip';
-
   static const gzip = applicationGzip;
 
   static const applicationPDF = 'application/pdf';
-
   static const pdf = applicationPDF;
 
   static const imageJPEG = 'image/jpeg';
-
   static const jpeg = imageJPEG;
 
   static const imagePNG = 'image/png';
-
   static const png = imagePNG;
 
   static const imageGIF = 'image/gif';
-
   static const gif = imageGIF;
 
   static const imageIcon = 'image/x-icon';
-
   static const icon = imageIcon;
 
   static const imageSVG = 'image/svg+xml';
-
   static const svg = imageSVG;
 
-  static const textHTML = 'text/html';
+  static const imageWebp = 'image/webp';
+  static const webp = imageWebp;
 
+  static const audioWebm = 'audio/webm';
+  static const weba = audioWebm;
+
+  static const videoWebm = 'video/webm';
+  static const webm = videoWebm;
+
+  static const textHTML = 'text/html';
   static const html = textHTML;
 
   static const textCSS = 'text/css';
-
   static const css = textCSS;
 
   static const textPlain = 'text/plain';
-
   static const text = textPlain;
 
   static const applicationXML = 'application/xml';
-
   static const xml = applicationXML;
 
   static const applicationXHTML = 'application/xhtml+xml';
-
   static const xhtml = applicationXHTML;
 
   static const videoMPEG = 'video/mpeg';
-
   static const mpeg = videoMPEG;
 
   static const audioMPEG = 'audio/mpeg';
-
   static const mp3 = audioMPEG;
+
+  static const applicationYaml = 'application/yaml';
+  static const yaml = applicationYaml;
+
+  static const textMarkdown = 'text/markdown';
+  static const markdown = textMarkdown;
+
+  static const applicationDart = 'application/dart';
+  static const dart = applicationDart;
+
+  static const fontOtf = 'font/otf';
+  static const otf = fontOtf;
+
+  static const fontTtf = 'font/ttf';
+  static const ttf = fontTtf;
+
+  static const fontWoff = 'font/woff';
+  static const woff = fontWoff;
+
+  static const fontWoff2 = 'font/woff2';
+  static const woff2 = fontWoff2;
+
+  //woff2
 
   /// Parses a [mimeType] string and returns as a normalized MIME-Type string.
   /// Note that this can resolve aliases like `JSON`.
@@ -102,14 +117,24 @@ class MimeType {
   ///
   /// [defaultMimeType] if [mimeType] is invalid.
   static MimeType? parse(String? mimeType, [String? defaultMimeType]) {
-    mimeType ??= defaultMimeType;
+    if (mimeType != null) {
+      mimeType = mimeType.trim();
+      if (mimeType.isEmpty) {
+        if (defaultMimeType != null) {
+          mimeType = defaultMimeType.trim();
+          if (mimeType.isEmpty) return null;
+        } else {
+          return null;
+        }
+      }
+    } else if (defaultMimeType != null) {
+      mimeType = defaultMimeType.trim();
+      if (mimeType.isEmpty) return null;
+    } else {
+      return null;
+    }
 
-    if (mimeType == null) return null;
-    mimeType = mimeType.trim();
-    if (mimeType.isEmpty) mimeType = defaultMimeType;
-    if (mimeType == null) return null;
-    mimeType = mimeType.trim();
-    if (mimeType.isEmpty) return null;
+    assert(mimeType.isNotEmpty && mimeType == mimeType.trim());
 
     mimeType = mimeType.toLowerCase();
 
@@ -122,73 +147,84 @@ class MimeType {
 
     if (mimeType == 'json' || mimeType.endsWith('/json')) {
       return MimeType('application', 'json', charset);
-    }
-    if (mimeType == 'javascript' ||
+    } else if (mimeType == 'javascript' ||
         mimeType == 'js' ||
         mimeType.endsWith('/javascript') ||
         mimeType.endsWith('/js')) {
       return MimeType('application', 'javascript', charset);
-    }
-    if (mimeType == 'jpeg' ||
+    } else if (mimeType == 'jpeg' ||
         mimeType == 'jpg' ||
         mimeType.endsWith('/jpeg') ||
         mimeType.endsWith('/jpg')) {
       return MimeType('image', 'jpeg');
-    }
-    if (mimeType == 'png' || mimeType.endsWith('/png')) {
+    } else if (mimeType == 'png' || mimeType.endsWith('/png')) {
       return MimeType('image', 'png', charset);
-    }
-    if (mimeType == 'gif' || mimeType.endsWith('/gif')) {
-      return MimeType('image', 'gif', charset);
-    }
-    if (mimeType == 'text') {
+    } else if (mimeType == 'svg' ||
+        mimeType.endsWith('/svg') ||
+        mimeType.endsWith('/svg+xml')) {
+      return MimeType('image', 'svg+xml', charset);
+    } else if (mimeType == 'text' || mimeType == 'txt') {
       return MimeType('text', 'plain');
-    }
-    if (mimeType == 'html' ||
+    } else if (mimeType == 'css' || mimeType.endsWith('/css')) {
+      return MimeType('text', 'css', charset);
+    } else if (mimeType == 'html' ||
         mimeType == 'htm' ||
         mimeType.endsWith('/html') ||
         mimeType.endsWith('/htm')) {
       return MimeType('text', 'html');
-    }
-    if (mimeType == 'xhtml' || mimeType.endsWith('/xhtml')) {
-      return MimeType('application', 'xhtml');
-    }
-    if (mimeType == 'css' || mimeType.endsWith('/css')) {
-      return MimeType('text', 'css', charset);
-    }
-    if (mimeType == 'xml' || mimeType.endsWith('/xml')) {
-      return MimeType('text', 'xml', charset);
-    }
-    if (mimeType == 'zip' || mimeType.endsWith('/zip')) {
-      return MimeType('application', 'zip', charset);
-    }
-    if (mimeType == 'gzip' || mimeType == 'gz' || mimeType.endsWith('/gzip')) {
-      return MimeType('application', 'gzip', charset);
-    }
-    if (mimeType == 'pdf' || mimeType.endsWith('/pdf')) {
-      return MimeType('application', 'pdf', charset);
-    }
-    if (mimeType == 'xml' || mimeType.endsWith('/xml')) {
-      return MimeType('application', 'xml', charset);
-    }
-    if (mimeType == 'mp3' ||
-        mimeType.endsWith('/mp3') ||
-        mimeType.endsWith('audio/mpeg')) {
-      return MimeType('audio', 'mp3', charset);
-    }
-    if (mimeType == 'mpeg' || mimeType.endsWith('video/mpeg')) {
-      return MimeType('video', 'mpeg', charset);
-    }
-    if (mimeType == 'icon' ||
+    } else if (mimeType == 'icon' ||
         mimeType == 'ico' ||
         mimeType.endsWith('/x-icon') ||
         mimeType.endsWith('/icon')) {
       return MimeType('image', 'x-icon', charset);
-    }
-    if (mimeType == 'svg' ||
-        mimeType.endsWith('/svg') ||
-        mimeType.endsWith('/svg+xml')) {
-      return MimeType('image', 'svg+xml', charset);
+    } else if (mimeType == 'gif' || mimeType.endsWith('/gif')) {
+      return MimeType('image', 'gif', charset);
+    } else if (mimeType == 'otf' || mimeType.endsWith('/otf')) {
+      return MimeType('font', 'otf', charset);
+    } else if (mimeType == 'ttf' || mimeType.endsWith('/ttf')) {
+      return MimeType('font', 'ttf', charset);
+    } else if (mimeType == 'woff' || mimeType.endsWith('/woff')) {
+      return MimeType('font', 'woff', charset);
+    } else if (mimeType == 'woff2' || mimeType.endsWith('/woff2')) {
+      return MimeType('font', 'woff2', charset);
+    } else if (mimeType == 'webp' || mimeType.endsWith('/webp')) {
+      return MimeType('image', 'webp', charset);
+    } else if (mimeType == 'weba' ||
+        mimeType == 'audio/webm' ||
+        mimeType == 'audio/weba') {
+      return MimeType('audio', 'webm', charset);
+    } else if (mimeType == 'webm' || mimeType == 'video/webm') {
+      return MimeType('video', 'webm', charset);
+    } else if (mimeType == 'yaml' ||
+        mimeType == 'yml' ||
+        mimeType.endsWith('/yaml')) {
+      return MimeType('application', 'yaml', charset);
+    } else if (mimeType == 'xml' || mimeType.endsWith('/xml')) {
+      return MimeType('text', 'xml', charset);
+    } else if (mimeType == 'zip' || mimeType.endsWith('/zip')) {
+      return MimeType('application', 'zip', charset);
+    } else if (mimeType == 'gzip' ||
+        mimeType == 'gz' ||
+        mimeType.endsWith('/gzip')) {
+      return MimeType('application', 'gzip', charset);
+    } else if (mimeType == 'pdf' || mimeType.endsWith('/pdf')) {
+      return MimeType('application', 'pdf', charset);
+    } else if (mimeType == 'mp3' ||
+        mimeType.endsWith('/mp3') ||
+        mimeType.endsWith('audio/mpeg')) {
+      return MimeType('audio', 'mp3', charset);
+    } else if (mimeType == 'mpeg' || mimeType.endsWith('video/mpeg')) {
+      return MimeType('video', 'mpeg', charset);
+    } else if (mimeType == 'xhtml' ||
+        mimeType.endsWith('/xhtml') ||
+        mimeType.endsWith('/xhtml+xml')) {
+      return MimeType('application', 'xhtml');
+    } else if (mimeType == 'markdown' ||
+        mimeType == 'md' ||
+        mimeType.endsWith('/markdown')) {
+      return MimeType('text', 'markdown', charset);
+    } else if (mimeType == 'dart' || mimeType.endsWith('/dart')) {
+      return MimeType('application', 'dart', charset);
     }
 
     var idx = mimeType.indexOf('/');
@@ -261,6 +297,29 @@ class MimeType {
         return MimeType.parse(icon);
       case 'svg':
         return MimeType.parse(svg);
+
+      case 'webp':
+        return MimeType.parse(webp);
+      case 'weba':
+        return MimeType.parse(weba);
+      case 'webm':
+        return MimeType.parse(webm);
+
+      case 'otf':
+        return MimeType.parse(otf);
+      case 'ttf':
+        return MimeType.parse(ttf);
+      case 'woff':
+        return MimeType.parse(woff);
+      case 'woff2':
+        return MimeType.parse(woff2);
+      case 'md':
+        return MimeType.parse(markdown);
+      case 'yaml':
+      case 'yml':
+        return MimeType.parse(yaml);
+      case 'dart':
+        return MimeType.parse(dart);
       default:
         {
           if (defaultAsApplication) {
@@ -272,11 +331,10 @@ class MimeType {
   }
 
   static String? normalizeCharset(String? charset) {
-    if (charset == null) return null;
-    charset = charset.trim();
-    if (charset.isEmpty) return null;
+    if (charset == null || charset.isEmpty) return null;
     charset = charset.toLowerCase();
-    charset = charset.replaceFirst('charset=', '').trim();
+    charset = charset.replaceFirst('charset=', '');
+    charset = charset.trim();
     if (charset.isEmpty) return null;
     return charset;
   }
@@ -288,7 +346,7 @@ class MimeType {
   final String? charset;
 
   MimeType(this.type, this.subType, [String? charSet])
-      : charset = charSet?.trim();
+      : charset = normalizeCharset(charSet);
 
   /// Returns [true] if [charset] is defined.
   bool get hasCharset => charset != null && charset!.isNotEmpty;
@@ -305,6 +363,18 @@ class MimeType {
       charset == 'latin-1' ||
       charset == 'iso-8859-1' ||
       charset == 'iso88591';
+
+  Encoding? get charsetEncoding {
+    if (charset == null) {
+      return null;
+    } else if (isCharsetUTF8) {
+      return utf8;
+    } else if (isCharsetLATIN1) {
+      return latin1;
+    } else {
+      return null;
+    }
+  }
 
   /// Returns [true] if this a image MIME-Type.
   bool get isImage => type == 'image';
@@ -450,6 +520,12 @@ class MimeType {
 
     return defaultMimeType;
   }
+}
+
+Encoding? getCharsetEncoding(String? charset) {
+  if (charset == null || charset.isEmpty) return null;
+  var mimeType = MimeType('text', 'plain', charset);
+  return mimeType.charsetEncoding;
 }
 
 /// Base-64 utils.
