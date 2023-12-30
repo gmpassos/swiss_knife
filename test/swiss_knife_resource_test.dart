@@ -20,6 +20,16 @@ class MyResourceLoader extends ResourceLoader {
   Future<String> readAsString(Uri uri, {Encoding? encoding}) async {
     return uri.toString().split('://')[1];
   }
+
+  @override
+  Uri parseUri(String s) {
+    return Uri.parse(s);
+  }
+
+  @override
+  Future<Uri> resolveUri(Uri uri) async {
+    return uri;
+  }
 }
 
 void main() {

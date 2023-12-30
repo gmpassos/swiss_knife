@@ -171,7 +171,7 @@ class MimeType {
         mimeType == 'htm' ||
         mimeType.endsWith('/html') ||
         mimeType.endsWith('/htm')) {
-      return MimeType('text', 'html');
+      return MimeType('text', 'html', charset);
     } else if (mimeType == 'icon' ||
         mimeType == 'ico' ||
         mimeType.endsWith('/x-icon') ||

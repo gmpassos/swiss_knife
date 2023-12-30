@@ -1,3 +1,11 @@
+## 3.1.6
+
+- MimeType: fix charset for `text/html` type.
+
+- sdk: '>=2.18.0 <4.0.0'
+- intl: ^0.18.1
+- resource_portable: ^3.1.0
+
 ## 3.1.5
 
 - `MimeType`:

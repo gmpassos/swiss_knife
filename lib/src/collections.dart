@@ -909,7 +909,7 @@ bool isListOfListValuesAllEquals(Iterable<List>? list,
       : list.firstWhere((e) => e.isNotEmpty).first;
 
   if (eqValueIndex != null) {
-    return listMatchesAll(list, (v) => v is List && v[eqValueIndex] == eqValue);
+    return listMatchesAll(list, (v) => v[eqValueIndex] == eqValue);
   } else {
     return listMatchesAll(list, (v) => v == eqValue);
   }
