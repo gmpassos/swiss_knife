@@ -187,7 +187,7 @@ class Parameter<A> {
 class Parameters2<A, B> extends Parameter<A> {
   final B b;
 
-  Parameters2(A a, this.b) : super(a);
+  Parameters2(super.a, this.b);
 
   @override
   Parameters2<A?, B?> copy() => Parameters2(deepCopy(a), deepCopy(b));
@@ -216,7 +216,7 @@ class Parameters2<A, B> extends Parameter<A> {
 class Parameters3<A, B, C> extends Parameters2<A, B> {
   final C c;
 
-  Parameters3(A a, B b, this.c) : super(a, b);
+  Parameters3(super.a, super.b, this.c);
 
   @override
   Parameters3<A?, B?, C?> copy() =>
@@ -246,7 +246,7 @@ class Parameters3<A, B, C> extends Parameters2<A, B> {
 class Parameters4<A, B, C, D> extends Parameters3<A, B, C> {
   final D d;
 
-  Parameters4(A a, B b, C c, this.d) : super(a, b, c);
+  Parameters4(super.a, super.b, super.c, this.d);
 
   @override
   Parameters4<A?, B?, C?, D?> copy() =>

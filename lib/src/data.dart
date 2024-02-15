@@ -404,6 +404,9 @@ class MimeType {
   /// Returns [true] if this is `image/png`.
   bool get isImagePNG => isImage && subType == 'png';
 
+  /// Returns [true] if this is `image/png`.
+  bool get isImageWebP => isImage && subType == 'webp';
+
   /// Returns [true] if this is `image/svg+xml`.
   bool get isImageSVG => isImage && subType == 'svg';
 
