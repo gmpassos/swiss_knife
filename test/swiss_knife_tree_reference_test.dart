@@ -32,16 +32,12 @@ class MyNode {
 
 class MyTree extends TreeReferenceMap<MyNode, String> {
   MyTree(
-    root, {
-    bool autoPurge = false,
-    bool keepPurgedKeys = false,
-    Duration? purgedEntriesTimeout,
-    int? maxPurgedEntries,
-  }) : super(root,
-            autoPurge: autoPurge,
-            keepPurgedKeys: keepPurgedKeys,
-            purgedEntriesTimeout: purgedEntriesTimeout,
-            maxPurgedEntries: maxPurgedEntries);
+    super.root, {
+    super.autoPurge,
+    super.keepPurgedKeys,
+    super.purgedEntriesTimeout,
+    super.maxPurgedEntries,
+  });
 
   @override
   MyNode? getParentOf(MyNode? key) => key?.parent;

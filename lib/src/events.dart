@@ -451,7 +451,7 @@ class EventStreamDelegator<T> implements EventStream<T> {
   EventStream<T>? get eventStream {
     if (_eventStream == null) {
       _eventStream =
-          _eventStreamProvider != null ? _eventStreamProvider!() : null;
+          _eventStreamProvider != null ? _eventStreamProvider() : null;
       if (_eventStream != null) {
         flush();
       }
@@ -817,7 +817,7 @@ class EventStreamDelegator<T> implements EventStream<T> {
       eventStream?.eventValidator = eventValidator;
 }
 
-class _StreamSubscriptionProvider<T> extends StreamSubscription<T> {
+class _StreamSubscriptionProvider<T> implements StreamSubscription<T> {
   final StreamSubscription<T>? Function() _provider;
   StreamSubscription<T>? _s;
 

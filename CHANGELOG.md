@@ -1,3 +1,14 @@
+## 3.2.0
+
+- sdk: '>=3.3.0 <4.0.0'
+
+- intl: ^0.19.0
+- lints: ^3.0.0
+- test: ^1.25.2
+- dependency_validator: ^3.2.3
+- collection: ^1.18.0
+- coverage: ^1.7.2
+
 ## 3.1.6
 
 - MimeType: fix charset for `text/html` type.

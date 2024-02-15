@@ -44,7 +44,7 @@ abstract class JSONPaging extends MapDelegate<String, dynamic> {
     return null;
   }
 
-  JSONPaging(Map<String, dynamic> json) : super(json);
+  JSONPaging(super.json);
 
   Map<String, dynamic> get json => mainMap;
 
@@ -167,7 +167,7 @@ class ColossusPaging extends JSONPaging {
     return false;
   }
 
-  ColossusPaging(Map<String, dynamic> json) : super(json);
+  ColossusPaging(super.json);
 
   @override
   int get currentPage => json['PAGE'];
@@ -246,7 +246,7 @@ class SpringBootPaging extends JSONPaging {
     return false;
   }
 
-  SpringBootPaging(Map<String, dynamic> json) : super(json);
+  SpringBootPaging(super.json);
 
   @override
   int get currentPage => json['pageable']['pageNumber'];
