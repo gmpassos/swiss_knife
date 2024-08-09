@@ -1,3 +1,11 @@
+## 3.2.1
+
+- `MimeType`:
+  - Added `applicationOctetStream` and `bytes`.
+
+- test: ^1.25.8
+- coverage: ^1.9.0
+
 ## 3.2.0
 
 - sdk: '>=3.3.0 <4.0.0'

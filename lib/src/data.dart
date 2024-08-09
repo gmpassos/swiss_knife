@@ -21,6 +21,9 @@ import 'utils.dart';
 ///   - pdf: application/pdf
 ///
 class MimeType {
+  static const applicationOctetStream = 'application/octet-stream';
+  static const bytes = applicationOctetStream;
+
   static const applicationJson = 'application/json';
   static const json = applicationJson;
 
