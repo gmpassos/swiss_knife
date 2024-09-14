@@ -1,6 +1,6 @@
 name: swiss_knife
 description: Dart Useful Tools - collections, math, date, uri, json, events, resources, regexp, etc...
-version: 3.2.1
+version: 3.2.2
 homepage: https://github.com/gmpassos/swiss_knife
 
 environment:
@@ -15,7 +15,7 @@ dev_dependencies:
   test: ^1.25.8
   dependency_validator: ^3.2.3
   collection: ^1.18.0
-  coverage: ^1.9.0
+  coverage: ^1.9.2
 
 #dependency_overrides:
 #  resource_portable:

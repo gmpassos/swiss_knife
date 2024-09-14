@@ -379,14 +379,17 @@ class MimeType {
     }
   }
 
-  /// Returns [true] if this a image MIME-Type.
+  /// Returns [true] if this an image MIME-Type.
   bool get isImage => type == 'image';
 
   /// Returns [true] if this a video MIME-Type.
   bool get isVideo => type == 'video';
 
-  /// Returns [true] if this a audio MIME-Type.
+  /// Returns [true] if this an audio MIME-Type.
   bool get isAudio => type == 'audio';
+
+  /// Returns [true] if this a font MIME-Type.
+  bool get isFont => type == 'font';
 
   /// Returns the HTML tag name for this MIME-Type.
   String? get htmlTag {
@@ -411,12 +414,15 @@ class MimeType {
   bool get isImageWebP => isImage && subType == 'webp';
 
   /// Returns [true] if this is `image/svg+xml`.
-  bool get isImageSVG => isImage && subType == 'svg';
+  bool get isImageSVG => isImage && subType == 'svg+xml';
 
   bool get isJavascript => subType == 'javascript';
 
   /// Returns [true] if is `application/json`.
   bool get isJSON => subType == 'json';
+
+  /// Returns [true] if is `application/yaml`.
+  bool get isYAML => subType == 'yaml';
 
   /// Returns [true] if is `text/*`.
   bool get isText => type == 'text';
@@ -431,14 +437,76 @@ class MimeType {
   bool get isFormURLEncoded =>
       type == 'application' && subType == 'x-www-form-urlencoded';
 
+  /// Returns [true] if is PDF.
+  bool get isPDF => subType == 'pdf';
+
+  /// Returns [true] if is a Dart script/code.
+  bool get isDart => subType == 'dart';
+
+  /// Returns [true] if is Zip.
+  bool get isZip => subType == 'zip';
+
+  /// Returns [true] if is GZip.
+  bool get isGZip => subType == 'gzip';
+
+  /// Returns [true] if is GZip.
+  bool get isBZip2 => subType == 'bzip2';
+
+  /// Returns [true] if is XZ.
+  bool get isXZ => subType == 'x-xz';
+
+  /// Returns [true] if is Tar.
+  bool get isTar => subType == 'x-tar';
+
+  /// Returns [true] if is `tar.gz`.
+  bool get isTarGZip => subType == 'x-tar+gzip';
+
+  /// Returns [true] if is `tar.bz2`.
+  bool get isTarBZip2 => subType == 'x-tar+bzip2';
+
+  /// Returns [true] if is `tar.xz`.
+  bool get isTarXZ => subType == 'x-tar+xz';
+
+  /// Returns [true] if is Tar+Compression.
+  bool get isTarCompressed => isTarGZip || isTarBZip2 || isTarXZ;
+
+  /// Returns [true] if is a compression type.
+  bool get isCompressed =>
+      isZip || isGZip || isBZip2 || isXZ || isTarCompressed;
+
+  /// Returns [true] if is `application/octet-stream`.
+  bool get isOctetStream => type == 'application' && subType == 'octet-stream';
+
   /// Returns [true] if type is better represented as [String].
   bool get isStringType {
     return isText ||
         isJSON ||
         isJavascript ||
+        isYAML ||
         isFormURLEncoded ||
         isXML ||
-        isXHTML;
+        isXHTML ||
+        isDart ||
+        isImageSVG;
+  }
+
+  /// The preferred [String] [Encoding] for this MIME-Type:
+  Encoding? get preferredStringEncoding {
+    if (isCharsetUTF8) {
+      return utf8;
+    } else if (isCharsetLATIN1) {
+      return latin1;
+    } else if (isStringType) {
+      return utf8;
+    } else if (isImage) {
+      return isImageSVG ? utf8 : latin1;
+    } else if (isVideo || isAudio || isFont) {
+      return latin1;
+    } else if (isOctetStream || isCompressed || isTar || isPDF) {
+      return latin1;
+    } else {
+      return null;
+    }
   }
 
   /// Returns the common file extension for the MIME-Type.
@@ -448,6 +516,8 @@ class MimeType {
         return 'js';
       case 'gzip':
         return 'gz';
+      case 'zip':
+        return 'zip';
       case 'svg+xml':
         return 'svg';
       case 'xhtml+xml':

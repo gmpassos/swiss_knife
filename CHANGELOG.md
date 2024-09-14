@@ -1,3 +1,10 @@
+## 3.2.2
+
+- `MimeType`:
+- Added `isYAML`, `isFont`, `isPDF`, `isDart`, `isOctetStream`,
+- Added `isZip`, `isGZip`, `isBZip2`, `isXZ`, `isCompressed`.
+- Added `isTar`, `isTarGZip`, `isTarBZip2`, `isTarXZ`, `isTarCompressed`.
+
 ## 3.2.1
 
 - `MimeType`:

@@ -609,6 +609,10 @@ void main() {
       expect(MimeType.parse('png').toString(), equals(MimeType.imagePNG));
       expect(MimeType.byExtension('png').toString(), equals(MimeType.imagePNG));
 
+      expect(MimeType.parse('image/svg').toString(), equals(MimeType.imageSVG));
+      expect(MimeType.parse('svg').toString(), equals(MimeType.imageSVG));
+      expect(MimeType.parse('svg')?.isImageSVG, isTrue);
+
       expect(MimeType.parse('image/gif').toString(), equals(MimeType.imageGIF));
       expect(MimeType.parse('gif').toString(), equals(MimeType.imageGIF));
       expect(MimeType.byExtension('gif').toString(), equals(MimeType.imageGIF));
@@ -639,16 +643,23 @@ void main() {
           MimeType.parse('yaml').toString(), equals(MimeType.applicationYaml));
       expect(
           MimeType.parse('yml').toString(), equals(MimeType.applicationYaml));
+      expect(MimeType.parse('yml')?.isStringType, isTrue);
 
       expect(
           MimeType.parse('markdown').toString(), equals(MimeType.textMarkdown));
       expect(MimeType.parse('md').toString(), equals(MimeType.textMarkdown));
+      expect(MimeType.parse('md')?.isStringType, isTrue);
 
       expect(
           MimeType.parse('dart').toString(), equals(MimeType.applicationDart));
 
+      expect(MimeType.parse('application/octet-stream').toString(),
+          equals(MimeType.applicationOctetStream));
+      expect(MimeType.parse('application/octet-stream')?.isOctetStream, isTrue);
+
       expect(MimeType.byExtension('js').toString(),
           equals(MimeType.applicationJavaScript));
+      expect(MimeType.byExtension('js')?.isStringType, isTrue);
 
       expect(MimeType.parse('zip').toString(), equals('application/zip'));
       expect(MimeType.byExtension('zip').toString(), equals('application/zip'));
@@ -661,14 +672,17 @@ void main() {
 
       expect(MimeType.parse('pdf').toString(), equals('application/pdf'));
       expect(MimeType.byExtension('pdf').toString(), equals('application/pdf'));
+      expect(MimeType.byExtension('pdf')?.isPDF, isTrue);
 
       expect(MimeType.parse('xml').toString(), equals('text/xml'));
       expect(MimeType.byExtension('xml').toString(), equals('text/xml'));
+      expect(MimeType.byExtension('xml')?.isStringType, isTrue);
 
       expect(MimeType.byExtension('yaml').toString(),
           equals(MimeType.applicationYaml));
       expect(MimeType.byExtension('yml').toString(),
           equals(MimeType.applicationYaml));
+      expect(MimeType.byExtension('yml')?.isStringType, isTrue);
 
       expect(
           MimeType.byExtension('md').toString(), equals(MimeType.textMarkdown));
@@ -700,6 +714,51 @@ void main() {
 
       expect(MimeType.byExtension('dart').toString(),
           equals(MimeType.applicationDart));
+      expect(MimeType.byExtension('dart')?.isDart, isTrue);
+      expect(MimeType.byExtension('dart')?.isStringType, isTrue);
+
+      expect(MimeType.parse('application/x-tar')?.isTar, isTrue);
+      expect(MimeType.parse('application/x-tar+gzip')?.isTarGZip, isTrue);
+      expect(MimeType.parse('application/x-tar+gzip')?.isTarCompressed, isTrue);
+
+      expect(MimeType.parse('application/zip')?.isZip, isTrue);
+      expect(MimeType.parse('application/gzip')?.isGZip, isTrue);
+
+      expect(MimeType.parse('application/zip')?.isCompressed, isTrue);
+      expect(MimeType.parse('application/gzip')?.isCompressed, isTrue);
+    });
+
+    test('MimeType preferredStringEncoding', () {
+      expect(
+          MimeType.parse('text/html')?.preferredStringEncoding, equals(utf8));
+
+      expect(MimeType.parse('application/dart')?.preferredStringEncoding,
+          equals(utf8));
+
+      expect(MimeType.parse('application/json')?.preferredStringEncoding,
+          equals(utf8));
+
+      expect(
+          MimeType.parse('image/svg')?.preferredStringEncoding, equals(utf8));
+
+      expect(MimeType.parse('application/x-tar')?.preferredStringEncoding,
+          equals(latin1));
+
+      expect(MimeType.parse('application/pdf')?.preferredStringEncoding,
+          equals(latin1));
+
+      expect(MimeType.parse('application/zip')?.preferredStringEncoding,
+          equals(latin1));
+
+      expect(MimeType.parse('application/gzip')?.preferredStringEncoding,
+          equals(latin1));
+
+      expect(
+          MimeType.parse('application/octet-stream')?.preferredStringEncoding,
+          equals(latin1));
+
+      expect(
+          MimeType.parse('image/png')?.preferredStringEncoding, equals(latin1));
     });
 
     test('MimeType charset', () {
