@@ -732,51 +732,80 @@ final RegExp _toListOfStringsDelimiter = RegExp(r'\s+');
 /// Converts any collection to a flat list of strings.
 List<String> toFlatListOfStrings(Object? s,
     {Pattern? delimiter, bool trim = true, bool ignoreEmpty = true}) {
-  if (s == null) return [];
-
-  delimiter ??= _toListOfStringsDelimiter;
-
-  List<String> list;
-
-  if (s is String) {
-    list = s.split(delimiter);
+  if (s == null) {
+    return <String>[];
+  } else if (s is String) {
+    return _toFlatListOfStringsFromString(
+        s, delimiter ?? _toListOfStringsDelimiter, trim, ignoreEmpty);
   } else if (s is Iterable) {
-    list = <String>[];
-
-    for (var e in s) {
-      if (e == null) continue;
-
-      if (e is String) {
-        var l2 = toFlatListOfStrings(e,
-            delimiter: delimiter, trim: trim, ignoreEmpty: ignoreEmpty);
-        list.addAll(l2);
-      } else if (e is Iterable) {
-        var l2 = toFlatListOfStrings(e,
-            delimiter: delimiter, trim: trim, ignoreEmpty: ignoreEmpty);
-        list.addAll(l2);
-      } else {
-        var str = '$e';
-        var l2 = toFlatListOfStrings(str,
-            delimiter: delimiter, trim: trim, ignoreEmpty: ignoreEmpty);
-        list.addAll(l2);
-      }
-    }
+    return _toFlatListOfStringsFromIterable(
+        s, delimiter ?? _toListOfStringsDelimiter, trim, ignoreEmpty);
   } else {
-    list = <String>[];
+    return _toFlatListOfStringsFromString(
+        '$s', delimiter ?? _toListOfStringsDelimiter, trim, ignoreEmpty);
   }
+}
+
+List<String> _toFlatListOfStringsFromString(
+    String s, Pattern delimiter, bool trim, bool ignoreEmpty) {
+  var list = s.split(delimiter);
 
   if (trim) {
-    for (var i = 0; i < list.length; ++i) {
-      var e = list[i];
-      var e2 = e.trim();
-      if (e2.length != e.length) {
-        list[i] = e2;
-      }
+    trimListOfStrings(list);
+  }
+
+  if (ignoreEmpty) {
+    list.removeWhere((e) => e.isEmpty);
+  }
+
+  return list;
+}
+
+List<String> _toFlatListOfStringsFromIterable(
+    Iterable s, Pattern delimiter, bool trim, bool ignoreEmpty) {
+  var list = <String>[];
+
+  for (var e in s) {
+    if (e == null) continue;
+
+    if (e is String) {
+      var l2 = _toFlatListOfStringsFromString(e, delimiter, trim, ignoreEmpty);
+      list.addAll(l2);
+    } else if (e is Iterable) {
+      var l2 =
+          _toFlatListOfStringsFromIterable(e, delimiter, trim, ignoreEmpty);
+      list.addAll(l2);
+    } else {
+      var l2 =
+          _toFlatListOfStringsFromString('$e', delimiter, trim, ignoreEmpty);
+      list.addAll(l2);
     }
   }
 
-  list.removeWhere((e) => (ignoreEmpty && e.isEmpty));
+  if (list.isEmpty) return list;
 
+  if (trim) {
+    trimListOfStrings(list);
+  }
+
+  if (ignoreEmpty) {
+    list.removeWhere((e) => e.isEmpty);
+  }
+
+  return list;
+}
+
+/// Apply [String.trim] to each [String] of [list].
+/// Returns the same [list] instance without change it's length.
+List<String> trimListOfStrings(List<String> list) {
+  final length = list.length;
+  for (var i = 0; i < length; ++i) {
+    var e = list[i];
+    var e2 = e.trim();
+    if (e2.length != e.length) {
+      list[i] = e2;
+    }
+  }
   return list;
 }
 
@@ -978,7 +1007,9 @@ bool isMapOfStringKeysAndListValues(Map? map) {
   if (map.isEmpty) return false;
 
   if (listNotMatchesAll<MapEntry>(
-      map.entries, (e) => (e.key is String) && (e.value is List))) return false;
+      map.entries, (e) => (e.key is String) && (e.value is List))) {
+    return false;
+  }
 
   return true;
 }
@@ -990,7 +1021,9 @@ bool isMapOfStringKeysAndNumValues(Map? map) {
   if (map.isEmpty) return false;
 
   if (listNotMatchesAll<MapEntry>(
-      map.entries, (e) => (e.key is String) && (e.value is num))) return false;
+      map.entries, (e) => (e.key is String) && (e.value is num))) {
+    return false;
+  }
 
   return true;
 }
@@ -2517,22 +2550,20 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
   }
 
   /// Returns [true] if [key] is valid (in the tree).
-  bool isValidEntry(K key, V value) {
-    return isInTree(key);
-  }
+  bool isValidEntry(K key, V value) => isInTree(key);
 
   /// Returns [true] if [key] is in the tree.
   bool isInTree(K? key) {
-    if (key == null) return false;
     if (identical(root, key)) return true;
 
-    var cursor = key;
-    while (true) {
+    K? cursor = key;
+    while (cursor != null) {
       var parent = getParentOf(cursor);
-      if (parent == null) return false;
       if (identical(parent, root)) return true;
       cursor = parent;
     }
+
+    return false;
   }
 
   /// Returns the parent of [key].
@@ -2704,9 +2735,11 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
 
   /// Removed purged entries over [maxPurgedEntries] limit.
   void checkPurgeEntriesLimit() {
-    if (_purged != null && maxPurgedEntries != null && maxPurgedEntries! > 0) {
-      var purged = _purged!;
-      var needToRemove = purged.length - maxPurgedEntries!;
+    var purged = _purged;
+    var maxPurgedEntries = this.maxPurgedEntries;
+
+    if (purged != null && maxPurgedEntries != null && maxPurgedEntries > 0) {
+      var needToRemove = purged.length - maxPurgedEntries;
       if (needToRemove > 0) {
         var del = <K>[];
         for (var k in purged.keys) {
@@ -2726,16 +2759,18 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
 
   /// Remove expired purged entries. Only relevant if [purgedEntriesTimeout] is not null.
   void checkPurgedEntriesTimeout() {
-    if (_purged != null &&
+    var purged = _purged;
+    var purgedEntriesTimeout = this.purgedEntriesTimeout;
+
+    if (purged != null &&
         purgedEntriesTimeout != null &&
-        purgedEntriesTimeout!.inMilliseconds > 0) {
-      var purged = _purged!;
-      var timeoutMs = purgedEntriesTimeout!.inMilliseconds;
+        purgedEntriesTimeout.inMilliseconds > 0) {
+      var timeoutMs = purgedEntriesTimeout.inMilliseconds;
       var now = DateTime.now().millisecondsSinceEpoch;
       var expired = purged.entries
           .where((e) => (now - e.value.key.millisecondsSinceEpoch) > timeoutMs)
           .map((e) => e.key)
-          .toList();
+          .toList(growable: false);
 
       if (expired.isNotEmpty) {
         for (var k in expired) {
@@ -2752,24 +2787,28 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
 
   /// Restore purged entries that are currently valid. Only relevant if [keepPurgedEntries] is true.
   int revalidatePurgedEntries() {
-    if (_purged != null) {
-      var purged = _purged!;
-      var validPurged = purged.entries
-          .where((e) => isValidEntry(e.key, e.value.value))
-          .toList();
+    var purged = _purged;
+    if (purged == null) return 0;
 
-      if (validPurged.isNotEmpty) {
-        for (var e in validPurged) {
-          _map[e.key] = e.value.value;
-          purged.remove(e.key);
-        }
-        _expireCache();
+    var revalidateCount = 0;
+
+    purged.removeWhere((k, v) {
+      var value = v.value;
+      if (isValidEntry(k, value)) {
+        ++revalidateCount;
+        _map[k] = value;
+        return true;
+      } else {
+        return false;
       }
+    });
 
-      _revalidatedPurgedEntriesCount += validPurged.length;
-      return validPurged.length;
+    if (revalidateCount > 0) {
+      _expireCache();
     }
-    return 0;
+
+    _revalidatedPurgedEntriesCount += revalidateCount;
+    return revalidateCount;
   }
 
   /// Returns the valid entries.
@@ -2781,12 +2820,12 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
       _map.entries.where((e) => !isValidEntry(e.key, e.value)).toList();
 
   /// Returns the purged entries. Only relevant if [keepPurgedEntries] is true.
-  List<MapEntry<K, V>> get purgedEntries => _purged != null
-      ? _purged!.entries.map((e) => MapEntry(e.key, e.value.value)).toList()
-      : <MapEntry<K, V>>[];
+  List<MapEntry<K, V>> get purgedEntries =>
+      _purged?.entries.map((e) => MapEntry(e.key, e.value.value)).toList() ??
+      <MapEntry<K, V>>[];
 
   /// Returns the purged keys. Only relevant if [keepPurgedEntries] is true.
-  List<K> get purgedKeys => _purged != null ? _purged!.keys.toList() : <K>[];
+  List<K> get purgedKeys => _purged?.keys.toList() ?? <K>[];
 
   /// Returns the valid keys.
   List<K> get validKeys => _map.entries
@@ -2807,7 +2846,6 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
 
   R? _walkTreeImpl<R>(K node, R Function(K node) walker) {
     var children = getChildrenOf(node);
-    if (children.isEmpty) return null;
 
     for (var child in children) {
       R? ret = walker(child);
@@ -2879,17 +2917,17 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
 
   /// Returns [keys] reversed (unmodifiable);
   List<K> get keysReversed {
-    _keysReversedList ??= _map.keys.toList().reversed.toList();
-    return UnmodifiableListView(_keysReversedList!);
+    var keys = _keysReversedList ??= _map.keys.toList().reversed.toList();
+    return UnmodifiableListView(keys);
   }
 
   List<K>? _purgedKeysReversedList;
 
   /// Returns [purgedKeys] reversed (unmodifiable);
   List<K> get purgedKeysReversed {
-    _purgedKeysReversedList ??=
-        _purged != null ? _purged!.keys.toList().reversed.toList() : [];
-    return UnmodifiableListView(_purgedKeysReversedList!);
+    var keys = _purgedKeysReversedList ??=
+        _purged?.keys.toList().reversed.toList() ?? [];
+    return UnmodifiableListView(keys);
   }
 
   void _expireCache() {

@@ -1,3 +1,15 @@
+## 3.2.3
+
+- Optimize `toFlatListOfStrings`.
+- Added `trimListOfStrings`.
+
+- sdk: '>=3.4.0 <4.0.0'
+
+- lints: ^4.0.0
+- test: ^1.25.14
+- dependency_validator: ^4.1.2
+- coverage: ^1.11.1
+
 ## 3.2.2
 
 - `MimeType`:

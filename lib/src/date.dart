@@ -435,8 +435,6 @@ int? getDateTimeWeekDayIndex(DateTimeWeekDay? weekDay) {
       return 6;
     case DateTimeWeekDay.sunday:
       return 7;
-    default:
-      return null;
   }
 }
 
@@ -747,8 +745,6 @@ Pair<DateTime> getDateTimeRange(DateRangeType rangeType,
       return getDateTimeLastMonth(time);
     case DateRangeType.thisMonth:
       return getDateTimeThisMonth(time);
-    default:
-      throw UnsupportedError("Can't handle: $rangeType");
   }
 }
 

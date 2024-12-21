@@ -1322,6 +1322,22 @@ void main() {
           toFlatListOfStrings([' a ', ' b ', 'c_d'],
               delimiter: '_', trim: false),
           equals([' a ', ' b ', 'c', 'd']));
+
+      expect(
+          toFlatListOfStrings([
+            1,
+            DateTime.utc(2000, 1, 1, 1, 1, 1, 1, 1),
+            [
+              2,
+              3,
+              [4, [], 5]
+            ]
+          ]),
+          equals(['1', '2000-01-01', '01:01:01.001001Z', '2', '3', '4', '5']));
+    });
+
+    test('trimListOfStrings', () {
+      expect(trimListOfStrings([' a ', 'b', '   ']), equals(['a', 'b', '']));
     });
 
     test('listMatchesAll/listNotMatchesAll', () {
