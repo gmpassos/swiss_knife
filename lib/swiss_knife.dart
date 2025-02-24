@@ -1,4 +1,4 @@
-library swiss_knife;
+library;
 
 export 'src/collections.dart';
 export 'src/data.dart';

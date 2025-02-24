@@ -1,3 +1,14 @@
+## 3.3.0
+
+- sdk: '>=3.6.0 <4.0.0'
+
+- intl: ^0.20.2
+- resource_portable: ^3.1.2
+
+- lints: ^5.1.1
+- test: ^1.25.15
+- collection: ^1.19.0
+
 ## 3.2.3
 
 - Optimize `toFlatListOfStrings`.

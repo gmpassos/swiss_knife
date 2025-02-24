@@ -90,7 +90,7 @@ bool isJSONList(Object? json) {
   return false;
 }
 
-/// Returns [true] if [value] is a JSON Map<String,?>.
+/// Returns [true] if [value] is a JSON `Map<String,?>`.
 bool isJSONMap(Object? json) {
   if (json == null) return false;
 
