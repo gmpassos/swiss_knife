@@ -203,7 +203,7 @@ class MimeType {
         mimeType.endsWith('/yaml')) {
       return MimeType('application', 'yaml', charset);
     } else if (mimeType == 'xml' || mimeType.endsWith('/xml')) {
-      return MimeType('text', 'xml', charset);
+      return MimeType('application', 'xml', charset);
     } else if (mimeType == 'zip' || mimeType.endsWith('/zip')) {
       return MimeType('application', 'zip', charset);
     } else if (mimeType == 'gzip' ||

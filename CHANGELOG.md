@@ -1,3 +1,13 @@
+## 3.3.1
+
+- `MimeType`:
+  - Fix parsing for `XML`: change result from `text/xml` to `application/xml` (oficial).
+
+- test: ^1.26.2
+- dependency_validator: ^5.0.2
+- collection: ^1.19.1
+- coverage: ^1.15.0
+
 ## 3.3.0
 
 - sdk: '>=3.6.0 <4.0.0'
