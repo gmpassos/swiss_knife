@@ -674,8 +674,8 @@ void main() {
       expect(MimeType.byExtension('pdf').toString(), equals('application/pdf'));
       expect(MimeType.byExtension('pdf')?.isPDF, isTrue);
 
-      expect(MimeType.parse('xml').toString(), equals('text/xml'));
-      expect(MimeType.byExtension('xml').toString(), equals('text/xml'));
+      expect(MimeType.parse('xml').toString(), equals('application/xml'));
+      expect(MimeType.byExtension('xml').toString(), equals('application/xml'));
       expect(MimeType.byExtension('xml')?.isStringType, isTrue);
 
       expect(MimeType.byExtension('yaml').toString(),
