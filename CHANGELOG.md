@@ -1,3 +1,8 @@
+## 3.3.3
+
+- `TreeReferenceMap`:
+  - `getSubValues`: added parameter `traverseSubValues`.
+
 ## 3.3.2
 
 - `TreeReferenceMap`:

@@ -2573,20 +2573,29 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
   /// Should be overwritten if [parentGetter] is null.
   K? getParentOf(K? key) => key == null ? null : parentGetter!(key);
 
-  /// Return sub values of [key].
-  List<V> getSubValues(K? key, {bool includePurgedEntries = false}) {
+  /// Gets values from children of [key] in a tree, using depth-first, left-to-right traversal.
+  ///
+  /// - [key]: The key to start from. Returns empty list if `null`.
+  /// - [includePurgedEntries]: If `true`, includes purged entries. Defaults to `false`.
+  /// - [traverseSubValues]: If `true`, explores children after finding a value. Defaults to `false`.
+  ///
+  /// Returns: A [List<V>] of non-null values from child nodes.
+  List<V> getSubValues(K? key,
+      {bool includePurgedEntries = false, bool traverseSubValues = false}) {
     var subValues = <V>[];
     if (key == null) return subValues;
 
     if (includePurgedEntries) {
-      _getSubValuesImpl(key, subValues, getAlsoFromPurgedEntries);
+      _getSubValuesImpl(
+          key, subValues, traverseSubValues, getAlsoFromPurgedEntries);
     } else {
-      _getSubValuesImpl(key, subValues, get);
+      _getSubValuesImpl(key, subValues, traverseSubValues, get);
     }
     return subValues;
   }
 
-  void _getSubValuesImpl(K key, List<V> subValues, V? Function(K key) get) {
+  void _getSubValuesImpl(K key, List<V> subValues, bool traverseSubValues,
+      V? Function(K key) get) {
     final stack = Queue<K>()..add(key);
 
     // Skip root key, push its children to stack in reverse order:
@@ -2607,6 +2616,9 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
       final value = get(current);
       if (value != null) {
         subValues.add(value);
+        if (!traverseSubValues) {
+          continue;
+        }
       }
 
       final children = getChildrenOf(current);
