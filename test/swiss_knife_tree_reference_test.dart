@@ -24,6 +24,14 @@ class MyNode {
     children.add(child);
   }
 
+  bool remove(MyNode child) {
+    if (children.remove(child)) {
+      child._parent = null;
+      return true;
+    }
+    return false;
+  }
+
   @override
   String toString() {
     return '{text: $text, children: $children}';
@@ -78,7 +86,7 @@ void main() {
 
       var x = MyNode('x');
 
-      var tree = MyTree(root);
+      var tree = MyTree(root, keepPurgedKeys: true);
 
       expect(tree.isEmpty, isTrue);
       expect(tree.length, equals(0));
@@ -110,6 +118,89 @@ void main() {
       expect(tree.getParentValue(b2), equals('B'));
 
       expect(tree.getParentKey(x), isNull);
+
+      {
+        var list = <String>[];
+        tree.walkTree((n) => list.add(n.text));
+        expect(list, equals(['a', 'b', 'b:1', 'b:2', 'b:2:1', 'c']));
+      }
+
+      {
+        var list = <String>[];
+        var r = tree.walkTree((n) {
+          list.add(n.text);
+          if (n.text == 'b:2') {
+            return n.text.toUpperCase();
+          }
+          return null;
+        });
+        expect(r, equals('B:2'));
+        expect(list, equals(['a', 'b', 'b:1', 'b:2']));
+      }
+
+      {
+        var list = <String>[];
+        var r = tree.walkTree((n) {
+          list.add(n.text);
+          if (n.text == 'b') {
+            return n.text.toUpperCase();
+          }
+          return null;
+        });
+        expect(r, equals('B'));
+        expect(list, equals(['a', 'b']));
+      }
+
+      {
+        var list = tree.getSubValues(b1);
+        expect(list, equals([]));
+      }
+
+      {
+        var list = tree.getSubValues(b2);
+        expect(list, equals(['B21']));
+      }
+
+      {
+        var list = tree.getSubValues(b);
+        expect(list, equals(['B1', 'B21']));
+      }
+
+      {
+        var list = tree.getSubValues(root);
+        expect(list, equals(['A', 'B', 'B1', 'B21', 'C']));
+      }
+
+      tree.purge();
+
+      {
+        var list = tree.getSubValues(root);
+        expect(list, equals(['A', 'B', 'B1', 'B21', 'C']));
+      }
+
+      b.remove(b2);
+
+      {
+        var list = tree.getSubValues(b2, includePurgedEntries: false);
+        expect(list, equals(['B21']));
+      }
+
+      {
+        var list = tree.getSubValues(b2, includePurgedEntries: true);
+        expect(list, equals(['B21']));
+      }
+
+      tree.purge();
+
+      {
+        var list = tree.getSubValues(b2, includePurgedEntries: false);
+        expect(list, equals([]));
+      }
+
+      {
+        var list = tree.getSubValues(b2, includePurgedEntries: true);
+        expect(list, equals(['B21']));
+      }
     });
   });
 }
