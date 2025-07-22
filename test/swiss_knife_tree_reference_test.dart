@@ -167,14 +167,24 @@ void main() {
       }
 
       {
-        var list = tree.getSubValues(root);
+        var list = tree.getSubValues(root, traverseSubValues: false);
+        expect(list, equals(['A', 'B', 'C']));
+      }
+
+      {
+        var list = tree.getSubValues(root, traverseSubValues: true);
         expect(list, equals(['A', 'B', 'B1', 'B21', 'C']));
       }
 
       tree.purge();
 
       {
-        var list = tree.getSubValues(root);
+        var list = tree.getSubValues(root, traverseSubValues: false);
+        expect(list, equals(['A', 'B', 'C']));
+      }
+
+      {
+        var list = tree.getSubValues(root, traverseSubValues: true);
         expect(list, equals(['A', 'B', 'B1', 'B21', 'C']));
       }
 
