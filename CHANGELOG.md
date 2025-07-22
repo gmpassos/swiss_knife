@@ -1,3 +1,8 @@
+## 3.3.2
+
+- `TreeReferenceMap`:
+  - Optimize `getSubValuesImpl` and `_walkTreeImpl` to avoid self-recursion and use a stack-based algorithm.
+
 ## 3.3.1
 
 - `MimeType`:

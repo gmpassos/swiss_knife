@@ -2579,37 +2579,44 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
     if (key == null) return subValues;
 
     if (includePurgedEntries) {
-      _getSubValuesImplIncludePurgedEntries(key, subValues);
+      _getSubValuesImpl(key, subValues, getAlsoFromPurgedEntries);
     } else {
-      _getSubValuesImpl(key, subValues);
+      _getSubValuesImpl(key, subValues, get);
     }
     return subValues;
   }
 
-  void _getSubValuesImpl(K key, List<V> subValues) {
-    var children = getChildrenOf(key);
-    if (children.isEmpty) return;
+  void _getSubValuesImpl(K key, List<V> subValues, V? Function(K key) get) {
+    final stack = Queue<K>()..add(key);
 
-    for (var child in children) {
-      var value = get(child);
-      if (value != null) {
-        subValues.add(value);
-      } else {
-        _getSubValuesImpl(child, subValues);
+    // Skip root key, push its children to stack in reverse order:
+    {
+      final current = stack.removeLast();
+      final children = getChildrenOf(current);
+
+      for (var i = children.length - 1; i >= 0; --i) {
+        var child = children.elementAt(i);
+        stack.add(child);
       }
     }
-  }
 
-  void _getSubValuesImplIncludePurgedEntries(K key, List<V> subValues) {
-    var children = getChildrenOf(key);
-    if (children.isEmpty) return;
+    // Traverse in depth-first, left-to-right order
+    while (stack.isNotEmpty) {
+      final current = stack.removeLast();
 
-    for (var child in children) {
-      var value = getAlsoFromPurgedEntries(child);
+      final value = get(current);
       if (value != null) {
         subValues.add(value);
-      } else {
-        _getSubValuesImplIncludePurgedEntries(child, subValues);
+      }
+
+      final children = getChildrenOf(current);
+
+      final lng = children.length;
+      if (lng == 0) continue;
+
+      for (var i = lng - 1; i >= 0; --i) {
+        var child = children.elementAt(i);
+        stack.add(child);
       }
     }
   }
@@ -2844,18 +2851,25 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
     return _walkTreeImpl(root ?? this.root, walker);
   }
 
-  R? _walkTreeImpl<R>(K node, R Function(K node) walker) {
-    var children = getChildrenOf(node);
+  R? _walkTreeImpl<R>(K root, R? Function(K node) walker) {
+    final stack = Queue<K>();
 
-    for (var child in children) {
-      R? ret = walker(child);
-      if (ret != null) {
-        return ret;
+    {
+      // Push root's children in reverse order
+      final rootChildren = getChildrenOf(root);
+      for (var i = rootChildren.length - 1; i >= 0; --i) {
+        stack.add(rootChildren.elementAt(i));
       }
+    }
 
-      ret = _walkTreeImpl(child, walker);
-      if (ret != null) {
-        return ret;
+    while (stack.isNotEmpty) {
+      final node = stack.removeLast();
+      final result = walker(node);
+      if (result != null) return result;
+
+      final children = getChildrenOf(node);
+      for (var i = children.length - 1; i >= 0; --i) {
+        stack.add(children.elementAt(i));
       }
     }
 
