@@ -513,7 +513,7 @@ class DualWeakMap<K extends Object, V extends Object> extends WeakKeyMap<K, V> {
   _EntryRef<K, V> _createEntry(key, value) => _EntryRef2<K, V>(key, value);
 
   /// Returns the key associated with a given value, if still alive.
-  K? _getKeyFromValue(Object? value) {
+  K? getKeyFromValue(Object? value) {
     if (value == null || value is! V) return null;
 
     var v = _EntryKey<V, K>(value);
@@ -581,7 +581,7 @@ class SwappedDualWeakMap<V extends Object, K extends Object>
   SwappedDualWeakMap(this._dualWeakMap);
 
   @override
-  K? operator [](Object? value) => _dualWeakMap._getKeyFromValue(value);
+  K? operator [](Object? value) => _dualWeakMap.getKeyFromValue(value);
 
   @override
   void operator []=(V key, K value) {

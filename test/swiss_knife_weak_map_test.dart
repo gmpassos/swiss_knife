@@ -344,5 +344,47 @@ void main() {
       expect(e2.key, same(v));
       expect(e2.value, same(k));
     });
+
+    test('getKeyFromValue returns key for existing value', () {
+      final map = DualWeakMap<KeyObj, ValueObj>();
+
+      final k = KeyObj(1);
+      final v = ValueObj('a');
+
+      map[k] = v;
+
+      final key = map.getKeyFromValue(v);
+
+      expect(key, same(k));
+    });
+
+    test('getKeyFromValue returns null for unknown value', () {
+      final map = DualWeakMap<KeyObj, ValueObj>();
+
+      map[KeyObj(1)] = ValueObj('a');
+
+      expect(map.getKeyFromValue(ValueObj('missing')), isNull);
+    });
+
+    test('getKeyFromValue is null- and type-safe', () {
+      final map = DualWeakMap<KeyObj, ValueObj>();
+
+      map[KeyObj(1)] = ValueObj('a');
+
+      expect(map.getKeyFromValue(null), isNull);
+      expect(map.getKeyFromValue('wrong-type'), isNull);
+    });
+
+    test('getKeyFromValue reflects removals', () {
+      final map = DualWeakMap<KeyObj, ValueObj>();
+
+      final k = KeyObj(1);
+      final v = ValueObj('a');
+
+      map[k] = v;
+      map.remove(k);
+
+      expect(map.getKeyFromValue(v), isNull);
+    });
   });
 }
