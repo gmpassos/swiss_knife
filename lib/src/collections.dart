@@ -2734,6 +2734,7 @@ class TreeReferenceMap<K extends Object, V extends Object>
   int _unpurgedCount = 0;
 
   /// Remove all [invalidKeys].
+  /// Calls [onPurgedEntries] if defined.
   TreeReferenceMap<K, V> purge() {
     _unpurgedCount = 0;
 
@@ -2787,6 +2788,7 @@ class TreeReferenceMap<K extends Object, V extends Object>
   }
 
   /// Same as [purge], but called automatically by many operations.
+  /// See [autoPurge] and [autoPurgeThreshold].
   bool doAutoPurge() {
     if (!autoPurge) return false;
     if (_unpurgedCount < autoPurgeThreshold) {
