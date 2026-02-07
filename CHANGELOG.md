@@ -1,8 +1,19 @@
 
+- Added `WeakKeyMap` and `DualWeakMap` classes in `weak_map.dart`:
+  - Implemented weakly-referenced keys map with auto-purge support.
+  - Added dual weak map with weakly-referenced keys and values.
+  - Added `SwappedDualWeakMap` view for key-value swapped access.
+  - Improved internal entry handling with `_EntryRef` classes.
+  - Added iterable and iterator implementations for weak maps.
+
+
 - Updated `EventStream` in `events.dart`:
   - Changed `_listenSignatures` from non-nullable to nullable `Set`.
   - Added null checks and lazy initialization for `_listenSignatures`.
   - Improved singleton subscription management to handle null safely.
+
+- Updated `swiss_knife.dart`:
+  - Exported new `weak_map.dart`.
 
 ## 3.3.3
 
