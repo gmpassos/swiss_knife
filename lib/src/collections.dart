@@ -4,6 +4,7 @@ import 'dart:math' as dart_math;
 import 'date.dart';
 import 'math.dart';
 import 'utils.dart';
+import 'weak_map.dart';
 
 /// Represents a pair with [a] and [b] of type [T].
 class Pair<T> {
@@ -2488,20 +2489,34 @@ class ObjectCache {
   dynamic operator [](String key) => get(key);
 }
 
-/// A [Map] that keeps keys that are in the tree of [root].
+/// A [Map] that retains entries only while their keys are reachable from [root].
 ///
-/// Since Dart doesn't have Weak References, one way to avoid memory
-/// bloat is to ensure that the key is in the tree of objects that you are
-/// managing.
+/// Internally, this map is backed by a [WeakKeyMap]. Weak references are used
+/// to avoid keeping keys alive beyond their natural lifetime, while
+/// reachability from [root] defines whether an entry is considered valid.
 ///
-/// Browser: one useful way is to use with [document] (the root of DOM),
-/// and be able to associate values with any [Node] in DOM tree.
-class TreeReferenceMap<K, V> implements Map<K, V> {
+/// Entries whose keys are no longer reachable from the object tree rooted
+/// at [root] can be explicitly or automatically purged to prevent memory
+/// growth.
+///
+/// Browser use case: when [root] is a DOM `Node`, values can be safely
+/// associated with any `Node` in the DOM tree, and entries are removed once
+/// the node is detached from [root] `Node`.
+class TreeReferenceMap<K extends Object, V extends Object>
+    implements Map<K, V> {
   /// The root of the Tree Reference.
   final K root;
 
-  /// If true, each operation performs a purge.
+  /// Whether automatic purging of stale entries is enabled.
+  ///
+  /// When enabled, purge checks run during read/write operations.
   final bool autoPurge;
+
+  /// Default threshold used when none is explicitly provided.
+  static const int defaultAutoPurgeThreshold = 100;
+
+  /// Number of operations after which an automatic purge is triggered.
+  final int autoPurgeThreshold;
 
   /// Will stored purged entries in a separated [Map].
   final bool keepPurgedEntries;
@@ -2521,17 +2536,25 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
   /// The [Function] that returns true if [parent] has [child].
   final bool Function(K parent, K child, bool deep)? childChecker;
 
+  /// Optional callback invoked after entries are purged.
+  ///
+  /// Receives a map containing all entries that were removed during
+  /// the purge operation.
+  void Function(Map<K, V> purgedEntries)? onPurgedEntries;
+
   TreeReferenceMap(this.root,
       {this.autoPurge = false,
+      this.autoPurgeThreshold = defaultAutoPurgeThreshold,
       bool keepPurgedKeys = false,
       this.purgedEntriesTimeout,
       this.maxPurgedEntries,
       this.parentGetter,
       this.childrenGetter,
-      this.childChecker})
+      this.childChecker,
+      this.onPurgedEntries})
       : keepPurgedEntries = keepPurgedKeys;
 
-  final Map<K, V> _map = {};
+  final WeakKeyMap<K, V> _map = WeakKeyMap(autoPurge: false);
 
   void put(K key, V value) {
     _map[key] = value;
@@ -2689,7 +2712,7 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
   bool isChildOf(K? parent, K? child, bool deep) =>
       parent != null && child != null && childChecker!(parent, child, deep);
 
-  Map<K, MapEntry<DateTime, V>>? _purged;
+  DualWeakMap<K, MapEntry<DateTime, V>>? _purged;
 
   /// Returns the purged entries length. Only relevant if [keepPurgedEntries] is true.
   int get purgedLength => _purged != null ? _purged!.length : 0;
@@ -2708,9 +2731,18 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
 
   int get purgedEntriesCount => _purgedEntriesCount;
 
+  int _unpurgedCount = 0;
+
   /// Remove all [invalidKeys].
+  /// Calls [onPurgedEntries] if defined.
   TreeReferenceMap<K, V> purge() {
+    _unpurgedCount = 0;
+
+    final onPurgedEntries = this.onPurgedEntries;
+
     var changed = false;
+    var purgedEntries = <K, V>{};
+
     if (keepPurgedEntries) {
       revalidatePurgedEntries();
       checkPurgedEntriesTimeout();
@@ -2718,7 +2750,7 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
       var invalidKeys = this.invalidKeys;
       if (invalidKeys.isEmpty) return this;
 
-      var purged = _purged ?? <K, MapEntry<DateTime, V>>{};
+      var purged = _purged ?? DualWeakMap(autoPurge: false);
       _purged = purged;
 
       for (var k in invalidKeys) {
@@ -2727,29 +2759,44 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
         changed = true;
         if (val != null) {
           purged[k] = MapEntry(DateTime.now(), val);
+          if (onPurgedEntries != null) {
+            purgedEntries[k] = val;
+          }
         }
       }
 
       checkPurgeEntriesLimit();
     } else {
       for (var k in invalidKeys) {
-        _map.remove(k);
+        var val = _map.remove(k);
         _purgedEntriesCount++;
         changed = true;
+        if (val != null && onPurgedEntries != null) {
+          purgedEntries[k] = val;
+        }
       }
     }
 
     if (changed) {
       _expireCache();
+      if (onPurgedEntries != null) {
+        onPurgedEntries(purgedEntries);
+      }
     }
 
     return this;
   }
 
   /// Same as [purge], but called automatically by many operations.
-  void doAutoPurge() {
-    if (!autoPurge) return;
+  /// See [autoPurge] and [autoPurgeThreshold].
+  bool doAutoPurge() {
+    if (!autoPurge) return false;
+    if (_unpurgedCount < autoPurgeThreshold) {
+      ++_unpurgedCount;
+      return false;
+    }
     purge();
+    return true;
   }
 
   /// Removed purged entries over [maxPurgedEntries] limit.
@@ -2786,6 +2833,7 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
         purgedEntriesTimeout.inMilliseconds > 0) {
       var timeoutMs = purgedEntriesTimeout.inMilliseconds;
       var now = DateTime.now().millisecondsSinceEpoch;
+
       var expired = purged.entries
           .where((e) => (now - e.value.key.millisecondsSinceEpoch) > timeoutMs)
           .map((e) => e.key)
@@ -2824,6 +2872,7 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
 
     if (revalidateCount > 0) {
       _expireCache();
+      ++_unpurgedCount;
     }
 
     _revalidatedPurgedEntriesCount += revalidateCount;
@@ -2937,6 +2986,7 @@ class TreeReferenceMap<K, V> implements Map<K, V> {
   void clear() {
     _map.clear();
     _expireCache();
+    _unpurgedCount = 0;
   }
 
   List<K>? _keysReversedList;
