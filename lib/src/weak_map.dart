@@ -183,6 +183,31 @@ class WeakKeyMap<K extends Object, V extends Object> extends MapBase<K, V> {
     return eValue;
   }
 
+  /// Returns the [MapEntry] for [key], or `null` if not found or invalid.
+  ///
+  /// If [key] is `null`, not of type [K], or if the weak key or value was
+  /// garbage-collected, the entry is removed and `null` is returned.
+  MapEntry<K, V>? getEntry(Object? key) {
+    if (key == null || key is! K) return null;
+
+    var k = _EntryKey<K, V>(key);
+    // ignore: collection_methods_unrelated_type
+    var e = _map[k];
+    if (e == null) return null;
+
+    var eKey = e.target;
+    var eValue = e.payload;
+
+    if (eKey == null || eValue == null) {
+      _map.remove(e);
+      _onRemoveEntry(e);
+      ++_unpurgedCount;
+      return null;
+    }
+
+    return MapEntry(eKey, eValue);
+  }
+
   /// Hook invoked when an entry is removed.
   void _onRemoveEntry(_EntryRef<K, V> e) {}
 

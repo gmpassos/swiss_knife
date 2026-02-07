@@ -175,6 +175,42 @@ void main() {
       expect(map.keys, isEmpty);
       expect(map.values, isEmpty);
     });
+
+    test('getEntry returns MapEntry when key and value are alive', () {
+      final map = WeakKeyMap<KeyObj, ValueObj>();
+
+      final k = KeyObj(1);
+      final v = ValueObj('a');
+
+      map[k] = v;
+
+      final entry = map.getEntry(k);
+
+      expect(entry, isNotNull);
+      expect(entry!.key, same(k));
+      expect(entry.value, same(v));
+    });
+
+    test('getEntry returns null for missing or invalid keys', () {
+      final map = WeakKeyMap<KeyObj, ValueObj>();
+
+      map[KeyObj(1)] = ValueObj('a');
+
+      expect(map.getEntry(KeyObj(999)), isNull);
+      expect(map.getEntry(null), isNull);
+      expect(map.getEntry('wrong-type'), isNull);
+    });
+
+    test('getEntry reflects removals', () {
+      final map = WeakKeyMap<KeyObj, ValueObj>();
+
+      final k = KeyObj(1);
+      map[k] = ValueObj('a');
+
+      map.remove(k);
+
+      expect(map.getEntry(k), isNull);
+    });
   });
 
   group('DualWeakMap', () {
