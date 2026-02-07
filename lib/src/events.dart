@@ -213,14 +213,18 @@ class EventStream<T> implements Stream<T> {
   @override
   Future<int> get length => _stream.length;
 
-  final Set<_ListenSignature> _listenSignatures = {};
+  Set<_ListenSignature>? _listenSignatures;
 
   /// Cancels all [StreamSubscription] of singleton listeners.
   void cancelAllSingletonSubscriptions() {
-    for (var signature in _listenSignatures) {
+    final listenSignatures = _listenSignatures;
+    if (listenSignatures == null) return;
+
+    for (var signature in listenSignatures) {
       signature.cancel();
     }
-    _listenSignatures.clear();
+    listenSignatures.clear();
+    _listenSignatures = null;
   }
 
   /// Cancels [StreamSubscription] associated with [singletonIdentifier].
@@ -230,7 +234,7 @@ class EventStream<T> implements Stream<T> {
         _getListenSignature(singletonIdentifier, singletonIdentifyByInstance);
 
     if (signature != null) {
-      _listenSignatures.remove(signature);
+      _listenSignatures?.remove(signature);
       return signature.cancel();
     }
 
@@ -250,7 +254,10 @@ class EventStream<T> implements Stream<T> {
     var listenSignature = _ListenSignature(
         singletonIdentifier, singletonIdentifyByInstance, false);
 
-    for (var signature in _listenSignatures) {
+    final listenSignatures = _listenSignatures;
+    if (listenSignatures == null) return null;
+
+    for (var signature in listenSignatures) {
       if (signature == listenSignature) {
         return signature;
       }
@@ -298,7 +305,7 @@ class EventStream<T> implements Stream<T> {
             getSetEntryInstance(_listenSignatures, listenSignature);
 
         if (overwriteSingletonSubscription && prevSubscription != null) {
-          _listenSignatures.remove(prevSubscription);
+          _listenSignatures?.remove(prevSubscription);
           prevSubscription.cancel();
           prevSubscription = null;
         }
@@ -308,15 +315,16 @@ class EventStream<T> implements Stream<T> {
           if (subscription != null) {
             return subscription as StreamSubscription<T>;
           } else {
-            _listenSignatures.remove(prevSubscription);
+            _listenSignatures?.remove(prevSubscription);
           }
         }
 
-        _listenSignatures.add(listenSignature);
+        final listenSignatures = _listenSignatures ??= {};
+        listenSignatures.add(listenSignature);
 
         var subscription = _stream.listen(onData, onError: onError, onDone: () {
           listenSignature._cancel(false);
-          _listenSignatures.remove(listenSignature);
+          listenSignatures.remove(listenSignature);
 
           if (onDone != null) {
             onDone();
@@ -533,7 +541,11 @@ class EventStreamDelegator<T> implements EventStream<T> {
   }
 
   @override
-  Set<_ListenSignature> get _listenSignatures => throw UnimplementedError();
+  Set<_ListenSignature>? get _listenSignatures => throw UnimplementedError();
+
+  @override
+  set _listenSignatures(Set<_ListenSignature>? value) =>
+      throw UnimplementedError();
 
   @override
   void _markUsed() {}

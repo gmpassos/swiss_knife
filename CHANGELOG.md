@@ -1,3 +1,9 @@
+
+- Updated `EventStream` in `events.dart`:
+  - Changed `_listenSignatures` from non-nullable to nullable `Set`.
+  - Added null checks and lazy initialization for `_listenSignatures`.
+  - Improved singleton subscription management to handle null safely.
+
 ## 3.3.3
 
 - `TreeReferenceMap`:
