@@ -2727,7 +2727,6 @@ class TreeReferenceMap<K extends Object, V extends Object>
     final onPurgedEntries = this.onPurgedEntries;
 
     var changed = false;
-
     var purgedEntries = <K, V>{};
 
     if (keepPurgedEntries) {
@@ -2766,7 +2765,6 @@ class TreeReferenceMap<K extends Object, V extends Object>
 
     if (changed) {
       _expireCache();
-
       if (onPurgedEntries != null) {
         onPurgedEntries(purgedEntries);
       }
@@ -2960,7 +2958,6 @@ class TreeReferenceMap<K extends Object, V extends Object>
     var rm = _map.remove(key);
     doAutoPurge();
     _expireCache();
-
     return rm;
   }
 
@@ -3056,7 +3053,6 @@ class TreeReferenceMap<K extends Object, V extends Object>
     doAutoPurge();
     var val = _map.putIfAbsent(key, ifAbsent);
     _expireCache();
-
     return val;
   }
 
