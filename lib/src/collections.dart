@@ -2501,7 +2501,7 @@ class ObjectCache {
 ///
 /// Browser use case: when [root] is a DOM `Node`, values can be safely
 /// associated with any `Node` in the DOM tree, and entries are removed once
-/// the node is detached from the document.
+/// the node is detached from [root] `Node`.
 class TreeReferenceMap<K extends Object, V extends Object>
     implements Map<K, V> {
   /// The root of the Tree Reference.
