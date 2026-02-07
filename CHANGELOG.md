@@ -1,3 +1,4 @@
+## 3.3.4
 
 - Added `WeakKeyMap` and `DualWeakMap` classes in `weak_map.dart`:
   - Implemented weakly-referenced keys map with auto-purge support.
@@ -23,6 +24,10 @@
 
 - Updated `swiss_knife.dart`:
   - Exported new `weak_map.dart`.
+
+- Updated `pubspec.yaml`:
+  - Bumped `test` dependency to ^1.29.0.
+  - Bumped `dependency_validator` to ^5.0.3.
 
 ## 3.3.3
 
