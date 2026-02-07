@@ -2489,24 +2489,34 @@ class ObjectCache {
   dynamic operator [](String key) => get(key);
 }
 
-/// A [Map] that keeps keys that are in the tree of [root].
+/// A [Map] that retains entries only while their keys are reachable from [root].
 ///
-/// Since Dart doesn't have Weak References, one way to avoid memory
-/// bloat is to ensure that the key is in the tree of objects that you are
-/// managing.
+/// Internally, this map is backed by a [WeakKeyMap] with automatic purging
+/// disabled. Weak references are used to avoid keeping keys alive beyond
+/// their natural lifetime, while reachability from [root] defines whether
+/// an entry is considered valid.
 ///
-/// Browser: one useful way is to use with [document] (the root of DOM),
-/// and be able to associate values with any [Node] in DOM tree.
+/// Entries whose keys are no longer reachable from the object tree rooted
+/// at [root] can be explicitly or automatically purged to prevent memory
+/// growth.
+///
+/// Browser use case: when [root] is the DOM [document], values can be safely
+/// associated with any [Node] in the DOM tree, and entries are removed once
+/// the node is detached from the document.
 class TreeReferenceMap<K extends Object, V extends Object>
     implements Map<K, V> {
   /// The root of the Tree Reference.
   final K root;
 
-  /// If true, each operation performs a purge.
+  /// Whether automatic purging of stale entries is enabled.
+  ///
+  /// When enabled, purge checks run during read/write operations.
   final bool autoPurge;
 
+  /// Default threshold used when none is explicitly provided.
   static const int defaultAutoPurgeThreshold = 100;
 
+  /// Number of operations after which an automatic purge is triggered.
   final int autoPurgeThreshold;
 
   /// Will stored purged entries in a separated [Map].
@@ -2527,6 +2537,10 @@ class TreeReferenceMap<K extends Object, V extends Object>
   /// The [Function] that returns true if [parent] has [child].
   final bool Function(K parent, K child, bool deep)? childChecker;
 
+  /// Optional callback invoked after entries are purged.
+  ///
+  /// Receives a map containing all entries that were removed during
+  /// the purge operation.
   void Function(Map<K, V> purgedEntries)? onPurgedEntries;
 
   TreeReferenceMap(this.root,
