@@ -2491,17 +2491,16 @@ class ObjectCache {
 
 /// A [Map] that retains entries only while their keys are reachable from [root].
 ///
-/// Internally, this map is backed by a [WeakKeyMap] with automatic purging
-/// disabled. Weak references are used to avoid keeping keys alive beyond
-/// their natural lifetime, while reachability from [root] defines whether
-/// an entry is considered valid.
+/// Internally, this map is backed by a [WeakKeyMap]. Weak references are used
+/// to avoid keeping keys alive beyond their natural lifetime, while
+/// reachability from [root] defines whether an entry is considered valid.
 ///
 /// Entries whose keys are no longer reachable from the object tree rooted
 /// at [root] can be explicitly or automatically purged to prevent memory
 /// growth.
 ///
-/// Browser use case: when [root] is the DOM [document], values can be safely
-/// associated with any [Node] in the DOM tree, and entries are removed once
+/// Browser use case: when [root] is a DOM `Node`, values can be safely
+/// associated with any `Node` in the DOM tree, and entries are removed once
 /// the node is detached from the document.
 class TreeReferenceMap<K extends Object, V extends Object>
     implements Map<K, V> {
