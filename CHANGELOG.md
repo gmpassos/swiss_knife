@@ -7,6 +7,10 @@
   - Updated `close`, `isClosed`, and `isPaused` to handle nullable `_controllerObj`.
   - Added `isUsed` getter to indicate if the stream has been used (initialized).
 
+- New `FlatHashMap`:
+  - Flat, index-based hash map with contiguous storage, free-list reuse, and
+    adaptive unsigned chain pointers for reduced memory and improved cache locality.
+
 - `pubspec.yaml`:
   - Updated `dependency_validator` version from `^5.0.3` to `^5.0.4`.
 
