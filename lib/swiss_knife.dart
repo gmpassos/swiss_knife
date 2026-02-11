@@ -4,6 +4,7 @@ export 'src/collections.dart';
 export 'src/data.dart';
 export 'src/date.dart';
 export 'src/events.dart';
+export 'src/flat_hash_map.dart';
 export 'src/json.dart';
 export 'src/loader.dart';
 export 'src/math.dart';
