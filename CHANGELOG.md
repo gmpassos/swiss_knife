@@ -1,3 +1,19 @@
+## 3.3.5
+
+- `EventStream`:
+  - Changed `_controller` field to nullable `_controllerObj` and lazily initialized it.
+  - Changed `_stream` field to nullable `_streamObj` and lazily initialized it as a broadcast stream.
+  - Updated `add` and `addError` methods to check `isUsed` (based on `_streamObj` presence) before adding events.
+  - Updated `close`, `isClosed`, and `isPaused` to handle nullable `_controllerObj`.
+  - Added `isUsed` getter to indicate if the stream has been used (initialized).
+
+- New `FlatHashMap`:
+  - Flat, index-based hash map with contiguous storage, free-list reuse, and
+    adaptive unsigned chain pointers for reduced memory and improved cache locality.
+
+- `pubspec.yaml`:
+  - Updated `dependency_validator` version from `^5.0.3` to `^5.0.4`.
+
 ## 3.3.4
 
 - Added `WeakKeyMap` and `DualWeakMap` classes in `weak_map.dart`:

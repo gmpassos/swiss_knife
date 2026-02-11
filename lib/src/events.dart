@@ -67,34 +67,28 @@ typedef EventValidatorFunction<T> = bool Function(
 ///
 /// See [Stream] for more documentation of delegated methods.
 class EventStream<T> implements Stream<T> {
-  final StreamController<T> _controller = StreamController();
+  StreamController<T>? _controllerObj;
 
-  late final Stream<T> _s;
+  StreamController<T> get _controller => _controllerObj ??= StreamController();
 
-  EventStream() {
-    _s = _controller.stream.asBroadcastStream();
-  }
+  Stream<T>? _streamObj;
 
-  bool _used = false;
+  Stream<T> get _stream =>
+      _streamObj ??= _controller.stream.asBroadcastStream();
 
-  bool get isUsed => _used;
+  EventStream();
 
-  void _markUsed() => _used = true;
-
-  Stream<T> get _stream {
-    _markUsed();
-    return _s;
-  }
+  bool get isUsed => _streamObj != null;
 
   /// Adds an event and notify it to listeners.
   void add(T value) {
-    if (!_used) return;
+    if (!isUsed) return;
     _controller.add(value);
   }
 
   /// Adds an error event and notify it to listeners.
   void addError(Object error, [StackTrace? stackTrace]) {
-    if (!_used) return;
+    if (!isUsed) return;
     _controller.addError(error, stackTrace);
   }
 
@@ -102,13 +96,13 @@ class EventStream<T> implements Stream<T> {
       _controller.addStream(source, cancelOnError: cancelOnError);
 
   /// Closes this stream.
-  Future close() => _controller.close();
+  Future close() => _controllerObj?.close() ?? Future.value();
 
   /// Returns [true] if this stream is closed.
-  bool get isClosed => _controller.isClosed;
+  bool get isClosed => _controllerObj?.isClosed ?? false;
 
   /// Returns [true] if this stream is paused.
-  bool get isPaused => _controller.isPaused;
+  bool get isPaused => _controllerObj?.isPaused ?? false;
 
   @override
   Future<bool> any(bool Function(T element) test) {
@@ -526,13 +520,16 @@ class EventStreamDelegator<T> implements EventStream<T> {
   }
 
   @override
-  late StreamController<T> _controller;
+  late StreamController<T>? _controllerObj;
 
   @override
-  late Stream<T> _s;
+  StreamController<T> get _controller => throw UnsupportedError('');
 
   @override
-  late bool _used;
+  late Stream<T>? _streamObj;
+
+  @override
+  Stream<T> get _stream => throw UnimplementedError();
 
   @override
   _ListenSignature _getListenSignature(singletonIdentifier,
@@ -546,12 +543,6 @@ class EventStreamDelegator<T> implements EventStream<T> {
   @override
   set _listenSignatures(Set<_ListenSignature>? value) =>
       throw UnimplementedError();
-
-  @override
-  void _markUsed() {}
-
-  @override
-  Stream<T> get _stream => throw UnimplementedError();
 
   final List<T> _addBuffer = [];
 
