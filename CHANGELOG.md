@@ -1,3 +1,8 @@
+## 3.3.7
+
+- `WeakKeyMap`:
+  - `putValueIfAbsent`: updated to call `_onPutEntry` and increment `_unpurgedCount` when a new entry is inserted.
+
 ## 3.3.6
 
 - `TreeReferenceMap`:

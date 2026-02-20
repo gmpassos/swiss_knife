@@ -275,6 +275,10 @@ class WeakKeyMap<K extends Object, V extends Object> extends MapBase<K, V> {
       put = true;
       return keyEntry;
     });
+    if (put) {
+      _onPutEntry(keyEntry, value);
+      ++_unpurgedCount;
+    }
     return put;
   }
 
