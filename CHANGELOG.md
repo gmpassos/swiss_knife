@@ -1,3 +1,23 @@
+## 3.3.8
+
+- Added new `DualMap<K, V>` class in `lib/src/dual_map.dart`:
+  - Bidirectional map maintaining two internal maps for O(1) lookup in both directions.
+  - Supports insertion, removal, clear, and lookup by key or value.
+  - Implements `MapBase<K, V>` interface.
+  - Methods:
+    - `put(K key, V value)`: associates value with key, replacing existing mappings.
+    - `get(Object? key)`: returns value for key.
+    - `getKeyFromValue(V value)`: returns key for value.
+    - `putIfAbsent(K key, V Function() ifAbsent)`: inserts if key absent.
+    - `putValueIfAbsent(K key, V value)`: inserts value if key absent, returns bool.
+    - `remove(Object? key)`: removes key and reverse mapping.
+    - `clear()`: clears all mappings.
+  - Properties:
+    - `keys`, `values`, `entries` provide iterable views.
+
+- Updated `lib/swiss_knife.dart`:
+  - Exported new `src/dual_map.dart`.
+
 ## 3.3.7
 
 - `WeakKeyMap`:
