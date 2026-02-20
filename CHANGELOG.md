@@ -1,3 +1,12 @@
+## 3.3.9
+
+- `TreeReferenceMap`:
+  - Rollback: avoid `WeakReference` issues with WASM on Android/Chrome:
+    - Replaced internal `_map` from `WeakKeyMap<K, V>` to standard `Map<K, V>`.
+    - Updated all `_map` method calls from `containsKeyNoPurge` to standard `containsKey`.
+    - Adjusted `put`, `get`, `addAll`, `containsKey`, and `containsValue` methods to work with the new `_map` type.
+    - Removed usage of weak key map features and related purging logic tied to it.
+
 ## 3.3.8
 
 - Added new `DualMap<K, V>` class in `lib/src/dual_map.dart`:

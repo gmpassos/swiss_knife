@@ -2554,7 +2554,7 @@ class TreeReferenceMap<K extends Object, V extends Object>
       this.onPurgedEntries})
       : keepPurgedEntries = keepPurgedKeys;
 
-  final WeakKeyMap<K, V> _map = WeakKeyMap(autoPurge: false);
+  final Map<K, V> _map = {};
 
   void put(K key, V value) {
     _map[key] = value;
@@ -2676,7 +2676,7 @@ class TreeReferenceMap<K extends Object, V extends Object>
       final purged = _purged;
       var cursor = getParentOf(child);
       while (cursor != null) {
-        if (_map.containsKeyNoPurge(cursor) ||
+        if (_map.containsKey(cursor) ||
             (purged?.containsKey(cursor) ?? false)) {
           return cursor;
         }
@@ -2685,7 +2685,7 @@ class TreeReferenceMap<K extends Object, V extends Object>
     } else {
       var cursor = getParentOf(child);
       while (cursor != null) {
-        if (_map.containsKeyNoPurge(cursor)) return cursor;
+        if (_map.containsKey(cursor)) return cursor;
         cursor = getParentOf(cursor);
       }
     }
@@ -2960,7 +2960,7 @@ class TreeReferenceMap<K extends Object, V extends Object>
   @override
   bool containsKey(Object? key) {
     doAutoPurge();
-    return _map.containsKeyNoPurge(key);
+    return _map.containsKey(key);
   }
 
   @override
