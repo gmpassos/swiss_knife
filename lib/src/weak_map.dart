@@ -27,15 +27,21 @@ abstract class _Entry<K extends Object, V extends Object> {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    final target = this.target;
-    if (target == null) return false;
+    if (other is _Entry<K, V>) {
+      if (_hashCode != other._hashCode) return false;
 
-    if (other is _Entry) {
+      final target = this.target;
+      if (target == null) return false;
+
       final otherTarget = other.target;
       if (otherTarget == null) return false;
+
       if (identical(target, otherTarget)) return true;
       return target == otherTarget;
     } else {
+      final target = this.target;
+      if (target == null) return false;
+
       if (identical(target, other)) return true;
       return target == other;
     }
@@ -53,11 +59,34 @@ class _EntryKey<K extends Object, V extends Object> extends _Entry<K, V> {
         super(key.hashCode);
 
   @override
-  K? get target => _obj;
+  K get target => _obj;
 
   /// Always throws, as lookup entries do not carry values.
   @override
   V get payload => throw UnsupportedError("No `payload` for `_KeyObj` class");
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    if (other is _Entry<K, V>) {
+      if (_hashCode != other._hashCode) return false;
+
+      final otherTarget = other.target;
+      if (otherTarget == null) return false;
+
+      final target = _obj;
+      if (identical(target, otherTarget)) return true;
+      return target == otherTarget;
+    } else {
+      final target = _obj;
+      if (identical(target, other)) return true;
+      return target == other;
+    }
+  }
+
+  @override
+  int get hashCode => _hashCode;
 }
 
 /// Base class for entries holding a weakly-referenced key.
@@ -183,6 +212,20 @@ class WeakKeyMap<K extends Object, V extends Object> extends MapBase<K, V> {
     return eValue;
   }
 
+  /// Returns the value associated with [key], or `null` if absent or collected.
+  /// Same as [get], but does NOT purge entries with collected key or value.
+  V? getNoPurge(Object? key) {
+    if (key == null || key is! K) return null;
+
+    var k = _EntryKey<K, V>(key);
+    // ignore: collection_methods_unrelated_type
+    var e = _map[k];
+    if (e == null) return null;
+
+    var eValue = e.payload;
+    return eValue;
+  }
+
   /// Returns the [MapEntry] for [key], or `null` if not found or invalid.
   ///
   /// If [key] is `null`, not of type [K], or if the weak key or value was
@@ -217,6 +260,22 @@ class WeakKeyMap<K extends Object, V extends Object> extends MapBase<K, V> {
     _map[keyEntry] = keyEntry;
     _onPutEntry(keyEntry, value);
     ++_unpurgedCount;
+  }
+
+  /// Inserts [value] for [key] only if no entry for [key] already exists.
+  ///
+  /// Returns `true` if the value was inserted, or `false` if an entry was
+  /// already present and nothing was changed.
+  ///
+  /// This does not replace an existing value.
+  bool putValueIfAbsent(K key, V value) {
+    var keyEntry = _createEntry(key, value);
+    var put = false;
+    _map.putIfAbsent(keyEntry, () {
+      put = true;
+      return keyEntry;
+    });
+    return put;
   }
 
   /// Factory for creating entry representations.
@@ -352,6 +411,17 @@ class WeakKeyMap<K extends Object, V extends Object> extends MapBase<K, V> {
     return true;
   }
 
+  /// Returns `true` if [key] has an associated value.
+  ///
+  /// Same as [containsKey], but does NOT purge entries whose key or value
+  /// has already been collected.
+  bool containsKeyNoPurge(Object? key) {
+    if (key == null || key is! K) return false;
+    var k = _EntryKey<K, V>(key);
+    // ignore: collection_methods_unrelated_type
+    return _map.containsKey(k);
+  }
+
   @override
   bool containsValue(Object? value) {
     List<_EntryRef<K, V>>? del;
@@ -379,6 +449,20 @@ class WeakKeyMap<K extends Object, V extends Object> extends MapBase<K, V> {
     }
 
     return found;
+  }
+
+  /// Returns `true` if any entry currently maps to [value].
+  ///
+  /// Same as [containsValue], but does NOT purge entries whose key or value
+  /// has already been collected. It performs a direct scan and may therefore
+  /// temporarily report `true` for stale keys.
+  bool containsValueNoPurge(Object? value) {
+    for (var k in _map.keys) {
+      if (k.payload == value) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @override
@@ -532,6 +616,41 @@ class DualWeakMap<K extends Object, V extends Object> extends WeakKeyMap<K, V> {
     }
 
     return eKey;
+  }
+
+  @override
+  bool containsValue(Object? value) {
+    if (value == null || value is! V) return false;
+
+    var v = _EntryKey<V, K>(value);
+    // ignore: collection_methods_unrelated_type
+    var valueEntry = _mapValues[v];
+    if (valueEntry == null) return false;
+
+    var eKey = valueEntry.payload;
+    var eValue = valueEntry.target;
+
+    if (eKey == null || eValue == null) {
+      _map.remove(valueEntry.keyEntry);
+      _mapValues.remove(valueEntry);
+      ++_unpurgedCount;
+      return false;
+    }
+
+    return true;
+  }
+
+  @override
+  bool containsValueNoPurge(Object? value) {
+    if (value == null || value is! V) return false;
+
+    var v = _EntryKey<V, K>(value);
+    // ignore: collection_methods_unrelated_type
+    var valueEntry = _mapValues[v];
+    if (valueEntry == null) return false;
+
+    var eValue = valueEntry.target;
+    return eValue != null;
   }
 
   @override

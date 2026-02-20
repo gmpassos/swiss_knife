@@ -1,3 +1,21 @@
+## 3.3.6
+
+- `TreeReferenceMap`:
+  - `getParentKey`: fixed handling of purged entries by using `_map.containsKeyNoPurge` and nullable `_purged`.
+  - `containsKey`: changed to use `_map.containsKeyNoPurge` to avoid purging during lookup.
+
+- New `ExpandoWithFinalizer`.
+
+- `WeakKeyMap` and `DualWeakMap`:
+  - Added `containsKeyNoPurge` and `containsValueNoPurge` methods to check presence without purging collected entries.
+  - Added `getNoPurge` method to get value without purging.
+  - Added `putValueIfAbsent` method to insert a value only if absent.
+  - Improved equality and hashCode implementations in `_EntryKey` for consistent behavior.
+  - Updated `containsValue` in `DualWeakMap` to properly check presence with purging logic.
+
+- `swiss_knife.dart`:
+  - Exported `ExpandoWithFinalizer` from the public API.
+
 ## 3.3.5
 
 - `EventStream`:

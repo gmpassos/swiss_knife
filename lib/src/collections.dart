@@ -2673,10 +2673,11 @@ class TreeReferenceMap<K extends Object, V extends Object>
     if (child == null || identical(child, root)) return null;
 
     if (includePurgedEntries) {
-      var purged = _purged ?? <K, MapEntry<DateTime, V>>{};
+      final purged = _purged;
       var cursor = getParentOf(child);
       while (cursor != null) {
-        if (_map.containsKey(cursor) || purged.containsKey(cursor)) {
+        if (_map.containsKeyNoPurge(cursor) ||
+            (purged?.containsKey(cursor) ?? false)) {
           return cursor;
         }
         cursor = getParentOf(cursor);
@@ -2684,7 +2685,7 @@ class TreeReferenceMap<K extends Object, V extends Object>
     } else {
       var cursor = getParentOf(child);
       while (cursor != null) {
-        if (_map.containsKey(cursor)) return cursor;
+        if (_map.containsKeyNoPurge(cursor)) return cursor;
         cursor = getParentOf(cursor);
       }
     }
@@ -2959,7 +2960,7 @@ class TreeReferenceMap<K extends Object, V extends Object>
   @override
   bool containsKey(Object? key) {
     doAutoPurge();
-    return _map.containsKey(key);
+    return _map.containsKeyNoPurge(key);
   }
 
   @override
