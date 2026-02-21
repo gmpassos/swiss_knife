@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 /// A reference that starts **strong** and automatically degrades to **weak**
 /// after a period (See [LazyWeakReferenceManager.weakenDelay]).
 ///
@@ -63,6 +61,24 @@ final class LazyWeakReference<T extends Object>
   /// transition to a strong reference.
   int get unixTimeMs => _unixTimeMs;
 
+  /// Previous node in the manager’s intrusive doubly-linked aging queue.
+  ///
+  /// Used internally by [LazyWeakReferenceManager] to maintain O(1)
+  /// insertion, removal, and reordering of strong references without
+  /// external allocations.
+  ///
+  /// When this reference is not enqueued, this field is `null`.
+  LazyWeakReference<T>? _prev;
+
+  /// Next node in the manager’s intrusive doubly-linked aging queue.
+  ///
+  /// Together with [_prev], this forms an intrusive linked structure
+  /// owned by the manager. The queue is ordered by last-strong-access
+  /// time (oldest at head, newest at tail).
+  ///
+  /// When this reference is not enqueued, this field is `null`.
+  LazyWeakReference<T>? _next;
+
   /// Creates a strong reference.
   ///
   /// The timestamp [_unixTimeMs] is assigned later by [manager] when the
@@ -81,14 +97,7 @@ final class LazyWeakReference<T extends Object>
   ///
   /// - Prefers strong reference
   /// - Falls back to weak reference
-  T? get target {
-    var strongRef = _strongRef;
-    if (strongRef != null) {
-      return strongRef;
-    } else {
-      return _weakRef?.target;
-    }
-  }
+  T? get target => _strongRef ?? _weakRef?.target;
 
   /// Returns the object only if currently held strongly.
   ///
@@ -96,13 +105,7 @@ final class LazyWeakReference<T extends Object>
   /// Returns `null` if weak, lost, or disposed.
   ///
   /// See [target].
-  T? get targetIfStrong {
-    var strongRef = _strongRef;
-    if (strongRef != null) {
-      return strongRef;
-    }
-    return null;
-  }
+  T? get targetIfStrong => _strongRef;
 
   /// Whether this currently holds a strong reference.
   bool get isStrong => _strongRef != null;
@@ -329,34 +332,100 @@ class LazyWeakReferenceManager<T extends Object> {
   /// Current unix time in milliseconds.
   int get unixTimeMs => DateTime.now().millisecondsSinceEpoch;
 
-  /// Ordered queue of strong references pending conversion to weak references.
+  /// Head of the intrusive aging queue (oldest strong reference).
   ///
-  /// Backed by a `SplayTreeSet`, providing O(log n) insertion, lookup,
-  /// and removal while always processing the smallest element first
-  /// according to `LazyWeakReference.compareTo`.
-  final _strongRefs =
-      SplayTreeSet<LazyWeakReference<T>>((a, b) => a.compareTo(b));
+  /// References near this end are the next candidates to transition
+  /// from strong → weak once [weakenDelay] has elapsed.
+  /// Managed exclusively by the manager.
+  LazyWeakReference<T>? _head; // oldest
 
-  /// Registers a strong reference for future weakening.
+  /// Tail of the intrusive aging queue (most recently accessed strong reference).
+  ///
+  /// Newly created or recently strengthened references are appended here.
+  /// Managed exclusively by the manager.
+  LazyWeakReference<T>? _tail; // newest
+
+  /// Appends [ref] to the tail of the intrusive aging queue.
+  ///
+  /// This marks the reference as the most recently strengthened entry.
+  /// Runs in O(1) time and performs no allocations.
+  ///
+  /// Precondition:
+  /// - [ref] must NOT already be enqueued.
+  ///
+  /// Postcondition:
+  /// - [ref] becomes the newest (tail) element.
+  /// - [_queued] is set to true.
+  void _pushBack(LazyWeakReference<T> ref) {
+    assert(!ref._queued);
+
+    ref._prev = _tail;
+    ref._next = null;
+
+    if (_tail != null) {
+      _tail!._next = ref;
+    } else {
+      _head = ref;
+    }
+
+    _tail = ref;
+    ref._queued = true;
+  }
+
+  /// Removes [ref] from the intrusive aging queue.
+  ///
+  /// This operation runs in O(1) time and updates neighboring links
+  /// without traversing the queue.
+  ///
+  /// Precondition:
+  /// - Safe to call only if [ref] is currently enqueued.
+  ///
+  /// Postcondition:
+  /// - [ref] is detached from the queue.
+  /// - [_queued] is set to false.
+  /// - [_prev] and [_next] are cleared.
+  void _remove(LazyWeakReference<T> ref) {
+    assert(ref._queued);
+
+    final p = ref._prev;
+    final n = ref._next;
+
+    if (p != null) {
+      p._next = n;
+    } else {
+      _head = n;
+    }
+
+    if (n != null) {
+      n._prev = p;
+    } else {
+      _tail = p;
+    }
+
+    ref._prev = null;
+    ref._next = null;
+    ref._queued = false;
+  }
+
+  /// Registers a new strong reference for future weakening.
   void _handleNewStrongRef(LazyWeakReference<T> ref) {
     assert(!ref._queued);
 
+    // Set strong ref creation time:
     ref._unixTimeMs = unixTimeMs;
-    _strongRefs.add(ref);
-    ref._queued = true;
+    _pushBack(ref);
 
     _scheduleWeakenStrongRefs(weakenDelay);
   }
 
-  /// Registers a strong reference for future weakening.
+  /// Registers an accessed strong reference for future weakening.
   void _handleAccessStrongRef(LazyWeakReference<T> ref) {
     assert(ref._queued);
+    _remove(ref);
 
-    _strongRefs.remove(ref);
-
-    // Only update after remove to not mess with `_strongRefs` ordering and search:
+    // Update strong ref access time:
     ref._unixTimeMs = unixTimeMs;
-    _strongRefs.add(ref);
+    _pushBack(ref);
 
     _scheduleWeakenStrongRefs(weakenDelay);
   }
@@ -366,10 +435,7 @@ class LazyWeakReferenceManager<T extends Object> {
   /// If the reference was previously strong, it is removed from the
   /// pending strong-weakening queue to avoid redundant processing.
   void _handleNewWeakRef(LazyWeakReference<T> ref) {
-    if (ref._queued) {
-      _strongRefs.remove(ref);
-      ref._queued = false;
-    }
+    if (ref._queued) _remove(ref);
   }
 
   /// Called when a reference is permanently disposed.
@@ -379,10 +445,7 @@ class LazyWeakReferenceManager<T extends Object> {
   /// the strong-reference queue, it is removed to prevent unnecessary work
   /// and to avoid holding stale entries.
   void _handleDisposedRef(LazyWeakReference<T> ref) {
-    if (ref._queued) {
-      _strongRefs.remove(ref);
-      ref._queued = false;
-    }
+    if (ref._queued) _remove(ref);
   }
 
   Future<void>? _scheduledWeakenStrongRefs;
@@ -411,44 +474,44 @@ class LazyWeakReferenceManager<T extends Object> {
     // Maximum number of references processed in a single run:
     final batchLimit = this.batchLimit;
 
-    final strongRefs = _strongRefs;
-
     // If we encounter a not-yet-eligible entry, we compute how long to wait.
-    int? untilWeakenMs;
+    int? nextWeakenDelayMs;
     // Number of references processed in this batch.
     var count = 0;
 
     // Process only a limited amount to avoid long blocking work:
-    while (strongRefs.isNotEmpty && count < batchLimit) {
+    while (_head != null && count < batchLimit) {
       // Oldest strong reference.
-      var ref = strongRefs.first;
+      final ref = _head!;
+      assert(ref._queued);
 
       // How long this reference has been strong.
-      var elapsedTimeMs = ref.elapsedMs(unixTimeMs);
+      final elapsedTimeMs = ref.elapsedMs(unixTimeMs);
 
       // Eligible → weaken (or dispose) immediately.
       if (elapsedTimeMs >= weakenDelay) {
         // Remove from strong queue and weaken the reference:
-        strongRefs.remove(ref);
-        ref._queued = false;
+        _remove(ref);
+        assert(!ref._queued);
 
         ref._weakOrDispose();
         ++count;
       } else {
         // Not ready yet: compute remaining wait time and stop batch.
         // Queue is time-ordered, so the rest are also not ready.
-        untilWeakenMs = weakenDelay - elapsedTimeMs;
+        nextWeakenDelayMs = weakenDelay - elapsedTimeMs;
         break;
       }
     }
 
-    // If more items exist, schedule the next processing slice.
-    if (strongRefs.isNotEmpty) {
+    // If more items exist, schedule the next processing slice:
+    if (_head != null) {
       // If next item has a known ready time, wake exactly then.
       // Otherwise, continue cooperative batching using batchInterval.
-      var delay = untilWeakenMs != null
-          ? Duration(milliseconds: untilWeakenMs)
+      var delay = nextWeakenDelayMs != null
+          ? Duration(milliseconds: nextWeakenDelayMs)
           : batchInterval;
+
       _scheduleWeakenStrongRefs(delay, force: true);
     }
   }

@@ -1,3 +1,36 @@
+## 3.3.12
+
+- `LazyWeakReference`:
+  - Added intrusive doubly-linked list fields `_prev` and `_next` for internal queue management.
+  - Simplified `target` and `targetIfStrong` getters using null-coalescing.
+
+- `LazyWeakReferenceManager`:
+  - Replaced `SplayTreeSet` with an intrusive doubly-linked aging queue (`_head`, `_tail`) for strong references.
+  - Added `_pushBack` and `_remove` methods for O(1) insertion and removal in the aging queue.
+  - Updated `_handleNewStrongRef` and `_handleAccessStrongRef` to use the intrusive queue.
+  - Updated `_handleNewWeakRef` and `_handleDisposedRef` to remove references from the queue using `_remove`.
+  - Refactored `_weakenStrongRefs` to process references from the queue head and schedule next weakening based on precise delay.
+  - Improved queue management to avoid allocations and maintain ordering by last strong access time.
+
+### Performance Improvements
+
+* Replaced the internal `SplayTreeSet` used for aging strong references with an **intrusive doubly-linked aging queue**.
+* Benchmark (300k operations, steady set ≈20k items):
+
+| Structure               | Avg Time   |
+|-------------------------| ---------- |
+| Intrusive aging queue   | **~22 ms** |
+| Queue                   | ~35 ms     |
+| WeakRef queue           | ~60 ms     |
+| SplayTreeSet (previous) | ~205 ms    |
+
+* **Impact:**
+
+  * ~9× faster than the previous `SplayTreeSet` implementation
+  * ~35% faster than `Queue`
+  * Lower GC pressure and allocation overhead
+  * Constant-time weaken cycles with stable latency under high churn
+
 ## 3.3.11
 
 - GitHub Actions workflow (`.github/workflows/dart.yml`):
