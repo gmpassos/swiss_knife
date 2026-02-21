@@ -8,6 +8,7 @@ export 'src/events.dart';
 export 'src/expando_with_finalizer.dart';
 export 'src/flat_hash_map.dart';
 export 'src/json.dart';
+export 'src/lazy_weak_reference.dart';
 export 'src/loader.dart';
 export 'src/math.dart';
 export 'src/paging.dart';

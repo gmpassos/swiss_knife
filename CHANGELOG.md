@@ -1,3 +1,21 @@
+## 3.3.10
+
+- Added `LazyWeakReference<T>`:
+  - Holds a reference that starts strong and automatically degrades to weak after a delay.
+  - Provides `target`, `targetIfStrong`, `isStrong`, `isWeak`, `isAlive`, `isLost`, `isDisposed` properties.
+  - Supports promotion to strong via `strong()` and weakening via `weak()`.
+  - Manages lifecycle with a `LazyWeakReferenceManager`.
+  - Implements disposal and elapsed time tracking.
+
+- Added `LazyWeakReferenceManager<T>`:
+  - Controls automatic weakening of strong references after a configurable delay.
+  - Supports batching with configurable batch size and interval to avoid blocking.
+  - Manages queues of strong references and schedules weakening tasks.
+  - Provides `strong()` and `weak()` factory methods to create managed references.
+
+- Updated `lib/swiss_knife.dart`:
+  - Exported `src/lazy_weak_reference.dart`.
+
 ## 3.3.9
 
 - `TreeReferenceMap`:
