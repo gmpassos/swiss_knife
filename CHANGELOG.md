@@ -1,3 +1,26 @@
+## 3.3.11
+
+- GitHub Actions workflow (`.github/workflows/dart.yml`):
+  - Updated `actions/checkout` from v2 to v6.
+  - Split test jobs into separate `test_vm` and `test_chrome` jobs for VM and Chrome platforms respectively.
+  - Updated `codecov/codecov-action` from v1 to v5.
+  - Added `dart pub publish --dry-run` step to the main build job.
+
+- `LazyWeakReference`:
+  - Implemented `Comparable<LazyWeakReference>` with a strict total order based on `_unixTimeMs` and unique `id`.
+  - Added `id` field as a unique sequence identifier assigned by the manager.
+  - Exposed `unixTimeMs` getter.
+  - Removed direct `_unixTimeMs` updates from `strong()` method; now managed by `LazyWeakReferenceManager`.
+  - Updated constructors to accept `id` and defer `_unixTimeMs` assignment to manager.
+
+- `LazyWeakReferenceManager`:
+  - Added `_refIdCount` to assign unique `id`s to references.
+  - Changed internal strong reference queue from `Queue` to `SplayTreeSet` ordered by `LazyWeakReference.compareTo`.
+  - Updated `_handleNewStrongRef` and `_handleAccessStrongRef` to update `_unixTimeMs` and maintain ordering in `_strongRefs`.
+  - Updated `_handleNewWeakRef` and `_handleDisposedRef` to remove references from `_strongRefs`.
+  - Updated `_weakenStrongRefs` to process references from `_strongRefs` in order, removing the oldest eligible references first.
+  - Improved scheduling logic to debounce weakening with precise timing based on reference age.
+
 ## 3.3.10
 
 - Added `LazyWeakReference<T>`:

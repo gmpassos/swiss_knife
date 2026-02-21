@@ -19,7 +19,15 @@ import 'dart:collection';
 ///
 /// The transition from strong → weak is controlled by
 /// [LazyWeakReferenceManager].
-final class LazyWeakReference<T extends Object> {
+final class LazyWeakReference<T extends Object>
+    implements Comparable<LazyWeakReference> {
+  /// Unique sequence identifier assigned by the owning [manager].
+  ///
+  /// Used as a tie-breaker in [compareTo] to provide a strict ordering between
+  /// instances that share the same timestamp. Uniqueness is only guaranteed
+  /// among references created by the same manager.
+  final int id;
+
   /// Owning manager responsible for scheduling lifecycle transitions.
   ///
   /// It controls when this reference moves from strong → weak according to
@@ -51,13 +59,21 @@ final class LazyWeakReference<T extends Object> {
   /// weakened.
   int _unixTimeMs;
 
+  /// Unix timestamp (milliseconds) of creation or of the most recent
+  /// transition to a strong reference.
+  int get unixTimeMs => _unixTimeMs;
+
   /// Creates a strong reference.
-  LazyWeakReference._strong(this._manager, T target, this._unixTimeMs)
+  ///
+  /// The timestamp [_unixTimeMs] is assigned later by [manager] when the
+  /// instance is enqueued for weakening.
+  LazyWeakReference._strong(this.id, this._manager, T target)
       : _strongRef = target,
-        _weakRef = null;
+        _weakRef = null,
+        _unixTimeMs = 0;
 
   /// Creates a weak reference.
-  LazyWeakReference._weak(this._manager, T target, this._unixTimeMs)
+  LazyWeakReference._weak(this.id, this._manager, T target, this._unixTimeMs)
       : _strongRef = null,
         _weakRef = WeakReference(target);
 
@@ -110,7 +126,6 @@ final class LazyWeakReference<T extends Object> {
       assert(_queued);
       final manager = _manager;
       if (manager != null) {
-        _unixTimeMs = manager.unixTimeMs;
         manager._handleAccessStrongRef(this);
         assert(_queued);
       }
@@ -134,7 +149,6 @@ final class LazyWeakReference<T extends Object> {
       // New strong reference, handle it:
       final manager = _manager;
       if (manager != null) {
-        _unixTimeMs = manager.unixTimeMs;
         manager._handleNewStrongRef(this);
         assert(_queued);
       }
@@ -241,6 +255,22 @@ final class LazyWeakReference<T extends Object> {
       'queued: $isQueued, '
       'unixTimeMs: $_unixTimeMs'
       '}@$target';
+
+  /// Orders instances first by `_unixTimeMs` and then by the
+  /// unique [id] to guarantee a strict total order.
+  ///
+  /// The tie-breaker ensures `compareTo` never returns 0 for distinct objects,
+  /// allowing multiple references with the same timestamp to coexist inside
+  /// a `SplayTreeSet`.
+  ///
+  /// Instances must only be compared with others produced by the same manager,
+  /// since [id] uniqueness is only guaranteed within that scope.
+  @override
+  int compareTo(LazyWeakReference<Object> other) {
+    final cmp = _unixTimeMs.compareTo(other._unixTimeMs);
+    if (cmp != 0) return cmp;
+    return id.compareTo(other.id);
+  }
 }
 
 /// Controls automatic weakening of strong references held by
@@ -279,16 +309,19 @@ class LazyWeakReferenceManager<T extends Object> {
             ? batchInterval
             : defaultBatchInterval;
 
+  int _refIdCount = 0;
+
   /// Creates a managed strong reference.
   LazyWeakReference<T> strong(T target) {
-    var ref = LazyWeakReference<T>._strong(this, target, unixTimeMs);
+    var ref = LazyWeakReference<T>._strong(++_refIdCount, this, target);
     _handleNewStrongRef(ref);
     return ref;
   }
 
   /// Creates a managed weak reference.
   LazyWeakReference<T> weak(T target) {
-    var ref = LazyWeakReference<T>._weak(this, target, unixTimeMs);
+    var ref =
+        LazyWeakReference<T>._weak(++_refIdCount, this, target, unixTimeMs);
     _handleNewWeakRef(ref);
     return ref;
   }
@@ -296,15 +329,20 @@ class LazyWeakReferenceManager<T extends Object> {
   /// Current unix time in milliseconds.
   int get unixTimeMs => DateTime.now().millisecondsSinceEpoch;
 
-  /// Queue of strong references waiting to weaken.
-  final Queue<LazyWeakReference<T>> _strongRegs = Queue();
+  /// Ordered queue of strong references pending conversion to weak references.
+  ///
+  /// Backed by a `SplayTreeSet`, providing O(log n) insertion, lookup,
+  /// and removal while always processing the smallest element first
+  /// according to `LazyWeakReference.compareTo`.
+  final _strongRefs =
+      SplayTreeSet<LazyWeakReference<T>>((a, b) => a.compareTo(b));
 
   /// Registers a strong reference for future weakening.
   void _handleNewStrongRef(LazyWeakReference<T> ref) {
     assert(!ref._queued);
-    assert(!_strongRegs.contains(ref));
 
-    _strongRegs.addLast(ref);
+    ref._unixTimeMs = unixTimeMs;
+    _strongRefs.add(ref);
     ref._queued = true;
 
     _scheduleWeakenStrongRefs(weakenDelay);
@@ -313,9 +351,13 @@ class LazyWeakReferenceManager<T extends Object> {
   /// Registers a strong reference for future weakening.
   void _handleAccessStrongRef(LazyWeakReference<T> ref) {
     assert(ref._queued);
-    assert(_strongRegs.contains(ref));
-    _strongRegs.remove(ref);
-    _strongRegs.addLast(ref);
+
+    _strongRefs.remove(ref);
+
+    // Only update after remove to not mess with `_strongRefs` ordering and search:
+    ref._unixTimeMs = unixTimeMs;
+    _strongRefs.add(ref);
+
     _scheduleWeakenStrongRefs(weakenDelay);
   }
 
@@ -325,7 +367,7 @@ class LazyWeakReferenceManager<T extends Object> {
   /// pending strong-weakening queue to avoid redundant processing.
   void _handleNewWeakRef(LazyWeakReference<T> ref) {
     if (ref._queued) {
-      _strongRegs.remove(ref);
+      _strongRefs.remove(ref);
       ref._queued = false;
     }
   }
@@ -338,7 +380,7 @@ class LazyWeakReferenceManager<T extends Object> {
   /// and to avoid holding stale entries.
   void _handleDisposedRef(LazyWeakReference<T> ref) {
     if (ref._queued) {
-      _strongRegs.remove(ref);
+      _strongRefs.remove(ref);
       ref._queued = false;
     }
   }
@@ -369,7 +411,7 @@ class LazyWeakReferenceManager<T extends Object> {
     // Maximum number of references processed in a single run:
     final batchLimit = this.batchLimit;
 
-    final strongRegs = _strongRegs;
+    final strongRefs = _strongRefs;
 
     // If we encounter a not-yet-eligible entry, we compute how long to wait.
     int? untilWeakenMs;
@@ -377,9 +419,9 @@ class LazyWeakReferenceManager<T extends Object> {
     var count = 0;
 
     // Process only a limited amount to avoid long blocking work:
-    while (strongRegs.isNotEmpty && count < batchLimit) {
+    while (strongRefs.isNotEmpty && count < batchLimit) {
       // Oldest strong reference.
-      var ref = strongRegs.first;
+      var ref = strongRefs.first;
 
       // How long this reference has been strong.
       var elapsedTimeMs = ref.elapsedMs(unixTimeMs);
@@ -387,7 +429,7 @@ class LazyWeakReferenceManager<T extends Object> {
       // Eligible → weaken (or dispose) immediately.
       if (elapsedTimeMs >= weakenDelay) {
         // Remove from strong queue and weaken the reference:
-        strongRegs.removeFirst();
+        strongRefs.remove(ref);
         ref._queued = false;
 
         ref._weakOrDispose();
@@ -401,7 +443,7 @@ class LazyWeakReferenceManager<T extends Object> {
     }
 
     // If more items exist, schedule the next processing slice.
-    if (strongRegs.isNotEmpty) {
+    if (strongRefs.isNotEmpty) {
       // If next item has a known ready time, wake exactly then.
       // Otherwise, continue cooperative batching using batchInterval.
       var delay = untilWeakenMs != null
