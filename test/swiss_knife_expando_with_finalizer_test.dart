@@ -60,6 +60,10 @@ Future<void> _waitUntil(bool Function() cond,
 }
 
 void main() {
+  tearDown(() async {
+    await _encourageGC();
+  });
+
   group('ExpandoWithFinalizer basic behavior', () {
     test('set + get', () {
       final exp = ExpandoWithFinalizer<_Key, String>((_) {});
@@ -70,6 +74,16 @@ void main() {
       expect(exp.get(key), 'hello');
       expect(exp.containsKey(key), true);
       expect(exp[key], 'hello');
+    });
+
+    test('containsKey remains true after replace', () {
+      final exp = ExpandoWithFinalizer<_Key, String>((_) {});
+      final key = _Key(1);
+
+      exp[key] = 'a';
+      exp[key] = 'b';
+
+      expect(exp.containsKey(key), true);
     });
 
     test('replace value', () {
@@ -93,6 +107,16 @@ void main() {
       expect(removed, 'value');
       expect(exp.containsKey(key), false);
       expect(exp.get(key), null);
+    });
+
+    test('remove twice returns null second time', () {
+      final exp = ExpandoWithFinalizer<_Key, String>((_) {});
+      final key = _Key(2);
+
+      exp[key] = 'value';
+
+      expect(exp.remove(key), 'value');
+      expect(exp.remove(key), null);
     });
   });
 
@@ -177,5 +201,143 @@ void main() {
       expect(finalized, ['same']);
       expect(exp.get(_Key(40)), null);
     });
+
+    test('finalizer fires only once per association', () async {
+      final finalized = <String>[];
+
+      final exp = ExpandoWithFinalizer<_Key, String>((v) {
+        finalized.add(v);
+      });
+
+      void createKey() {
+        final key = _Key(50);
+        exp[key] = 'once';
+      }
+
+      createKey();
+
+      await _waitUntil(() => finalized.isNotEmpty);
+
+      await _encourageGC();
+      await Future.delayed(const Duration(milliseconds: 200));
+
+      expect(finalized, ['once']);
+    });
+
+    test('multiple keys finalize independently', () async {
+      final finalized = <String>[];
+
+      final exp = ExpandoWithFinalizer<_Key, String>((v) {
+        finalized.add(v);
+      });
+
+      void createKeys() {
+        exp[_Key(1)] = 'a';
+        exp[_Key(2)] = 'b';
+        exp[_Key(3)] = 'c';
+      }
+
+      createKeys();
+
+      await _waitUntil(() => finalized.length == 3);
+
+      expect(finalized.toSet(), {'a', 'b', 'c'});
+    });
+
+    test('onFinalizeError called when callback throws', () async {
+      Object? capturedError;
+
+      final exp = _TestExpando(
+        (_) => throw StateError('boom'),
+        onError: (e) => capturedError = e,
+      );
+
+      void createKey() {
+        exp[_Key(60)] = 'x';
+      }
+
+      createKey();
+
+      await _waitUntil(() => capturedError != null);
+
+      expect(capturedError, isA<StateError>());
+    });
+
+    test('debug wrapper does not keep key alive', () async {
+      final finalized = <String>[];
+
+      final exp = ExpandoWithFinalizer<_Key, String>((v) => finalized.add(v),
+          debug: true);
+
+      void createKey() {
+        final key = _Key(70);
+        exp[key] = 'debug';
+      }
+
+      createKey();
+
+      await _waitUntil(() => finalized.contains('debug'));
+
+      expect(finalized, ['debug']);
+    });
+
+    test('identical value does not replace wrapper', () {
+      final exp = ExpandoWithFinalizer<_Key, Object>((_) {});
+      final key = _Key(80);
+
+      final value = Object();
+
+      exp.put(key, value);
+
+      final wrapper1 = exp.getWrapper(key);
+
+      exp.put(key, value);
+
+      final wrapper2 = exp.getWrapper(key);
+
+      expect(identical(wrapper1, wrapper2), true);
+    });
   });
+
+  group('AttachOnlyFinalizer', () {
+    test('remove throws', () {
+      final f = AttachOnlyFinalizer<_Key, String>((_) {});
+
+      expect(
+        () => f.remove(_Key(1)),
+        throwsUnsupportedError,
+      );
+    });
+
+    test('finalizer runs', () async {
+      final finalized = <String>[];
+
+      final f = AttachOnlyFinalizer<_Key, String>((v) {
+        finalized.add(v);
+      });
+
+      void createKey() {
+        final key = _Key(90);
+        f.put(key, 'value');
+      }
+
+      createKey();
+
+      await _waitUntil(() => finalized.isNotEmpty);
+
+      expect(finalized, ['value']);
+    });
+  });
+}
+
+class _TestExpando<K extends Object, V extends Object>
+    extends ExpandoWithFinalizer<K, V> {
+  final void Function(Object error)? onError;
+
+  _TestExpando(super.cb, {this.onError});
+
+  @override
+  void onFinalizeError(Object error, StackTrace stackTrace) {
+    onError?.call(error);
+  }
 }
