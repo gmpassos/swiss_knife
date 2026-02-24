@@ -1,3 +1,40 @@
+## 3.3.13
+
+- `TreeReferenceMap`:
+  - Replaced `_purged` field type from `DualWeakMap` to `DualLazyWeakMap`.
+  - Use global `LazyWeakReferenceManagerByType` to create `DualLazyWeakMap` instances for purged entries.
+
+- `ExpandoWithFinalizer`:
+  - Refactored to extend generic `WithFinalizer` base class.
+  - Introduced strongly typed `FinalizerValueWrapper` abstraction and concrete implementations:
+    - `SimpleFinalizerWrapper`, `SimpleFinalizerWrapperDebug`
+    - `ExpandoValueWrapper`, `ExpandoValueWrapperDebug`
+  - Added `AttachOnlyFinalizer` class for write-only finalizer usage.
+  - Added `debug` mode to retain weak references to keys for inspection.
+  - Improved finalizer attach/detach logic and wrapper management.
+
+- `lazy_weak_reference.dart`:
+  - Added `GenericReference` interface for strong/weak reference abstraction.
+  - Added `LazyWeakReferenceManagerByType` singleton managing per-type `LazyWeakReferenceManager` instances.
+  - Added `toString` and `compareTo` improvements to `LazyWeakReference`.
+  - Added `LazyWeakReferenceManagerByType` class for centralized management.
+  - Added `toString` override to `LazyWeakReferenceManager`.
+
+- `weak_map.dart`:
+  - Refactored internal entry classes to support lazy weak references:
+    - Added `_EntryLazyRef`, `_EntryLazyRef1`, `_EntryLazyRef2`, `_EntryLazyRefValue`.
+  - Added `LazyWeakKeyMap` subclass using lazy weak references for keys.
+  - Added `DualLazyWeakMap` subclass using lazy weak references for keys and values.
+  - Added factory constructors `WeakKeyMap.configured` and `DualWeakMap.configured` to create lazy weak reference variants.
+  - Added `removeWhereKey` extension method on `Map` and `WeakKeyMap`.
+  - Updated purge logic to use `removeWhereKey`.
+  - Updated `DualWeakMap` to optionally use lazy weak references for keys and values.
+
+- `resource.dart`:
+  - Changed `ResourceContentCache` to use private `_onLoadEventStream` instead of public `onLoad` field.
+  - Updated `ResourceContent` to lazily initialize `_onLoadEventStream` and use it internally.
+  - Changed event notification to use `_onLoadEventStream?.add` instead of `onLoad.add`.
+
 ## 3.3.12
 
 - `LazyWeakReference`:

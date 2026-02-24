@@ -37,7 +37,7 @@ class ResourceContentCache {
         var content = resourceContent._content;
 
         cached._content = content;
-        cached.onLoad.add(content);
+        cached._onLoadEventStream?.add(content);
       }
 
       return cached;
@@ -160,8 +160,10 @@ class ResourceContent {
 
   Future<String>? _readFuture;
 
+  EventStream<String?>? _onLoadEventStream;
+
   /// Notifies events when load is completed.
-  final EventStream<String?> onLoad = EventStream();
+  EventStream<String?> get onLoad => _onLoadEventStream ??= EventStream();
 
   /// Triggers content load.
   Future<void> load() async {
@@ -196,7 +198,7 @@ class ResourceContent {
     _content = content;
     _loaded = true;
     _loadError = loadError;
-    onLoad.add(content);
+    _onLoadEventStream?.add(content);
   }
 
   /// Returns [true] if loaded.

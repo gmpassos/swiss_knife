@@ -1,3 +1,26 @@
+/// Represents a generic reference wrapper that may hold either a
+/// strong or weak reference to a target object.
+///
+/// Implementations can dynamically control whether the referenced object
+/// is retained strongly (preventing garbage collection) or weakly
+/// (allowing it to be collected).
+///
+/// See [LazyWeakReference].
+abstract class GenericReference<T extends Object> {
+  /// Returns the target object.
+  T? get target;
+
+  /// Returns the object only if currently held strongly.
+  /// See [target], [isStrong].
+  T? get targetIfStrong;
+
+  /// Whether this currently holds a strong reference.
+  bool get isStrong;
+
+  /// Whether this reference is marked as weak (not strong). See [isStrong].
+  bool get isWeak;
+}
+
 /// A reference that starts **strong** and automatically degrades to **weak**
 /// after a period (See [LazyWeakReferenceManager.weakenDelay]).
 ///
@@ -17,7 +40,7 @@
 ///
 /// The transition from strong → weak is controlled by
 /// [LazyWeakReferenceManager].
-final class LazyWeakReference<T extends Object>
+final class LazyWeakReference<T extends Object> extends GenericReference<T>
     implements Comparable<LazyWeakReference> {
   /// Unique sequence identifier assigned by the owning [manager].
   ///
@@ -97,6 +120,7 @@ final class LazyWeakReference<T extends Object>
   ///
   /// - Prefers strong reference
   /// - Falls back to weak reference
+  @override
   T? get target => _strongRef ?? _weakRef?.target;
 
   /// Returns the object only if currently held strongly.
@@ -105,9 +129,10 @@ final class LazyWeakReference<T extends Object>
   /// Returns `null` if weak, lost, or disposed.
   ///
   /// See [target].
+  @override
   T? get targetIfStrong => _strongRef;
 
-  /// Whether this currently holds a strong reference.
+  @override
   bool get isStrong => _strongRef != null;
 
   /// Promotes this reference to **strong**.
@@ -166,6 +191,7 @@ final class LazyWeakReference<T extends Object>
   /// It only checks that no strong reference exists and a weak reference
   /// object is present. The referenced object may already have been
   /// garbage-collected.
+  @override
   bool get isWeak => _strongRef == null && _weakRef != null;
 
   /// Converts this reference into a **weak** reference.
@@ -251,7 +277,7 @@ final class LazyWeakReference<T extends Object>
   int elapsedMs(int nowUnixTime) => nowUnixTime - _unixTimeMs;
 
   @override
-  String toString() => 'LazyWeakReference{'
+  String toString() => 'LazyWeakReference#$id<$T>{'
       'isStrong: $isStrong, '
       'isWeak: $isWeak, '
       'isDisposed: $isDisposed, '
@@ -276,6 +302,62 @@ final class LazyWeakReference<T extends Object>
   }
 }
 
+class LazyWeakReferenceManagerByType {
+  static final global = LazyWeakReferenceManagerByType(
+    batchLimit: 500,
+    batchInterval: Duration(milliseconds: 2),
+    weakenDelay: Duration(seconds: 2),
+  );
+
+  /// Time before a strong reference becomes weak. Default: 1 sec
+  final Duration weakenDelay;
+
+  /// Maximum references processed per batch. Default: 100
+  final int batchLimit;
+
+  /// Delay between batch processing. Default: 1 ms
+  ///
+  /// Helps prevent long processing from blocking I/O, events, or UI updates
+  /// by yielding time back to the event loop between batches.
+  final Duration batchInterval;
+
+  LazyWeakReferenceManagerByType(
+      {this.weakenDelay = LazyWeakReferenceManager.defaultWeakenDelay,
+      this.batchLimit = LazyWeakReferenceManager.defaultBatchLimit,
+      this.batchInterval = LazyWeakReferenceManager.defaultBatchInterval});
+
+  final Map<Type, LazyWeakReferenceManager> _managers = {};
+
+  Iterable<Type> get types => _managers.keys;
+
+  Iterable<LazyWeakReferenceManager> get managers => _managers.values;
+
+  Iterable<MapEntry<Type, LazyWeakReferenceManager>> get entries =>
+      _managers.entries;
+
+  int get length => _managers.length;
+
+  LazyWeakReferenceManager<T> get<T extends Object>() {
+    var prev = _managers[T];
+    if (prev != null) {
+      return prev as LazyWeakReferenceManager<T>;
+    }
+    return _managers[T] = LazyWeakReferenceManager<T>(
+        weakenDelay: weakenDelay,
+        batchLimit: batchLimit,
+        batchInterval: batchInterval);
+  }
+
+  LazyWeakReferenceManager<T>? remove<T extends Object>([Type? type]) {
+    type ??= T;
+    return _managers.remove(type) as LazyWeakReferenceManager<T>?;
+  }
+
+  void clear() {
+    _managers.clear();
+  }
+}
+
 /// Controls automatic weakening of strong references held by
 /// [LazyWeakReference] instances.
 ///
@@ -285,6 +367,10 @@ final class LazyWeakReference<T extends Object>
 /// preserving recently used objects while allowing older ones to be
 /// garbage-collected.
 class LazyWeakReferenceManager<T extends Object> {
+  static int _idCount = 0;
+
+  final int id = ++_idCount;
+
   /// Time before a strong reference becomes weak. Default: 1 sec
   final Duration weakenDelay;
 
@@ -345,6 +431,8 @@ class LazyWeakReferenceManager<T extends Object> {
   /// Managed exclusively by the manager.
   LazyWeakReference<T>? _tail; // newest
 
+  int _queueSize = 0;
+
   /// Appends [ref] to the tail of the intrusive aging queue.
   ///
   /// This marks the reference as the most recently strengthened entry.
@@ -370,6 +458,8 @@ class LazyWeakReferenceManager<T extends Object> {
 
     _tail = ref;
     ref._queued = true;
+
+    ++_queueSize;
   }
 
   /// Removes [ref] from the intrusive aging queue.
@@ -405,6 +495,8 @@ class LazyWeakReferenceManager<T extends Object> {
     ref._prev = null;
     ref._next = null;
     ref._queued = false;
+
+    --_queueSize;
   }
 
   /// Registers a new strong reference for future weakening.
@@ -514,5 +606,17 @@ class LazyWeakReferenceManager<T extends Object> {
 
       _scheduleWeakenStrongRefs(delay, force: true);
     }
+  }
+
+  @override
+  String toString() {
+    return 'LazyWeakReferenceManager#$id<$T>{'
+        'weakenDelay: ${weakenDelay.inMilliseconds} ms, '
+        'batchLimit: $batchLimit, '
+        'batchInterval: ${batchInterval.inMilliseconds} ms, '
+        'refIdCount: $_refIdCount, '
+        'queueSize: $_queueSize, '
+        'scheduledWeakenStrongRefs: ${_scheduledWeakenStrongRefs != null}'
+        '}';
   }
 }

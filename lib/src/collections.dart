@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:math' as dart_math;
 
 import 'date.dart';
+import 'lazy_weak_reference.dart';
 import 'math.dart';
 import 'utils.dart';
 import 'weak_map.dart';
@@ -2713,7 +2714,7 @@ class TreeReferenceMap<K extends Object, V extends Object>
   bool isChildOf(K? parent, K? child, bool deep) =>
       parent != null && child != null && childChecker!(parent, child, deep);
 
-  DualWeakMap<K, MapEntry<DateTime, V>>? _purged;
+  DualLazyWeakMap<K, MapEntry<DateTime, V>>? _purged;
 
   /// Returns the purged entries length. Only relevant if [keepPurgedEntries] is true.
   int get purgedLength => _purged != null ? _purged!.length : 0;
@@ -2727,6 +2728,9 @@ class TreeReferenceMap<K extends Object, V extends Object>
     _purged = null;
     _expireCache();
   }
+
+  static final _lazyWeakReferenceManagerByType =
+      LazyWeakReferenceManagerByType.global;
 
   int _purgedEntriesCount = 0;
 
@@ -2751,7 +2755,13 @@ class TreeReferenceMap<K extends Object, V extends Object>
       var invalidKeys = this.invalidKeys;
       if (invalidKeys.isEmpty) return this;
 
-      var purged = _purged ?? DualWeakMap(autoPurge: false);
+      final purged = _purged ??
+          DualLazyWeakMap(
+            _lazyWeakReferenceManagerByType.get(),
+            _lazyWeakReferenceManagerByType.get(),
+            autoPurge: false,
+          );
+
       _purged = purged;
 
       for (var k in invalidKeys) {
