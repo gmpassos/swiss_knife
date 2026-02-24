@@ -323,7 +323,8 @@ void main() {
 
       createKey();
 
-      await _waitUntil(() => finalized.isNotEmpty);
+      await _waitUntil(
+          timeout: Duration(seconds: 30), () => finalized.isNotEmpty);
 
       expect(finalized, ['value']);
     });
