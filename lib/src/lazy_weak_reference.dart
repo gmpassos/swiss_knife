@@ -302,7 +302,28 @@ final class LazyWeakReference<T extends Object> extends GenericReference<T>
   }
 }
 
+/// Manages multiple [LazyWeakReferenceManager] instances grouped by target
+/// type, all created using the same configuration.
+///
+/// Each type has its own independent manager responsible for handling
+/// lazy weakening of references. Managers are created on demand when
+/// requested through [get].
+///
+/// This allows reference lifecycle policies to be configured once and
+/// shared globally, while keeping references isolated per object type.
+///
+/// Managers process references in batches to avoid blocking the event
+/// loop, helping maintain responsiveness for I/O, events, and UI updates.
+///
+/// A global shared instance is available through [global].
 class LazyWeakReferenceManagerByType {
+  /// Global shared instance using balanced defaults suitable
+  /// for most applications.
+  ///
+  /// Default configuration:
+  /// - [weakenDelay]: 2 seconds
+  /// - [batchLimit]: 500 references per batch
+  /// - [batchInterval]: 2 milliseconds between batches
   static final global = LazyWeakReferenceManagerByType(
     batchLimit: 500,
     batchInterval: Duration(milliseconds: 2),
@@ -321,6 +342,8 @@ class LazyWeakReferenceManagerByType {
   /// by yielding time back to the event loop between batches.
   final Duration batchInterval;
 
+  /// Creates a manager that lazily provides one
+  /// [LazyWeakReferenceManager] per type.
   LazyWeakReferenceManagerByType(
       {this.weakenDelay = LazyWeakReferenceManager.defaultWeakenDelay,
       this.batchLimit = LazyWeakReferenceManager.defaultBatchLimit,
@@ -328,15 +351,23 @@ class LazyWeakReferenceManagerByType {
 
   final Map<Type, LazyWeakReferenceManager> _managers = {};
 
+  /// Returns all registered types that currently have managers.
   Iterable<Type> get types => _managers.keys;
 
+  /// Returns all active managers.
   Iterable<LazyWeakReferenceManager> get managers => _managers.values;
 
+  /// Returns all `(Type, LazyWeakReferenceManager)` [MapEntry] pairs.
   Iterable<MapEntry<Type, LazyWeakReferenceManager>> get entries =>
       _managers.entries;
 
+  /// Number of registered managers.
   int get length => _managers.length;
 
+  /// Returns the [LazyWeakReferenceManager] associated with type [T].
+  ///
+  /// If no manager exists yet, a new one is created using this
+  /// instance configuration.
   LazyWeakReferenceManager<T> get<T extends Object>() {
     var prev = _managers[T];
     if (prev != null) {
@@ -348,11 +379,15 @@ class LazyWeakReferenceManagerByType {
         batchInterval: batchInterval);
   }
 
+  /// Removes and returns the manager associated with [T] or [type].
+  ///
+  /// If [type] is omitted, [T] is used.
   LazyWeakReferenceManager<T>? remove<T extends Object>([Type? type]) {
     type ??= T;
     return _managers.remove(type) as LazyWeakReferenceManager<T>?;
   }
 
+  /// Removes all registered managers.
   void clear() {
     _managers.clear();
   }
@@ -369,6 +404,9 @@ class LazyWeakReferenceManagerByType {
 class LazyWeakReferenceManager<T extends Object> {
   static int _idCount = 0;
 
+  /// Unique global identifier of this manager instance.
+  ///
+  /// Assigned sequentially when the instance is created./// Global ID of this instance;
   final int id = ++_idCount;
 
   /// Time before a strong reference becomes weak. Default: 1 sec
