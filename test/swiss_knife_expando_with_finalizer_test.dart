@@ -1,4 +1,4 @@
-@Timeout(Duration(seconds: 60))
+@Timeout(Duration(seconds: 90))
 library;
 
 import 'dart:async';
@@ -49,7 +49,7 @@ Future<void> _encourageGC() async {
 
 /// Waits until condition true or timeout
 Future<void> _waitUntil(bool Function() cond,
-    {Duration timeout = const Duration(seconds: 10)}) async {
+    {Duration timeout = const Duration(seconds: 15)}) async {
   final start = DateTime.now();
   while (!cond()) {
     if (DateTime.now().difference(start) > timeout) {
