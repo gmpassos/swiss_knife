@@ -27,9 +27,21 @@ class ValueObj {
 }
 
 void main() {
+  group('WeakReference', () {
+    _doTests();
+  });
+
+  group('LazyWeakReference', () {
+    _doTests(LazyWeakReferenceManager(), LazyWeakReferenceManager());
+  });
+}
+
+void _doTests(
+    [LazyWeakReferenceManager<KeyObj>? keyManager,
+    LazyWeakReferenceManager<ValueObj>? valueManager]) {
   group('WeakKeyMap', () {
     test('put and get', () {
-      final map = WeakKeyMap<KeyObj, ValueObj>();
+      final map = _newWeakKeyMap(keyManager);
 
       final k = KeyObj(1);
       final v = ValueObj('a');
@@ -41,7 +53,7 @@ void main() {
     });
 
     test('containsKey and containsValue', () {
-      final map = WeakKeyMap<KeyObj, ValueObj>();
+      final map = _newWeakKeyMap(keyManager);
 
       final k = KeyObj(1);
       final v = ValueObj('a');
@@ -53,7 +65,7 @@ void main() {
     });
 
     test('remove returns value and deletes entry', () {
-      final map = WeakKeyMap<KeyObj, ValueObj>();
+      final map = _newWeakKeyMap(keyManager);
 
       final k = KeyObj(1);
       final v = ValueObj('a');
@@ -68,7 +80,7 @@ void main() {
     });
 
     test('iterate visits all entries', () {
-      final map = WeakKeyMap<KeyObj, ValueObj>();
+      final map = _newWeakKeyMap(keyManager);
 
       final k1 = KeyObj(1);
       final k2 = KeyObj(2);
@@ -107,7 +119,7 @@ void main() {
     });
 
     test('keys, values and entries reflect current state', () {
-      final map = WeakKeyMap<KeyObj, ValueObj>();
+      final map = _newWeakKeyMap(keyManager);
 
       final k1 = KeyObj(1);
       final k2 = KeyObj(2);
@@ -126,7 +138,7 @@ void main() {
     });
 
     test('entriesSwapped returns value->key pairs', () {
-      final map = WeakKeyMap<KeyObj, ValueObj>();
+      final map = _newWeakKeyMap(keyManager);
 
       final k = KeyObj(1);
       final v = ValueObj('a');
@@ -139,7 +151,7 @@ void main() {
     });
 
     test('removeWhere removes matching entries', () {
-      final map = WeakKeyMap<KeyObj, ValueObj>();
+      final map = _newWeakKeyMap(keyManager);
 
       final k1 = KeyObj(1);
       final k2 = KeyObj(2);
@@ -155,7 +167,7 @@ void main() {
     });
 
     test('containsKey and get are null/type safe', () {
-      final map = WeakKeyMap<KeyObj, ValueObj>();
+      final map = _newWeakKeyMap(keyManager);
 
       map[KeyObj(1)] = ValueObj('a');
 
@@ -166,7 +178,7 @@ void main() {
     });
 
     test('clear resets length and state', () {
-      final map = WeakKeyMap<KeyObj, ValueObj>();
+      final map = _newWeakKeyMap(keyManager);
 
       map[KeyObj(1)] = ValueObj('a');
       map.clear();
@@ -177,7 +189,7 @@ void main() {
     });
 
     test('getEntry returns MapEntry when key and value are alive', () {
-      final map = WeakKeyMap<KeyObj, ValueObj>();
+      final map = _newWeakKeyMap(keyManager);
 
       final k = KeyObj(1);
       final v = ValueObj('a');
@@ -192,7 +204,7 @@ void main() {
     });
 
     test('getEntry returns null for missing or invalid keys', () {
-      final map = WeakKeyMap<KeyObj, ValueObj>();
+      final map = _newWeakKeyMap(keyManager);
 
       map[KeyObj(1)] = ValueObj('a');
 
@@ -202,7 +214,7 @@ void main() {
     });
 
     test('getEntry reflects removals', () {
-      final map = WeakKeyMap<KeyObj, ValueObj>();
+      final map = _newWeakKeyMap(keyManager);
 
       final k = KeyObj(1);
       map[k] = ValueObj('a');
@@ -211,11 +223,89 @@ void main() {
 
       expect(map.getEntry(k), isNull);
     });
+
+    test('put overwrites existing key', () {
+      final map = _newWeakKeyMap(keyManager);
+
+      final k = KeyObj(1);
+      final v1 = ValueObj('a');
+      final v2 = ValueObj('b');
+
+      map[k] = v1;
+      map[k] = v2;
+
+      expect(map.length, 1);
+      expect(map[k], same(v2));
+    });
+
+    test('remove missing key returns null', () {
+      final map = _newWeakKeyMap(keyManager);
+
+      final removed = map.remove(KeyObj(999));
+
+      expect(removed, isNull);
+    });
+
+    test('removeWhere removes all entries', () {
+      final map = _newWeakKeyMap(keyManager);
+
+      map[KeyObj(1)] = ValueObj('a');
+      map[KeyObj(2)] = ValueObj('b');
+
+      map.removeWhere((_, __) => true);
+
+      expect(map.isEmpty, isTrue);
+    });
+
+    test('iterate on empty map does nothing', () {
+      final map = _newWeakKeyMap(keyManager);
+
+      var called = false;
+
+      map.iterate((k, v) {
+        called = true;
+      });
+
+      expect(called, isFalse);
+    });
+
+    test('autoPurge disabled never requires purge', () {
+      final map = _newWeakKeyMap(
+        keyManager,
+        autoPurge: false,
+        autoPurgeThreshold: 1,
+      );
+
+      map[KeyObj(1)] = ValueObj('a');
+
+      expect(map.isAutoPurgeRequired(), isFalse);
+    });
+
+    test('multiple inserts using lazy manager', () {
+      final map = _newWeakKeyMap(keyManager);
+
+      for (var i = 0; i < 50; i++) {
+        map[KeyObj(i)] = ValueObj('$i');
+      }
+
+      expect(map.length, 50);
+    });
+
+    test('entries reflect mutations', () {
+      final map = _newWeakKeyMap(keyManager);
+
+      final k = KeyObj(1);
+
+      map[k] = ValueObj('a');
+      map.remove(k);
+
+      expect(map.entries, isEmpty);
+    });
   });
 
   group('DualWeakMap', () {
     test('put and get by key', () {
-      final map = DualWeakMap<KeyObj, ValueObj>();
+      final map = _newDualWeakMap(keyManager, valueManager);
 
       final k = KeyObj(1);
       final v = ValueObj('a');
@@ -227,7 +317,7 @@ void main() {
     });
 
     test('swapped map get by value', () {
-      final map = DualWeakMap<KeyObj, ValueObj>();
+      final map = _newDualWeakMap(keyManager, valueManager);
       final swapped = map.swapped;
 
       final k = KeyObj(1);
@@ -239,7 +329,7 @@ void main() {
     });
 
     test('swapped assignment overwrites correctly', () {
-      final map = DualWeakMap<KeyObj, ValueObj>();
+      final map = _newDualWeakMap(keyManager, valueManager);
       final swapped = map.swapped;
 
       final k1 = KeyObj(1);
@@ -255,7 +345,7 @@ void main() {
     });
 
     test('remove via swapped map', () {
-      final map = DualWeakMap<KeyObj, ValueObj>();
+      final map = _newDualWeakMap(keyManager, valueManager);
       final swapped = map.swapped;
 
       final k = KeyObj(1);
@@ -270,7 +360,7 @@ void main() {
     });
 
     test('clear clears both directions', () {
-      final map = DualWeakMap<KeyObj, ValueObj>();
+      final map = _newDualWeakMap(keyManager, valueManager);
 
       map[KeyObj(1)] = ValueObj('a');
       map[KeyObj(2)] = ValueObj('b');
@@ -282,7 +372,7 @@ void main() {
     });
 
     test('keys and values views are swapped correctly', () {
-      final map = DualWeakMap<KeyObj, ValueObj>();
+      final map = _newDualWeakMap(keyManager, valueManager);
 
       final k1 = KeyObj(1);
       final k2 = KeyObj(2);
@@ -301,7 +391,7 @@ void main() {
     });
 
     test('swapped assignment with same mapping is a no-op', () {
-      final map = DualWeakMap<KeyObj, ValueObj>();
+      final map = _newDualWeakMap(keyManager, valueManager);
       final swapped = map.swapped;
 
       final k = KeyObj(1);
@@ -315,7 +405,7 @@ void main() {
     });
 
     test('removing by key removes value mapping too', () {
-      final map = DualWeakMap<KeyObj, ValueObj>();
+      final map = _newDualWeakMap(keyManager, valueManager);
       final swapped = map.swapped;
 
       final k = KeyObj(1);
@@ -329,7 +419,7 @@ void main() {
     });
 
     test('entries and swapped entries stay consistent', () {
-      final map = DualWeakMap<KeyObj, ValueObj>();
+      final map = _newDualWeakMap(keyManager, valueManager);
 
       final k = KeyObj(1);
       final v = ValueObj('a');
@@ -346,7 +436,7 @@ void main() {
     });
 
     test('getKeyFromValue returns key for existing value', () {
-      final map = DualWeakMap<KeyObj, ValueObj>();
+      final map = _newDualWeakMap(keyManager, valueManager);
 
       final k = KeyObj(1);
       final v = ValueObj('a');
@@ -359,7 +449,7 @@ void main() {
     });
 
     test('getKeyFromValue returns null for unknown value', () {
-      final map = DualWeakMap<KeyObj, ValueObj>();
+      final map = _newDualWeakMap(keyManager, valueManager);
 
       map[KeyObj(1)] = ValueObj('a');
 
@@ -367,7 +457,7 @@ void main() {
     });
 
     test('getKeyFromValue is null- and type-safe', () {
-      final map = DualWeakMap<KeyObj, ValueObj>();
+      final map = _newDualWeakMap(keyManager, valueManager);
 
       map[KeyObj(1)] = ValueObj('a');
 
@@ -376,7 +466,7 @@ void main() {
     });
 
     test('getKeyFromValue reflects removals', () {
-      final map = DualWeakMap<KeyObj, ValueObj>();
+      final map = _newDualWeakMap(keyManager, valueManager);
 
       final k = KeyObj(1);
       final v = ValueObj('a');
@@ -386,5 +476,37 @@ void main() {
 
       expect(map.getKeyFromValue(v), isNull);
     });
+
+    test('swapped remove missing value returns null', () {
+      final map = _newDualWeakMap(keyManager, valueManager);
+
+      final removed = map.swapped.remove(ValueObj('x'));
+
+      expect(removed, isNull);
+    });
+
+    test('clear on empty map is safe', () {
+      final map = _newDualWeakMap(keyManager, valueManager);
+
+      map.clear();
+
+      expect(map.isEmpty, isTrue);
+    });
   });
 }
+
+WeakKeyMap<KeyObj, ValueObj> _newWeakKeyMap(
+  LazyWeakReferenceManager<KeyObj>? keyManager, {
+  bool autoPurge = true,
+  int autoPurgeThreshold = WeakKeyMap.defaultAutoPurgeThreshold,
+}) =>
+    WeakKeyMap<KeyObj, ValueObj>.configured(
+        keyLazyRefManager: keyManager,
+        autoPurge: autoPurge,
+        autoPurgeThreshold: autoPurgeThreshold);
+
+DualWeakMap<KeyObj, ValueObj> _newDualWeakMap(
+        LazyWeakReferenceManager<KeyObj>? keyManager,
+        LazyWeakReferenceManager<ValueObj>? valueManager) =>
+    DualWeakMap<KeyObj, ValueObj>.configured(
+        keyLazyRefManager: keyManager, valueLazyRefManager: valueManager);
