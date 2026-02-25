@@ -23,6 +23,7 @@
 - `weak_map.dart`:
   - Refactored internal entry classes to support lazy weak references:
     - Added `_EntryLazyRef`, `_EntryLazyRef1`, `_EntryLazyRef2`, `_EntryLazyRefValue`.
+  - `WeakKeyMap`: include _autoPurge in isAutoPurgeRequired and centralize auto-purge check.
   - Added `LazyWeakKeyMap` subclass using lazy weak references for keys.
   - Added `DualLazyWeakMap` subclass using lazy weak references for keys and values.
   - Added factory constructors `WeakKeyMap.configured` and `DualWeakMap.configured` to create lazy weak reference variants.

@@ -469,7 +469,7 @@ class WeakKeyMap<K extends Object, V extends Object> extends MapBase<K, V> {
 
   /// Runs purge automatically if the threshold is exceeded.
   bool autoPurge() {
-    if (_autoPurge && isAutoPurgeRequired()) {
+    if (isAutoPurgeRequired()) {
       purge();
       return true;
     }
@@ -477,7 +477,8 @@ class WeakKeyMap<K extends Object, V extends Object> extends MapBase<K, V> {
   }
 
   /// Returns `true` if auto-purge should be triggered.
-  bool isAutoPurgeRequired() => _unpurgedCount >= _autoPurgeThreshold;
+  bool isAutoPurgeRequired() =>
+      _autoPurge && _unpurgedCount >= _autoPurgeThreshold;
 
   @override
   int get length {
