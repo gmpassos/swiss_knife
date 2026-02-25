@@ -1,4 +1,4 @@
-@Timeout(Duration(seconds: 90))
+@Timeout(Duration(seconds: 120))
 library;
 
 import 'dart:async';
@@ -29,8 +29,8 @@ class _Key {
 /// Designed for stable Finalizer tests and CI environments.
 Future<void> _encourageGC() async {
   const chunk = 256 * 1024; // 256 KB
-  const perRound = 24; // 6 MB per round
-  const rounds = 12; // ~72 MB total churn (not simultaneous)
+  const perRound = 32; // 8 MB per round
+  const rounds = 16; // ~128 MB total churn (not simultaneous)
 
   for (int r = 0; r < rounds; r++) {
     final buffers = <Uint8List>[];
@@ -49,11 +49,13 @@ Future<void> _encourageGC() async {
 
 /// Waits until condition true or timeout
 Future<void> _waitUntil(bool Function() cond,
-    {Duration timeout = const Duration(seconds: 15)}) async {
+    {Duration timeout = const Duration(seconds: 40)}) async {
+  var stackTrace = StackTrace.current;
   final start = DateTime.now();
   while (!cond()) {
     if (DateTime.now().difference(start) > timeout) {
-      fail('Timed out waiting for condition');
+      Error.throwWithStackTrace(
+          TestFailure('Timed out waiting for condition'), stackTrace);
     }
     await _encourageGC();
   }
@@ -222,6 +224,7 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 200));
 
       expect(finalized, ['once']);
+      expect(exp.get(_Key(50)), null);
     });
 
     test('multiple keys finalize independently', () async {
@@ -242,6 +245,9 @@ void main() {
       await _waitUntil(() => finalized.length == 3);
 
       expect(finalized.toSet(), {'a', 'b', 'c'});
+      expect(exp.get(_Key(1)), null);
+      expect(exp.get(_Key(2)), null);
+      expect(exp.get(_Key(3)), null);
     });
 
     test('onFinalizeError called when callback throws', () async {
@@ -261,6 +267,7 @@ void main() {
       await _waitUntil(() => capturedError != null);
 
       expect(capturedError, isA<StateError>());
+      expect(exp.get(_Key(60)), null);
     });
 
     test('debug wrapper does not keep key alive', () async {
@@ -279,6 +286,7 @@ void main() {
       await _waitUntil(() => finalized.contains('debug'));
 
       expect(finalized, ['debug']);
+      expect(exp.get(_Key(70)), null);
     });
 
     test('identical value does not replace wrapper', () {
@@ -323,10 +331,10 @@ void main() {
 
       createKey();
 
-      await _waitUntil(
-          timeout: Duration(seconds: 30), () => finalized.isNotEmpty);
+      await _waitUntil(() => finalized.isNotEmpty);
 
       expect(finalized, ['value']);
+      expect(f, isNotNull);
     });
   });
 }
