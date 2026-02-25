@@ -459,6 +459,7 @@ void main() {
       await _waitUntil(() => finalized.length == 2);
 
       expect(finalized.toSet(), {'a', 'b'});
+      expect(f, isNotNull);
     });
   });
 }
