@@ -120,6 +120,112 @@ void main() {
       expect(exp.remove(key), 'value');
       expect(exp.remove(key), null);
     });
+
+    test('get on unknown key returns null', () {
+      final exp = ExpandoWithFinalizer<_Key, String>((_) {});
+
+      expect(exp.get(_Key(999)), null);
+      expect(exp.containsKey(_Key(999)), false);
+    });
+
+    test('remove after replace removes latest value only', () {
+      final exp = ExpandoWithFinalizer<_Key, String>((_) {});
+      final key = _Key(101);
+
+      exp[key] = 'old';
+      exp[key] = 'new';
+
+      final removed = exp.remove(key);
+
+      expect(removed, 'new');
+      expect(exp.containsKey(key), false);
+    });
+
+    test('remove unknown key returns null', () {
+      final exp = ExpandoWithFinalizer<_Key, String>((_) {});
+
+      expect(exp.remove(_Key(200)), null);
+    });
+
+    test('multiple replaces finalize only last value', () async {
+      final finalized = <String>[];
+
+      final exp = ExpandoWithFinalizer<_Key, String>(
+        finalized.add,
+      );
+
+      void createKey() {
+        final key = _Key(300);
+        exp[key] = 'a';
+        exp[key] = 'b';
+        exp[key] = 'c';
+      }
+
+      createKey();
+
+      await _waitUntil(() => finalized.isNotEmpty);
+
+      expect(finalized, ['c']);
+      expect(exp[_Key(300)], isNull);
+    });
+
+    test('large batch finalization', () async {
+      final finalized = <int>[];
+
+      final exp = ExpandoWithFinalizer<_Key, int>((v) => finalized.add(v));
+
+      void create() {
+        for (var i = 0; i < 50; i++) {
+          exp[_Key(i)] = i;
+        }
+      }
+
+      create();
+
+      await _waitUntil(() => finalized.length == 50);
+
+      expect(finalized.length, 50);
+      expect(exp[_Key(1)], isNull);
+    });
+
+    test('wrapper removed after finalization', () async {
+      final exp = ExpandoWithFinalizer<_Key, String>((_) {});
+
+      void create() {
+        exp[_Key(400)] = 'v';
+      }
+
+      create();
+
+      await _waitUntil(() => exp.getWrapper(_Key(400)) == null);
+
+      expect(exp.getWrapper(_Key(400)), null);
+    });
+
+    test('finalizer error does not stop other finalizations', () async {
+      final finalized = <String>[];
+
+      final exp = _TestExpando<_Key, String>(
+        (v) {
+          if (v == 'bad') {
+            throw StateError("Bad");
+          }
+          finalized.add(v);
+        },
+      );
+
+      void create() {
+        exp[_Key(1)] = 'ok';
+        exp[_Key(2)] = 'bad';
+      }
+
+      create();
+
+      await _waitUntil(() => finalized.contains('ok'));
+
+      expect(finalized, contains('ok'));
+      expect(exp[_Key(1)], isNull);
+    });
   });
 
   group('finalizer behavior', () {
@@ -335,6 +441,24 @@ void main() {
 
       expect(finalized, ['value']);
       expect(f, isNotNull);
+    });
+
+    test('AttachOnly allows multiple attachments', () async {
+      final finalized = <String>[];
+
+      final f = AttachOnlyFinalizer<_Key, String>(finalized.add);
+
+      void create() {
+        final key = _Key(500);
+        f.put(key, 'a');
+        f.put(key, 'b');
+      }
+
+      create();
+
+      await _waitUntil(() => finalized.length == 2);
+
+      expect(finalized.toSet(), {'a', 'b'});
     });
   });
 }

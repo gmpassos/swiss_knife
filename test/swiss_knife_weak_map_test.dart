@@ -223,6 +223,84 @@ void _doTests(
 
       expect(map.getEntry(k), isNull);
     });
+
+    test('put overwrites existing key', () {
+      final map = _newWeakKeyMap(keyManager);
+
+      final k = KeyObj(1);
+      final v1 = ValueObj('a');
+      final v2 = ValueObj('b');
+
+      map[k] = v1;
+      map[k] = v2;
+
+      expect(map.length, 1);
+      expect(map[k], same(v2));
+    });
+
+    test('remove missing key returns null', () {
+      final map = _newWeakKeyMap(keyManager);
+
+      final removed = map.remove(KeyObj(999));
+
+      expect(removed, isNull);
+    });
+
+    test('removeWhere removes all entries', () {
+      final map = _newWeakKeyMap(keyManager);
+
+      map[KeyObj(1)] = ValueObj('a');
+      map[KeyObj(2)] = ValueObj('b');
+
+      map.removeWhere((_, __) => true);
+
+      expect(map.isEmpty, isTrue);
+    });
+
+    test('iterate on empty map does nothing', () {
+      final map = _newWeakKeyMap(keyManager);
+
+      var called = false;
+
+      map.iterate((k, v) {
+        called = true;
+      });
+
+      expect(called, isFalse);
+    });
+
+    test('autoPurge disabled never requires purge', () {
+      final map = _newWeakKeyMap(
+        keyManager,
+        autoPurge: false,
+        autoPurgeThreshold: 1,
+      );
+
+      map[KeyObj(1)] = ValueObj('a');
+
+      expect(map.isAutoPurgeRequired(), isFalse);
+    });
+
+    test('multiple inserts using lazy manager', () {
+      final map = _newWeakKeyMap(keyManager);
+
+      for (var i = 0; i < 50; i++) {
+        map[KeyObj(i)] = ValueObj('$i');
+      }
+
+      expect(map.length, 50);
+    });
+
+    test('entries reflect mutations', () {
+      final map = _newWeakKeyMap(keyManager);
+
+      final k = KeyObj(1);
+
+      map[k] = ValueObj('a');
+      map.remove(k);
+
+      expect(map.entries, isEmpty);
+    });
   });
 
   group('DualWeakMap', () {
@@ -398,12 +476,34 @@ void _doTests(
 
       expect(map.getKeyFromValue(v), isNull);
     });
+
+    test('swapped remove missing value returns null', () {
+      final map = _newDualWeakMap(keyManager, valueManager);
+
+      final removed = map.swapped.remove(ValueObj('x'));
+
+      expect(removed, isNull);
+    });
+
+    test('clear on empty map is safe', () {
+      final map = _newDualWeakMap(keyManager, valueManager);
+
+      map.clear();
+
+      expect(map.isEmpty, isTrue);
+    });
   });
 }
 
 WeakKeyMap<KeyObj, ValueObj> _newWeakKeyMap(
-        LazyWeakReferenceManager<KeyObj>? keyManager) =>
-    WeakKeyMap<KeyObj, ValueObj>.configured(keyLazyRefManager: keyManager);
+  LazyWeakReferenceManager<KeyObj>? keyManager, {
+  bool autoPurge = true,
+  int autoPurgeThreshold = WeakKeyMap.defaultAutoPurgeThreshold,
+}) =>
+    WeakKeyMap<KeyObj, ValueObj>.configured(
+        keyLazyRefManager: keyManager,
+        autoPurge: autoPurge,
+        autoPurgeThreshold: autoPurgeThreshold);
 
 DualWeakMap<KeyObj, ValueObj> _newDualWeakMap(
         LazyWeakReferenceManager<KeyObj>? keyManager,
