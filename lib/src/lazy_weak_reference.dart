@@ -185,6 +185,53 @@ final class LazyWeakReference<T extends Object> extends GenericReference<T>
     return ref;
   }
 
+  /// Promotes this reference to **strong only if currently weak**.
+  ///
+  /// If this reference is already strong, it is returned unchanged and
+  /// no manager access handling is triggered.
+  ///
+  /// If currently weak and the object is still reachable:
+  /// - A strong reference is restored
+  /// - The manager is notified to track the new strong reference
+  ///
+  /// If the object was already garbage-collected:
+  /// - The weak reference is cleared
+  /// - Returns `null`
+  ///
+  /// When [keepWeakRef] is `true`, the weak reference is preserved
+  /// alongside the strong one. Otherwise, the weak handle is discarded.
+  T? strongIfWeak({bool keepWeakRef = true}) {
+    var ref = _strongRef;
+    if (ref != null) {
+      // Already a strong reference:
+      return ref;
+    }
+
+    _strongRef = ref = _weakRef?.target;
+
+    if (ref == null) {
+      // Lost reference, not reachable either strongly or weakly:
+      _weakRef = null;
+    } else {
+      if (!keepWeakRef) {
+        // Dispose weak reference, but still reachable through `_strongRef`:
+        _weakRef = null;
+      }
+
+      // Weak ref state, not queued:
+      assert(!_queued);
+
+      // New strong reference, handle it:
+      final manager = _manager;
+      if (manager != null) {
+        manager._handleNewStrongRef(this);
+        assert(_queued);
+      }
+    }
+
+    return ref;
+  }
+
   /// Whether this reference is marked as weak (not strong). See [isStrong].
   ///
   /// NOTE: This does NOT verify if the target is still reachable (see [isAlive]).

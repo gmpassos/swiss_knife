@@ -1,3 +1,22 @@
+## 3.3.14
+
+- `TreeReferenceMap`:
+  - Replaced `_purged` field type from `DualLazyWeakMap` to `Map<K, _PurgedValue<V>>`.
+  - Updated purged entries handling to store `(value, time)` records instead of `MapEntry<DateTime, V>`.
+  - Improved purged entries timeout checking and scheduling with delayed future.
+  
+- `LazyWeakReference`:
+  - Added `strongIfWeak({bool keepWeakRef = true})` method to promote a weak reference to strong if possible.
+
+- `weak_map.dart`:
+  - Modified `_Entry` equality to support comparison with raw keys using identity.
+  - Updated `_EntryKey` equality to use identity comparison and consistent hash code checks.
+  - Changed `_EntryLazyRef` and `_EntryLazyRefValue` to use `strongIfWeak()` for key and value retrieval.
+  - Made `_keyLazyRefManager` and `_valueLazyRefManager` non-nullable in `LazyWeakKeyMap` and `DualLazyWeakMap`.
+  - Simplified `_createEntry` methods in `LazyWeakKeyMap` and `DualLazyWeakMap` to always create lazy weak entries with non-null managers.
+  - Improved docs for `WeakKeyMap`, `DualWeakMap`.
+    - Added doc to `LazyWeakKeyMap`, `DualLazyWeakMap`
+
 ## 3.3.13
 
 - `TreeReferenceMap`:

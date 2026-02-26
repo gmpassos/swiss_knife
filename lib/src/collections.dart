@@ -2,7 +2,6 @@ import 'dart:collection';
 import 'dart:math' as dart_math;
 
 import 'date.dart';
-import 'lazy_weak_reference.dart';
 import 'math.dart';
 import 'utils.dart';
 import 'weak_map.dart';
@@ -2490,6 +2489,8 @@ class ObjectCache {
   dynamic operator [](String key) => get(key);
 }
 
+typedef _PurgedValue<V> = ({V value, DateTime time});
+
 /// A [Map] that retains entries only while their keys are reachable from [root].
 ///
 /// Internally, this map is backed by a [WeakKeyMap]. Weak references are used
@@ -2714,23 +2715,23 @@ class TreeReferenceMap<K extends Object, V extends Object>
   bool isChildOf(K? parent, K? child, bool deep) =>
       parent != null && child != null && childChecker!(parent, child, deep);
 
-  DualLazyWeakMap<K, MapEntry<DateTime, V>>? _purged;
+  Map<K, _PurgedValue<V>>? _purged;
 
   /// Returns the purged entries length. Only relevant if [keepPurgedEntries] is true.
   int get purgedLength => _purged != null ? _purged!.length : 0;
 
   /// Returns [key] value from purged entries. Only relevant if [keepPurgedEntries] is true.
-  V? getFromPurgedEntries(K? key) =>
-      key == null ? null : (_purged != null ? _purged![key]?.value : null);
+  V? getFromPurgedEntries(K? key) {
+    if (key == null) return null;
+    final purged = _purged;
+    return purged != null ? purged[key]?.value : null;
+  }
 
   /// Disposes purged entries. Only relevant if [keepPurgedEntries] is true.
   void disposePurgedEntries() {
     _purged = null;
     _expireCache();
   }
-
-  static final _lazyWeakReferenceManagerByType =
-      LazyWeakReferenceManagerByType.global;
 
   int _purgedEntriesCount = 0;
 
@@ -2755,21 +2756,16 @@ class TreeReferenceMap<K extends Object, V extends Object>
       var invalidKeys = this.invalidKeys;
       if (invalidKeys.isEmpty) return this;
 
-      final purged = _purged ??
-          DualLazyWeakMap(
-            _lazyWeakReferenceManagerByType.get(),
-            _lazyWeakReferenceManagerByType.get(),
-            autoPurge: false,
-          );
+      final purged = _purged ??= {};
 
-      _purged = purged;
+      final now = DateTime.now();
 
       for (var k in invalidKeys) {
         var val = _map.remove(k);
         _purgedEntriesCount++;
         changed = true;
         if (val != null) {
-          purged[k] = MapEntry(DateTime.now(), val);
+          purged[k] = (value: val, time: now);
           if (onPurgedEntries != null) {
             purgedEntries[k] = val;
           }
@@ -2777,6 +2773,14 @@ class TreeReferenceMap<K extends Object, V extends Object>
       }
 
       checkPurgeEntriesLimit();
+
+      var purgedEntriesTimeout = this.purgedEntriesTimeout;
+      if (changed &&
+          purged.isNotEmpty &&
+          purgedEntriesTimeout != null &&
+          purgedEntriesTimeout.inMilliseconds > 0) {
+        Future.delayed(purgedEntriesTimeout, checkPurgedEntriesTimeout);
+      }
     } else {
       for (var k in invalidKeys) {
         var val = _map.remove(k);
@@ -2846,7 +2850,7 @@ class TreeReferenceMap<K extends Object, V extends Object>
       var now = DateTime.now().millisecondsSinceEpoch;
 
       var expired = purged.entries
-          .where((e) => (now - e.value.key.millisecondsSinceEpoch) > timeoutMs)
+          .where((e) => (now - e.value.time.millisecondsSinceEpoch) > timeoutMs)
           .map((e) => e.key)
           .toList(growable: false);
 

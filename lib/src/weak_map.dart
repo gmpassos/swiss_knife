@@ -29,17 +29,13 @@ abstract class _Entry<K extends Object, V extends Object> {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    if (other is! _Entry<K, V>) return false;
+    var otherEntry = other as _Entry;
 
-    if (_hashCode != other._hashCode) return false;
+    if (_hashCode != otherEntry._hashCode) return false;
 
     final target = this.target;
-    if (target == null) return false;
 
-    final otherTarget = other.target;
-    if (otherTarget == null) return false;
-
-    return target == otherTarget;
+    return target != null && identical(target, otherEntry.target);
   }
 }
 
@@ -64,16 +60,10 @@ class _EntryKey<K extends Object, V extends Object> extends _Entry<K, V> {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    if (other is! _Entry<K, V>) return false;
+    var otherEntry = other as _Entry;
 
-    if (_hashCode != other._hashCode) return false;
-
-    final otherTarget = other.target;
-    if (otherTarget == null) return false;
-
-    final target = _obj;
-
-    return target == otherTarget;
+    return _hashCode == otherEntry._hashCode &&
+        identical(_obj, otherEntry.target);
   }
 
   @override
@@ -188,7 +178,7 @@ abstract class _EntryLazyRef<K extends Object, V extends Object>
         super(key.hashCode);
 
   @override
-  K? get target => _refKey.target;
+  K? get target => _refKey.strongIfWeak();
 }
 
 /// Entry with a lazy weak key and a strong value.
@@ -216,7 +206,7 @@ class _EntryLazyRef2<K extends Object, V extends Object>
   }
 
   @override
-  V? get payload => _valueEntry._refValue.target;
+  V? get payload => _valueEntry._refValue.strongIfWeak();
 }
 
 /// Weak-value entry paired with a [_EntryWeakRef2] key entry.
@@ -237,32 +227,34 @@ class _EntryLazyRefValue<V extends Object, K extends Object>
   _EntryLazyRef2<K, V> get keyEntry => _keyEntry;
 
   @override
-  V? get target => _refValue.target;
+  V? get target => _refValue.strongIfWeak();
 
   @override
-  K? get payload => _keyEntry._refKey.target;
+  K? get payload => _keyEntry._refKey.strongIfWeak();
 }
 
+/// A [WeakKeyMap] variant that stores keys using [LazyWeakReference].
+///
+/// Keys start as strongly referenced and automatically degrade to weak
+/// references over time (see [LazyWeakReferenceManager]). This keeps
+/// recently used keys strongly reachable while allowing inactive entries
+/// to be garbage-collected.
+///
+/// See also: [LazyWeakReference], [LazyWeakReferenceManager].
 class LazyWeakKeyMap<K extends Object, V extends Object>
     extends WeakKeyMap<K, V> {
-  final LazyWeakReferenceManager<K>? _keyLazyRefManager;
+  final LazyWeakReferenceManager<K> _keyLazyRefManager;
 
   LazyWeakKeyMap(
-    LazyWeakReferenceManager<K>? keyLazyRefManager, {
+    LazyWeakReferenceManager<K> keyLazyRefManager, {
     super.autoPurge,
     super.autoPurgeThreshold,
     super.onPurgedValues,
   }) : _keyLazyRefManager = keyLazyRefManager;
 
   @override
-  _EntryRef<K, V> _createEntry(key, value) {
-    final keyLazyRefManager = _keyLazyRefManager;
-    if (keyLazyRefManager != null) {
-      return _EntryLazyRef1<K, V>(key, keyLazyRefManager, value);
-    } else {
-      return _EntryWeakRef1<K, V>(key, value);
-    }
-  }
+  _EntryRef<K, V> _createEntry(key, value) =>
+      _EntryLazyRef1<K, V>(key, _keyLazyRefManager, value);
 }
 
 typedef OnPurgedValues<V> = void Function(List<V> purgedValues);
@@ -272,6 +264,9 @@ typedef OnPurgedValues<V> = void Function(List<V> purgedValues);
 /// Unlike [Expando], this is a full [Map] implementation, supporting the
 /// complete set of [Map] operations such as iteration, removal, and views
 /// over keys, values, and entries.
+///
+/// Keys are matched by identity (`identical`) rather than `==`. Each entry
+/// is therefore associated with a specific object instance.
 ///
 /// Entries are automatically purged when keys are garbage-collected.
 /// Optional auto-purge logic prevents unbounded growth and can notify
@@ -732,10 +727,20 @@ class _WeakMapIterator<K extends Object, V extends Object, T>
   }
 }
 
+/// A lazily-managed variant of [DualWeakMap].
+///
+/// Keys and values are held using [LazyWeakReference], meaning entries
+/// start strongly referenced and automatically degrade to weak references
+/// over time (see [LazyWeakReferenceManager]).
+///
+/// This reduces allocation and GC overhead for recently accessed entries
+/// while still allowing unused ones to be garbage-collected.
+///
+/// See also: [LazyWeakReference], [LazyWeakReferenceManager].
 class DualLazyWeakMap<K extends Object, V extends Object>
     extends DualWeakMap<K, V> {
-  final LazyWeakReferenceManager<K>? _keyLazyRefManager;
-  final LazyWeakReferenceManager<V>? _valueLazyRefManager;
+  final LazyWeakReferenceManager<K> _keyLazyRefManager;
+  final LazyWeakReferenceManager<V> _valueLazyRefManager;
 
   DualLazyWeakMap(
     LazyWeakReferenceManager<K> keyLazyRefManager,
@@ -747,23 +752,17 @@ class DualLazyWeakMap<K extends Object, V extends Object>
         _valueLazyRefManager = valueLazyRefManager;
 
   @override
-  _EntryRef<K, V> _createEntry(key, value) {
-    final keyLazyRefManager = _keyLazyRefManager;
-    final valueLazyRefManager = _valueLazyRefManager;
-
-    if (keyLazyRefManager != null && valueLazyRefManager != null) {
-      return _EntryLazyRef2<K, V>(
-          key, keyLazyRefManager, value, valueLazyRefManager);
-    } else {
-      return _EntryWeakRef2<K, V>(key, value);
-    }
-  }
+  _EntryRef<K, V> _createEntry(key, value) => _EntryLazyRef2<K, V>(
+      key, _keyLazyRefManager, value, _valueLazyRefManager);
 }
 
 /// A [Map] with both keys and values weakly referenced.
 ///
 /// Unlike [Expando], this is a complete [Map] implementation, supporting the
 /// full [Map] API, including iteration, removal, and entry views.
+///
+/// Keys are matched by identity (`identical`) rather than `==`. Each entry
+/// is therefore associated with a specific object instance.
 ///
 /// Entries are automatically removed when either the key or the value is
 /// garbage-collected, keeping the map consistent without preventing GC.
