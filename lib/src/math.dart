@@ -456,13 +456,8 @@ List<num>? parseNumsFromInlineList(
 ]) {
   if (s == null) return def;
   if (s is num) return [s];
-  if (s is List) return s.map((e) => parseNum(e)).toList() as List<num>?;
-  return parseFromInlineList(
-    s.toString(),
-    delimiter,
-    parseNum as num Function(String)?,
-    def,
-  );
+  if (s is List) return s.map((e) => parseNum(e)).nonNulls.toList();
+  return parseFromInlineList(s.toString(), delimiter, (v) => parseNum(v)!, def);
 }
 
 /// Parses [s] to a [List<double>].
@@ -476,11 +471,11 @@ List<double>? parseDoublesFromInlineList(
 ]) {
   if (s == null) return def;
   if (s is double) return [s];
-  if (s is List) return s.map((e) => parseDouble(e)).toList() as List<double>?;
+  if (s is List) return s.map((e) => parseDouble(e)).nonNulls.toList();
   return parseFromInlineList(
     s.toString(),
     delimiter,
-    parseDouble as double Function(String)?,
+    (v) => parseDouble(v)!,
     def,
   );
 }
@@ -496,11 +491,11 @@ List<bool>? parseBoolsFromInlineList(
 ]) {
   if (s == null) return def;
   if (s is bool) return [s];
-  if (s is List) return s.map((e) => parseBool(e)).toList() as List<bool>?;
+  if (s is List) return s.map((e) => parseBool(e)).nonNulls.toList();
   return parseFromInlineList(
     s.toString(),
     delimiter,
-    parseBool as bool Function(String)?,
+    (v) => parseBool(v)!,
     def,
   );
 }

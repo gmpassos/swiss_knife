@@ -926,9 +926,8 @@ bool listContainsType<T>(Iterable? list) {
   if (list is List<T>) return true;
   if (list.isEmpty) return false;
 
-  var found = list.firstWhere((l) => l is T, orElse: () => null);
-
-  return found != null;
+  // Note: `firstWhere(..., orElse: () => null)` fails for typed lists.
+  return list.any((l) => l != null && l is T);
 }
 
 /// Returns [true] if [list] contains all elements of type [entry].
@@ -1224,7 +1223,7 @@ V? findKeyPathValue<V>(
     return null;
   }
 
-  var keys = keyPath.split('/');
+  var keys = keyPath.split(keyDelimiter);
 
   var value = findKeyValue(map, [keys.first], true);
   if (value == null) return null;
@@ -1594,7 +1593,15 @@ T? deepCopy<T>(T? o, {Copier? copier}) {
   if (o is num) return o;
   if (o is bool) return o;
 
-  if (o is List) return deepCopyList(o, copier: copier) as T?;
+  if (o is List) {
+    // `toList` keeps the runtime element type of `o` (a `List<int>` stays a
+    // `List<int>`), so the copy can be returned as `T`.
+    var copy = o.toList();
+    for (var i = 0; i < copy.length; ++i) {
+      copy[i] = deepCopy(copy[i], copier: copier);
+    }
+    return copy as T?;
+  }
   if (o is Map) return deepCopyMap(o, copier: copier) as T?;
 
   if (copier != null) {
@@ -1888,7 +1895,7 @@ class MapDelegate<K, V> implements Map<K, V> {
 
   @override
   V update(K key, V Function(V value) update, {V Function()? ifAbsent}) =>
-      _map.update(key, update);
+      _map.update(key, update, ifAbsent: ifAbsent);
 
   @override
   void updateAll(V Function(K key, V value) update) => _map.updateAll(update);
@@ -1912,7 +1919,7 @@ class MapProperties extends MapDelegate<String, dynamic> {
     } else if (isIntList(value)) {
       return parseIntsFromInlineList(value, ',');
     } else if (isDoubleList(value)) {
-      return parseBoolsFromInlineList(value, ',');
+      return parseDoublesFromInlineList(value, ',');
     } else if (isNumList(value)) {
       return parseNumsFromInlineList(value, ',');
     } else if (isBoolList(value)) {

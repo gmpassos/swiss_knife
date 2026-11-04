@@ -57,7 +57,7 @@ String dateFormat_YYYY_MM_dd_HH_mm([
 
 // ignore: non_constant_identifier_names
 String dateFormat_YYYY_MM_dd_HH([int? time, String delimiter = '-']) {
-  return _dateFormat('yyyy${delimiter}MM-dd HH', time);
+  return _dateFormat('yyyy${delimiter}MM${delimiter}dd HH', time);
 }
 
 // ignore: non_constant_identifier_names
@@ -128,14 +128,14 @@ List<DateTime>? parseDateTimeFromInlineList(
   if (o == null) return def;
   if (o is DateTime) return [o];
   if (o is List) {
-    return o.map((e) => parseDateTime(e)).toList() as List<DateTime>?;
+    return o.map((e) => parseDateTime(e)).nonNulls.toList();
   }
-  return parseFromInlineList(
-    o.toString(),
-    delimiter,
-    parseDateTime as DateTime Function(String)?,
-    def,
-  );
+  return parseFromInlineList<DateTime?>(
+        o.toString(),
+        delimiter,
+        (e) => parseDateTime(e),
+      )?.nonNulls.toList() ??
+      def;
 }
 
 /// Parses [unit] and [amount] to [Duration].
@@ -798,7 +798,7 @@ DateTime? getDateTimeStartOf(
     case Unit.years:
       return DateTime(time.year);
     case Unit.quarters:
-      return DateTime(time.year, (time.month ~/ 3) * 3);
+      return DateTime(time.year, _quarterFirstMonth(time.month));
     case Unit.weeks:
       {
         weekFirstDay ??= getWeekFirstDay(locale);
@@ -837,6 +837,9 @@ DateTime? getDateTimeStartOf(
   throw ArgumentError("Can't handle unit: $unit");
 }
 
+/// The first month (1, 4, 7 or 10) of the quarter of [month] (1 to 12).
+int _quarterFirstMonth(int month) => ((month - 1) ~/ 3) * 3 + 1;
+
 /// Returns the end of a time [unit] using [time] as reference.
 ///
 /// [weekFirstDay] the desired first day of week for computation behavior.
@@ -854,7 +857,9 @@ DateTime? getDateTimeEndOf(
     case Unit.years:
       return DateTime(time.year, 12, 31, 23, 59, 59, 999);
     case Unit.quarters:
-      return getDateTimeThisMonth(getDateTimeStartOf(time, unitParsed)).b;
+      return getDateTimeThisMonth(
+        DateTime(time.year, _quarterFirstMonth(time.month) + 2),
+      ).b;
     case Unit.weeks:
       {
         weekFirstDay ??= getWeekFirstDay(locale);

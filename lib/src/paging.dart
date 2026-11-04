@@ -159,8 +159,8 @@ class ColossusPaging extends JSONPaging {
   static JSONPaging instantiator(dynamic json) => ColossusPaging(json);
 
   static bool matches(dynamic json) {
-    if (isMapOfStringKeys(json)) {
-      var map = (json as Map).cast<String, dynamic>();
+    if (json is Map && isMapOfStringKeys(json)) {
+      var map = json.cast<String, dynamic>();
 
       return map.containsKey('PAGE') &&
           map.containsKey('ELEMENTS') &&
@@ -233,8 +233,8 @@ class SpringBootPaging extends JSONPaging {
   static JSONPaging instantiator(dynamic json) => SpringBootPaging(json);
 
   static bool matches(dynamic json) {
-    if (isMapOfStringKeys(json)) {
-      var map = (json as Map).cast<String, dynamic>();
+    if (json is Map && isMapOfStringKeys(json)) {
+      var map = json.cast<String, dynamic>();
 
       var pageable = map['pageable'];
       if (!(pageable is Map && pageable.isNotEmpty)) return false;
@@ -283,7 +283,8 @@ class SpringBootPaging extends JSONPaging {
   String pagingRequestURL(String url, int page) {
     var uri = Uri.parse(url);
 
-    var queryParameters = uri.queryParametersAll.cast<String, dynamic>();
+    // `Uri.queryParametersAll` is unmodifiable: copy it before setting `page`.
+    var queryParameters = Map<String, dynamic>.from(uri.queryParametersAll);
 
     var pageEntry = findKeyEntry(queryParameters, ['page']);
 

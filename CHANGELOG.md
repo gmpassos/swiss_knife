@@ -1,3 +1,42 @@
+## 3.4.0
+
+- `AsyncValue`:
+  - Fixed the `onError` handler of `Future.then` returning `void`: a non-nullable `T` now fails with the
+    original error (it was replaced by an `ArgumentError`); a nullable `T` still completes with `null`.
+  - Fixed a null-check error when a nullable future completed with `null`.
+  - Fixed `dispose` (it always threw, reassigning a `late final` field).
+- `MapDelegate.update`: pass `ifAbsent` to the delegated map (it was ignored).
+- `MapProperties.parseValue`: parse a list of doubles as `List<double>` (it was parsed as bools).
+- `findKeyPathValue`: honour `keyDelimiter` (it always split by `/`).
+- `listContainsType`: fixed a `TypeError` with typed lists.
+- `deepCopy`: typed lists (e.g. `List<int>`) keep their type (it threw a `TypeError`).
+- `parseNumsFromInlineList`, `parseDoublesFromInlineList`, `parseBoolsFromInlineList`,
+  `parseDateTimeFromInlineList`: fixed a `TypeError` (invalid casts) when parsing lists and strings.
+- `getDateTimeStartOf`/`getDateTimeEndOf` with `Unit.quarters`: return the real quarter start/end
+  (January quarter started in the previous December, and the end was the end of the quarter's first month).
+- `dateFormat_YYYY_MM_dd_HH`: use `delimiter` between month and day too.
+- `ColossusPaging.matches`/`SpringBootPaging.matches`: return `false` for non-`Map` values (they threw),
+  so `JSONPaging.from` works with any value.
+- `SpringBootPaging.pagingRequestURL`: fixed an `UnsupportedError` (modifying unmodifiable query parameters).
+- `InteractionCompleter.interact`: `noTriggering` is now typed `bool?`.
+- `WeakKeyMap`: `autoPurge` uses an initializing formal (same public parameter name).
+- Fixed new lints (`strict_top_level_inference`, `unnecessary_underscores`, `prefer_initializing_formals`).
+- `dart format` with the new (tall) style.
+- Tests:
+  - `swiss_knife_flat_hash_map.dart` renamed to `swiss_knife_flat_hash_map_test.dart` (it was not being run).
+  - New tests for paging, events, date and collections (coverage: 44% -> 71%).
+- GitHub Actions: `actions/checkout@v7`, `codecov/codecov-action@v7`.
+
+- sdk: ^3.13.0
+
+- intl: ^0.20.3
+- resource_portable: ^3.1.4
+
+- lints: ^6.1.0
+- test: ^1.33.0
+- dependency_validator: ^5.1.0
+- coverage: ^1.16.0
+
 ## 3.3.14
 
 - `TreeReferenceMap`:

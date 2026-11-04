@@ -1166,7 +1166,7 @@ InteractionCompleter listenStreamWithInteractionCompleter<T>(
 
 /// A wrapper and handler for a value that is asynchronous (from a [Future]).
 class AsyncValue<T> {
-  late final Future<T> _future;
+  late Future<T> _future;
 
   AsyncValue(Future<T> future) {
     _future = future.then(
@@ -1267,7 +1267,10 @@ class AsyncValue<T> {
 
   /// Disposes the value, error and future associated.
   void dispose() {
-    _future = Future<T>.value();
+    // A non-nullable `T` can't have a `null` future value: keep the original.
+    if (null is T) {
+      _future = Future<T>.value(null as T);
+    }
     _error = null;
     _value = null;
   }
