@@ -36,9 +36,10 @@ void main() {
   });
 }
 
-void _doTests(
-    [LazyWeakReferenceManager<KeyObj>? keyManager,
-    LazyWeakReferenceManager<ValueObj>? valueManager]) {
+void _doTests([
+  LazyWeakReferenceManager<KeyObj>? keyManager,
+  LazyWeakReferenceManager<ValueObj>? valueManager,
+]) {
   group('WeakKeyMap', () {
     test('put and get', () {
       final map = _newWeakKeyMap(keyManager);
@@ -97,10 +98,7 @@ void _doTests(
         seen[k.id] = v.label;
       });
 
-      expect(seen, {
-        1: 'a',
-        2: 'b',
-      });
+      expect(seen, {1: 'a', 2: 'b'});
     });
 
     test('autoPurge threshold logic', () {
@@ -171,7 +169,9 @@ void _doTests(
 
       map[KeyObj(1)] = ValueObj('a');
 
+      // ignore: collection_methods_unrelated_type
       expect(map.containsKey(null), isFalse);
+      // ignore: collection_methods_unrelated_type
       expect(map[null], isNull);
       // ignore: collection_methods_unrelated_type
       expect(map['wrong-type'], isNull);
@@ -252,7 +252,7 @@ void _doTests(
       map[KeyObj(1)] = ValueObj('a');
       map[KeyObj(2)] = ValueObj('b');
 
-      map.removeWhere((_, __) => true);
+      map.removeWhere((_, _) => true);
 
       expect(map.isEmpty, isTrue);
     });
@@ -499,14 +499,16 @@ WeakKeyMap<KeyObj, ValueObj> _newWeakKeyMap(
   LazyWeakReferenceManager<KeyObj>? keyManager, {
   bool autoPurge = true,
   int autoPurgeThreshold = WeakKeyMap.defaultAutoPurgeThreshold,
-}) =>
-    WeakKeyMap<KeyObj, ValueObj>.configured(
-        keyLazyRefManager: keyManager,
-        autoPurge: autoPurge,
-        autoPurgeThreshold: autoPurgeThreshold);
+}) => WeakKeyMap<KeyObj, ValueObj>.configured(
+  keyLazyRefManager: keyManager,
+  autoPurge: autoPurge,
+  autoPurgeThreshold: autoPurgeThreshold,
+);
 
 DualWeakMap<KeyObj, ValueObj> _newDualWeakMap(
-        LazyWeakReferenceManager<KeyObj>? keyManager,
-        LazyWeakReferenceManager<ValueObj>? valueManager) =>
-    DualWeakMap<KeyObj, ValueObj>.configured(
-        keyLazyRefManager: keyManager, valueLazyRefManager: valueManager);
+  LazyWeakReferenceManager<KeyObj>? keyManager,
+  LazyWeakReferenceManager<ValueObj>? valueManager,
+) => DualWeakMap<KeyObj, ValueObj>.configured(
+  keyLazyRefManager: keyManager,
+  valueLazyRefManager: valueManager,
+);

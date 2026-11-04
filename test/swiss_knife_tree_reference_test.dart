@@ -56,8 +56,9 @@ class MyTree extends TreeReferenceMap<MyNode, String> {
 
     if (deep) {
       if (parent.children.contains(child)) return true;
-      var found =
-          parent.children.firstWhereOrNull((e) => isChildOf(e, child, true));
+      var found = parent.children.firstWhereOrNull(
+        (e) => isChildOf(e, child, true),
+      );
       return found != null;
     } else {
       return parent.children.contains(child);
@@ -75,14 +76,20 @@ void main() {
     test('Collections', () {
       MyNode a, b, c, b1, b2, b21;
 
-      var root = MyNode('root', children: [
-        a = MyNode('a'),
-        b = MyNode('b', children: [
-          b1 = MyNode('b:1'),
-          b2 = MyNode('b:2', children: [b21 = MyNode('b:2:1')])
-        ]),
-        c = MyNode('c'),
-      ]);
+      var root = MyNode(
+        'root',
+        children: [
+          a = MyNode('a'),
+          b = MyNode(
+            'b',
+            children: [
+              b1 = MyNode('b:1'),
+              b2 = MyNode('b:2', children: [b21 = MyNode('b:2:1')]),
+            ],
+          ),
+          c = MyNode('c'),
+        ],
+      );
 
       var x = MyNode('x');
 

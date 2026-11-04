@@ -45,9 +45,7 @@ abstract class _Entry<K extends Object, V extends Object> {
 class _EntryKey<K extends Object, V extends Object> extends _Entry<K, V> {
   final K _obj;
 
-  _EntryKey(K key)
-      : _obj = key,
-        super(key.hashCode);
+  _EntryKey(K key) : _obj = key, super(key.hashCode);
 
   @override
   K get target => _obj;
@@ -85,9 +83,7 @@ abstract class _EntryWeakRef<K extends Object, V extends Object>
   /// Weak reference to the key.
   final WeakReference<K> _refKey;
 
-  _EntryWeakRef(K key)
-      : _refKey = WeakReference(key),
-        super(key.hashCode);
+  _EntryWeakRef(K key) : _refKey = WeakReference(key), super(key.hashCode);
 
   @override
   K? get target => _refKey.target;
@@ -119,7 +115,8 @@ abstract class _EntryRef2<K extends Object, V extends Object>
 ///
 /// The value is tracked via a paired [_EntryWeakRefValue].
 class _EntryWeakRef2<K extends Object, V extends Object>
-    extends _EntryWeakRef<K, V> implements _EntryRef2<K, V> {
+    extends _EntryWeakRef<K, V>
+    implements _EntryRef2<K, V> {
   @override
   late final _EntryWeakRefValue<V, K> _valueEntry;
 
@@ -146,15 +143,16 @@ abstract class _EntryRefValue<V extends Object, K extends Object>
 
 /// Weak-value entry paired with a [_EntryWeakRef2] key entry.
 class _EntryWeakRefValue<V extends Object, K extends Object>
-    extends _Entry<V, K> implements _EntryRefValue<V, K> {
+    extends _Entry<V, K>
+    implements _EntryRefValue<V, K> {
   final _EntryWeakRef2<K, V> _keyEntry;
 
   /// Weak reference to the value.
   final WeakReference<V> _refValue;
 
   _EntryWeakRefValue(this._keyEntry, V value)
-      : _refValue = WeakReference(value),
-        super(value.hashCode);
+    : _refValue = WeakReference(value),
+      super(value.hashCode);
 
   /// Back-reference to the owning key entry.
   @override
@@ -174,8 +172,8 @@ abstract class _EntryLazyRef<K extends Object, V extends Object>
   final LazyWeakReference<K> _refKey;
 
   _EntryLazyRef(K key, LazyWeakReferenceManager<K> keyRefManager)
-      : _refKey = keyRefManager.strong(key),
-        super(key.hashCode);
+    : _refKey = keyRefManager.strong(key),
+      super(key.hashCode);
 
   @override
   K? get target => _refKey.strongIfWeak();
@@ -196,12 +194,17 @@ class _EntryLazyRef1<K extends Object, V extends Object>
 ///
 /// The value is tracked via a paired [_EntryWeakRefValue].
 class _EntryLazyRef2<K extends Object, V extends Object>
-    extends _EntryLazyRef<K, V> implements _EntryRef2<K, V> {
+    extends _EntryLazyRef<K, V>
+    implements _EntryRef2<K, V> {
   @override
   late final _EntryLazyRefValue<V, K> _valueEntry;
 
-  _EntryLazyRef2(super.key, super.keyRefManager, V value,
-      LazyWeakReferenceManager<V> valueRefManager) {
+  _EntryLazyRef2(
+    super.key,
+    super.keyRefManager,
+    V value,
+    LazyWeakReferenceManager<V> valueRefManager,
+  ) {
     _valueEntry = _EntryLazyRefValue<V, K>(this, value, valueRefManager);
   }
 
@@ -211,16 +214,19 @@ class _EntryLazyRef2<K extends Object, V extends Object>
 
 /// Weak-value entry paired with a [_EntryWeakRef2] key entry.
 class _EntryLazyRefValue<V extends Object, K extends Object>
-    extends _Entry<V, K> implements _EntryRefValue<V, K> {
+    extends _Entry<V, K>
+    implements _EntryRefValue<V, K> {
   final _EntryLazyRef2<K, V> _keyEntry;
 
   /// Weak reference to the value.
   final LazyWeakReference<V> _refValue;
 
   _EntryLazyRefValue(
-      this._keyEntry, V value, LazyWeakReferenceManager<V> valueRefManager)
-      : _refValue = valueRefManager.strong(value),
-        super(value.hashCode);
+    this._keyEntry,
+    V value,
+    LazyWeakReferenceManager<V> valueRefManager,
+  ) : _refValue = valueRefManager.strong(value),
+      super(value.hashCode);
 
   /// Back-reference to the owning key entry.
   @override
@@ -284,28 +290,31 @@ class WeakKeyMap<K extends Object, V extends Object> extends MapBase<K, V> {
   /// Optional callback invoked with values removed during purge.
   final OnPurgedValues<V>? onPurgedValues;
 
-  WeakKeyMap(
-      {bool autoPurge = true,
-      int autoPurgeThreshold = defaultAutoPurgeThreshold,
-      this.onPurgedValues})
-      : _autoPurge = autoPurge,
-        _autoPurgeThreshold = _normalizeAutoPurgeThreshold(autoPurgeThreshold),
-        super();
+  WeakKeyMap({
+    this._autoPurge = true,
+    int autoPurgeThreshold = defaultAutoPurgeThreshold,
+    this.onPurgedValues,
+  }) : _autoPurgeThreshold = _normalizeAutoPurgeThreshold(autoPurgeThreshold),
+       super();
 
-  factory WeakKeyMap.configured(
-      {bool autoPurge = true,
-      int autoPurgeThreshold = defaultAutoPurgeThreshold,
-      OnPurgedValues<V>? onPurgedValues,
-      LazyWeakReferenceManager<K>? keyLazyRefManager}) {
+  factory WeakKeyMap.configured({
+    bool autoPurge = true,
+    int autoPurgeThreshold = defaultAutoPurgeThreshold,
+    OnPurgedValues<V>? onPurgedValues,
+    LazyWeakReferenceManager<K>? keyLazyRefManager,
+  }) {
     return keyLazyRefManager != null
-        ? LazyWeakKeyMap(keyLazyRefManager,
+        ? LazyWeakKeyMap(
+            keyLazyRefManager,
             autoPurge: autoPurge,
             autoPurgeThreshold: autoPurgeThreshold,
-            onPurgedValues: onPurgedValues)
+            onPurgedValues: onPurgedValues,
+          )
         : WeakKeyMap(
             autoPurge: autoPurge,
             autoPurgeThreshold: autoPurgeThreshold,
-            onPurgedValues: onPurgedValues);
+            onPurgedValues: onPurgedValues,
+          );
   }
 
   static int _normalizeAutoPurgeThreshold(int autoPurgeThreshold) =>
@@ -413,7 +422,8 @@ class WeakKeyMap<K extends Object, V extends Object> extends MapBase<K, V> {
   }
 
   /// Factory for creating entry representations.
-  _EntryRef<K, V> _createEntry(key, value) => _EntryWeakRef1<K, V>(key, value);
+  _EntryRef<K, V> _createEntry(K key, V value) =>
+      _EntryWeakRef1<K, V>(key, value);
 
   /// Hook invoked after inserting an entry.
   void _onPutEntry(_EntryRef<K, V> e, V value) {}
@@ -673,9 +683,8 @@ class _WeakMapIterator<K extends Object, V extends Object, T>
   final Iterator<_EntryRef<K, V>> _it;
 
   _WeakMapIterator(this._map, this._iteratorMapper)
-      :
-        // On `WeakKeyMap._map`, the keys are the same instance of values:
-        _it = _map._map.keys.iterator;
+    : // On `WeakKeyMap._map`, the keys are the same instance of values:
+      _it = _map._map.keys.iterator;
 
   T? _current;
 
@@ -748,12 +757,16 @@ class DualLazyWeakMap<K extends Object, V extends Object>
     super.autoPurge,
     super.autoPurgeThreshold,
     super.onPurgedValues,
-  })  : _keyLazyRefManager = keyLazyRefManager,
-        _valueLazyRefManager = valueLazyRefManager;
+  }) : _keyLazyRefManager = keyLazyRefManager,
+       _valueLazyRefManager = valueLazyRefManager;
 
   @override
   _EntryRef<K, V> _createEntry(key, value) => _EntryLazyRef2<K, V>(
-      key, _keyLazyRefManager, value, _valueLazyRefManager);
+    key,
+    _keyLazyRefManager,
+    value,
+    _valueLazyRefManager,
+  );
 }
 
 /// A [Map] with both keys and values weakly referenced.
@@ -773,8 +786,11 @@ class DualWeakMap<K extends Object, V extends Object> extends WeakKeyMap<K, V> {
   /// Secondary map for weakly-referenced values.
   final Map<_EntryRefValue<V, K>, _EntryRefValue<V, K>> _mapValues = {};
 
-  DualWeakMap(
-      {super.autoPurge, super.autoPurgeThreshold, super.onPurgedValues});
+  DualWeakMap({
+    super.autoPurge,
+    super.autoPurgeThreshold,
+    super.onPurgedValues,
+  });
 
   factory DualWeakMap.configured({
     bool autoPurge = true,
@@ -794,7 +810,8 @@ class DualWeakMap<K extends Object, V extends Object> extends WeakKeyMap<K, V> {
         : DualWeakMap(
             autoPurge: autoPurge,
             autoPurgeThreshold: autoPurgeThreshold,
-            onPurgedValues: onPurgedValues);
+            onPurgedValues: onPurgedValues,
+          );
   }
 
   @override

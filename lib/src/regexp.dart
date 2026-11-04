@@ -85,7 +85,10 @@ String regExpReplaceAll(Object? regExp, String s, String replace) {
 
 /// Uses [regExp] to replace matches at [s], substituting with [replace] Function results.
 String regExpReplaceAllMapped(
-    Object? regExp, String s, String Function(Match match) replace) {
+  Object? regExp,
+  String s,
+  String Function(Match match) replace,
+) {
   var theRegExp = parseRegExp(regExp);
   return theRegExp != null ? s.replaceAllMapped(theRegExp, replace) : s;
 }
@@ -101,11 +104,16 @@ String regExpReplaceAllMapped(
 /// [pattern] The final pattern, constructed using the dialect and word place holders.
 /// [multiLine] If [true] the returned [RegExp] will be multiLine.
 /// [caseSensitive] If [true] the returned [RegExp] will be case-sensitive.
-RegExp regExpDialect(Map<String, String> dialectWords, String pattern,
-        {bool multiLine = false, bool caseSensitive = true}) =>
-    RegExpDialect(dialectWords,
-            multiLine: multiLine, caseSensitive: caseSensitive)
-        .getPattern(pattern);
+RegExp regExpDialect(
+  Map<String, String> dialectWords,
+  String pattern, {
+  bool multiLine = false,
+  bool caseSensitive = true,
+}) => RegExpDialect(
+  dialectWords,
+  multiLine: multiLine,
+  caseSensitive: caseSensitive,
+).getPattern(pattern);
 
 /// Represents a dialect. Compiles it on construction.
 class RegExpDialect {
@@ -115,10 +123,12 @@ class RegExpDialect {
 
   final bool caseSensitive;
 
-  RegExpDialect(Map<String, String> dialect,
-      {this.multiLine = false,
-      this.caseSensitive = true,
-      bool throwCompilationErrors = true}) {
+  RegExpDialect(
+    Map<String, String> dialect, {
+    this.multiLine = false,
+    this.caseSensitive = true,
+    bool throwCompilationErrors = true,
+  }) {
     _dialect = _compile(dialect, throwCompilationErrors);
   }
 
@@ -126,16 +136,18 @@ class RegExpDialect {
 
   /// Returns a copy of this instance with parameters [multiLine] and [caseSensitive].
   /// If this instance already have the same parameters returns this instance.
-  RegExpDialect withParameters(
-      {bool? multiLine = false,
-      bool? caseSensitive = true,
-      bool throwCompilationErrors = true}) {
+  RegExpDialect withParameters({
+    bool? multiLine = false,
+    bool? caseSensitive = true,
+    bool throwCompilationErrors = true,
+  }) {
     multiLine ??= this.multiLine;
     caseSensitive ??= this.caseSensitive;
 
     if (hasErrors && throwCompilationErrors) {
       throw StateError(
-          "Can't use a dialect with errors. Words with errors: ${errorWords.join(', ')}");
+        "Can't use a dialect with errors. Words with errors: ${errorWords.join(', ')}",
+      );
     }
 
     if (this.multiLine == multiLine && this.caseSensitive == caseSensitive) {
@@ -145,41 +157,53 @@ class RegExpDialect {
     return RegExpDialect._(_dialect, multiLine, caseSensitive);
   }
 
-  static RegExpDialect? from(Object? dialect,
-      {bool multiLine = false,
-      bool caseSensitive = true,
-      bool throwCompilationErrors = true}) {
+  static RegExpDialect? from(
+    Object? dialect, {
+    bool multiLine = false,
+    bool caseSensitive = true,
+    bool throwCompilationErrors = true,
+  }) {
     if (dialect == null) return null;
 
     if (dialect is RegExpDialect) {
       return dialect.withParameters(
-          multiLine: multiLine,
-          caseSensitive: caseSensitive,
-          throwCompilationErrors: throwCompilationErrors);
+        multiLine: multiLine,
+        caseSensitive: caseSensitive,
+        throwCompilationErrors: throwCompilationErrors,
+      );
     }
 
     if (dialect is Map) {
       var map = asMapOfString(dialect)!;
-      return RegExpDialect(map,
-          multiLine: multiLine,
-          caseSensitive: caseSensitive,
-          throwCompilationErrors: throwCompilationErrors);
+      return RegExpDialect(
+        map,
+        multiLine: multiLine,
+        caseSensitive: caseSensitive,
+        throwCompilationErrors: throwCompilationErrors,
+      );
     }
 
     return null;
   }
 
   Map<String, String> _compile(
-      Map<String, String> dialect, bool throwCompilationErrors) {
+    Map<String, String> dialect,
+    bool throwCompilationErrors,
+  ) {
     for (var i = 0; i < 20; i++) {
-      var words2 = dialect.map((k, v) => MapEntry(
-          k, _compileWordPatternAndSaveErrors(dialect, k, v)?.pattern ?? ''));
+      var words2 = dialect.map(
+        (k, v) => MapEntry(
+          k,
+          _compileWordPatternAndSaveErrors(dialect, k, v)?.pattern ?? '',
+        ),
+      );
       if (isEqualsDeep(dialect, words2)) break;
 
       if (hasErrors) {
         if (throwCompilationErrors) {
           throw FormatException(
-              "Error compiling dialect words: '${errorWords.join("', '")}'");
+            "Error compiling dialect words: '${errorWords.join("', '")}'",
+          );
         } else {
           return dialect;
         }
@@ -201,7 +225,10 @@ class RegExpDialect {
   String? getWordErrorPattern(String word) => _errors[word]?.last;
 
   RegExp? _compileWordPatternAndSaveErrors(
-      Map<String, String> dialect, String word, String pattern) {
+    Map<String, String> dialect,
+    String word,
+    String pattern,
+  ) {
     try {
       return _compileWordPattern(dialect, pattern);
     } catch (e) {
@@ -222,8 +249,11 @@ class RegExpDialect {
       var value = words[key!];
       return value ?? '$mark$key';
     });
-    return RegExp(translated,
-        multiLine: multiLine, caseSensitive: caseSensitive);
+    return RegExp(
+      translated,
+      multiLine: multiLine,
+      caseSensitive: caseSensitive,
+    );
   }
 
   List<String> get words => _dialect.keys.toList();
@@ -249,17 +279,22 @@ class RegExpDialect {
           .map((m) => m.group(2))
           .toList();
 
-      var patternWordsWithError =
-          patternWords.where((w) => _errors.containsKey(w)).toList();
+      var patternWordsWithError = patternWords
+          .where((w) => _errors.containsKey(w))
+          .toList();
 
       if (patternWordsWithError.isNotEmpty) {
         throw StateError(
-            "Can't use word with compilation error! Words: $patternWordsWithError");
+          "Can't use word with compilation error! Words: $patternWordsWithError",
+        );
       }
     }
 
-    regexp =
-        RegExp(pattern, multiLine: multiLine, caseSensitive: caseSensitive);
+    regexp = RegExp(
+      pattern,
+      multiLine: multiLine,
+      caseSensitive: caseSensitive,
+    );
 
     _wordsPatterns[word] = regexp;
 
@@ -283,8 +318,11 @@ final RegExp stringPlaceholderPattern = RegExp(r'{{(/?\w+(?:/\w+)*/?)}}');
 
 /// Builds a string using as place holders in the format `{{key}}`
 /// from [parameters] and [extraParameters].
-String? buildStringPattern(String? pattern, Map? parameters,
-    [List<Map?>? extraParameters]) {
+String? buildStringPattern(
+  String? pattern,
+  Map? parameters, [
+  List<Map?>? extraParameters,
+]) {
   if (pattern == null) return null;
 
   return replaceStringMarks(pattern, stringPlaceholderPattern, (varName) {
@@ -315,8 +353,11 @@ String? buildStringPattern(String? pattern, Map? parameters,
 ///
 /// [marksPattern] A [RegExp] with the mark pattern and a 1 group with the mark name.
 /// [markResolver] Resolves mark name (from [marksPattern] group(1)) to a value to replace the [marksPattern] match.
-String? replaceStringMarks(String? s, RegExp marksPattern,
-    String Function(String markName) markResolver) {
+String? replaceStringMarks(
+  String? s,
+  RegExp marksPattern,
+  String Function(String markName) markResolver,
+) {
   if (s == null) return null;
 
   var matches = marksPattern.allMatches(s);

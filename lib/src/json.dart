@@ -24,11 +24,13 @@ dynamic parseJSON(Object? json, [Object? def]) {
 /// [indent] By default uses 2 spaces: `  `.
 /// [clearNullEntries] If true will apply [removeNullEntries] and remove any null entry in tree.
 /// [toEncodable] Function to transform an object to JSON.
-String encodeJSON(Object? json,
-    {String? indent,
-    bool withIndent = false,
-    bool clearNullEntries = false,
-    Object? Function(Object? object) toEncodable = toEncodableJSON}) {
+String encodeJSON(
+  Object? json, {
+  String? indent,
+  bool withIndent = false,
+  bool clearNullEntries = false,
+  Object? Function(Object? object) toEncodable = toEncodableJSON,
+}) {
   if (clearNullEntries) {
     removeNullEntries(json);
   }

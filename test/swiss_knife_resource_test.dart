@@ -38,8 +38,9 @@ void main() {
 
     test('ResourceContent', () async {
       var loader = MyResourceLoader();
-      var resourceContent =
-          ResourceContent.from(Resource('test://foo', loader: loader))!;
+      var resourceContent = ResourceContent.from(
+        Resource('test://foo', loader: loader),
+      )!;
 
       expect(resourceContent.isLoaded, isFalse);
 
@@ -53,34 +54,45 @@ void main() {
   test('ResourceContent.resolveURLFromReference', () async {
     var loader = MyResourceLoader();
     var resourceContent = ResourceContent.from(
-        Resource('http://localhost/path/file.txt', loader: loader));
+      Resource('http://localhost/path/file.txt', loader: loader),
+    );
 
     expect(
-        (await ResourceContent.resolveURLFromReference(
-                resourceContent, 'file2.txt'))
-            .toString(),
-        equals('http://localhost/path/file2.txt'));
+      (await ResourceContent.resolveURLFromReference(
+        resourceContent,
+        'file2.txt',
+      )).toString(),
+      equals('http://localhost/path/file2.txt'),
+    );
     expect(
-        (await ResourceContent.resolveURLFromReference(
-                resourceContent, './file2.txt'))
-            .toString(),
-        equals('http://localhost/path/file2.txt'));
+      (await ResourceContent.resolveURLFromReference(
+        resourceContent,
+        './file2.txt',
+      )).toString(),
+      equals('http://localhost/path/file2.txt'),
+    );
     expect(
-        (await ResourceContent.resolveURLFromReference(
-                resourceContent, './../file2.txt'))
-            .toString(),
-        equals('http://localhost/file2.txt'));
+      (await ResourceContent.resolveURLFromReference(
+        resourceContent,
+        './../file2.txt',
+      )).toString(),
+      equals('http://localhost/file2.txt'),
+    );
     expect(
-        (await ResourceContent.resolveURLFromReference(
-                resourceContent, '/file2.txt'))
-            .toString(),
-        equals('http://localhost/file2.txt'));
+      (await ResourceContent.resolveURLFromReference(
+        resourceContent,
+        '/file2.txt',
+      )).toString(),
+      equals('http://localhost/file2.txt'),
+    );
 
     expect(
-        (await ResourceContent.resolveURLFromReference(
-                resourceContent, 'http://localhost2/path/file.txt'))
-            .toString(),
-        equals('http://localhost2/path/file.txt'));
+      (await ResourceContent.resolveURLFromReference(
+        resourceContent,
+        'http://localhost2/path/file.txt',
+      )).toString(),
+      equals('http://localhost2/path/file.txt'),
+    );
   });
 
   test('ResourceContentCache', () async {
@@ -88,8 +100,9 @@ void main() {
 
     var cache = ResourceContentCache();
 
-    var resourceContent =
-        ResourceContent.from(Resource('test://foo', loader: loader))!;
+    var resourceContent = ResourceContent.from(
+      Resource('test://foo', loader: loader),
+    )!;
 
     expect(resourceContent.isLoaded, isFalse);
 
@@ -100,8 +113,9 @@ void main() {
     expect(resourceContent.isLoaded, isTrue);
     expect(resourceContent.isLoadedWithError, isFalse);
 
-    var resourceContent2 =
-        ResourceContent.from(Resource('test://foo', loader: loader));
+    var resourceContent2 = ResourceContent.from(
+      Resource('test://foo', loader: loader),
+    );
 
     expect(resourceContent, equals(resourceContent2));
 

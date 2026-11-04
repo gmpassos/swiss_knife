@@ -32,18 +32,27 @@ void _initializeDateFormatting() {
 }
 
 // ignore: non_constant_identifier_names
-String dateFormat_YYYY_MM_dd_HH_mm_ss(
-    [int? time, String delimiter = '-', String hourDelimiter = ':']) {
+String dateFormat_YYYY_MM_dd_HH_mm_ss([
+  int? time,
+  String delimiter = '-',
+  String hourDelimiter = ':',
+]) {
   return _dateFormat(
-      'yyyy${delimiter}MM${delimiter}dd HH${hourDelimiter}mm${hourDelimiter}ss',
-      time);
+    'yyyy${delimiter}MM${delimiter}dd HH${hourDelimiter}mm${hourDelimiter}ss',
+    time,
+  );
 }
 
 // ignore: non_constant_identifier_names
-String dateFormat_YYYY_MM_dd_HH_mm(
-    [int? time, String delimiter = '-', String hourDelimiter = ':']) {
+String dateFormat_YYYY_MM_dd_HH_mm([
+  int? time,
+  String delimiter = '-',
+  String hourDelimiter = ':',
+]) {
   return _dateFormat(
-      'yyyy${delimiter}MM${delimiter}dd HH${hourDelimiter}mm', time);
+    'yyyy${delimiter}MM${delimiter}dd HH${hourDelimiter}mm',
+    time,
+  );
 }
 
 // ignore: non_constant_identifier_names
@@ -111,15 +120,22 @@ DateTime? parseDateTime(Object? date, [DateTime? def]) {
 }
 
 /// Converts [o] to a [List<DateTime>].
-List<DateTime>? parseDateTimeFromInlineList(Object? o,
-    [Pattern delimiter = ',', List<DateTime>? def]) {
+List<DateTime>? parseDateTimeFromInlineList(
+  Object? o, [
+  Pattern delimiter = ',',
+  List<DateTime>? def,
+]) {
   if (o == null) return def;
   if (o is DateTime) return [o];
   if (o is List) {
     return o.map((e) => parseDateTime(e)).toList() as List<DateTime>?;
   }
-  return parseFromInlineList(o.toString(), delimiter,
-      parseDateTime as DateTime Function(String)?, def);
+  return parseFromInlineList(
+    o.toString(),
+    delimiter,
+    parseDateTime as DateTime Function(String)?,
+    def,
+  );
 }
 
 /// Parses [unit] and [amount] to [Duration].
@@ -413,7 +429,7 @@ enum DateTimeWeekDay {
   thursday,
   friday,
   saturday,
-  sunday
+  sunday,
 }
 
 /// Gets index of DateTimeWeekDay, starting from 1 (Monday) to 7 (Sunday), same range as [ DateTime.wednesday ].
@@ -459,7 +475,8 @@ DateTimeWeekDay? getDateTimeWeekDay(int? weekDayIndex) {
       return DateTimeWeekDay.sunday;
     default:
       throw ArgumentError(
-          'Invalid DateTime weekDay index. Should be of range 1-7, where Monday is 1 and Sunday is 7 (Monday-to-Sunday week).');
+        'Invalid DateTime weekDay index. Should be of range 1-7, where Monday is 1 and Sunday is 7 (Monday-to-Sunday week).',
+      );
   }
 }
 
@@ -487,7 +504,8 @@ DateTimeWeekDay? getDateTimeWeekDay_from_ISO_8601_index(int? weekDayIndex) {
       return DateTimeWeekDay.sunday;
     default:
       throw ArgumentError(
-          'Invalid ISO 8601 weekDay index. Should be of range 0-6, where Monday is 0 and Sunday is 6 (Monday-to-Sunday week).');
+        'Invalid ISO 8601 weekDay index. Should be of range 0-6, where Monday is 0 and Sunday is 6 (Monday-to-Sunday week).',
+      );
   }
 }
 
@@ -551,15 +569,19 @@ DateTime getDateTimeYesterday([DateTime? time]) {
 /// [time] if null uses [ DateTime.now ].
 Pair<DateTime> getDateTimeLastNDays(int nDays, [DateTime? time]) {
   time ??= DateTime.now();
-  return Pair(getDateTimeDayStart(time.subtract(Duration(days: nDays))),
-      getDateTimeDayEnd(time));
+  return Pair(
+    getDateTimeDayStart(time.subtract(Duration(days: nDays))),
+    getDateTimeDayEnd(time),
+  );
 }
 
 /// Returns start and end of this week using [time] as reference.
 ///
 /// [time] if null uses [ DateTime.now ].
-Pair<DateTime> getDateTimeThisWeek(
-    [DateTimeWeekDay? weekFirstDay, DateTime? now]) {
+Pair<DateTime> getDateTimeThisWeek([
+  DateTimeWeekDay? weekFirstDay,
+  DateTime? now,
+]) {
   now ??= DateTime.now();
 
   var weekStart = getDateTimeWeekStart(weekFirstDay, now);
@@ -572,12 +594,16 @@ Pair<DateTime> getDateTimeThisWeek(
 ///
 /// [weekFirstDay] the desired first day of week for computation behavior.
 /// [time] if null uses [ DateTime.now ].
-Pair<DateTime> getDateTimeLastWeek(
-    [DateTimeWeekDay? weekFirstDay, DateTime? time]) {
+Pair<DateTime> getDateTimeLastWeek([
+  DateTimeWeekDay? weekFirstDay,
+  DateTime? time,
+]) {
   time ??= DateTime.now();
 
-  var weekStart =
-      getDateTimeWeekStart(weekFirstDay, time).subtract(Duration(days: 7));
+  var weekStart = getDateTimeWeekStart(
+    weekFirstDay,
+    time,
+  ).subtract(Duration(days: 7));
   var weekEnd = getDateTimeWeekEnd(weekFirstDay, weekStart);
 
   return Pair(getDateTimeDayStart(weekStart), getDateTimeDayEnd(weekEnd));
@@ -592,9 +618,11 @@ Pair<DateTime> getDateTimeThisMonth([DateTime? time]) {
   var y = time.year;
   var m = time.month;
   return Pair(
-      getDateTimeDayStart(DateTime(y, m, 1, 0, 0, 0, 0, 0)),
-      getDateTimeDayEnd(
-          DateTime(y, m, getLastDayOfMonth(m, year: y), 23, 59, 59, 0, 0)));
+    getDateTimeDayStart(DateTime(y, m, 1, 0, 0, 0, 0, 0)),
+    getDateTimeDayEnd(
+      DateTime(y, m, getLastDayOfMonth(m, year: y), 23, 59, 59, 0, 0),
+    ),
+  );
 }
 
 /// Returns start and end of last month, before current month, using [time] as reference.
@@ -609,9 +637,11 @@ Pair<DateTime> getDateTimeLastMonth([DateTime? time]) {
   var m = prevMonth.month;
 
   return Pair(
-      getDateTimeDayStart(DateTime(y, m, 1, 0, 0, 0, 0, 0)),
-      getDateTimeDayEnd(
-          DateTime(y, m, getLastDayOfMonth(m, year: y), 23, 59, 59, 9, 0)));
+    getDateTimeDayStart(DateTime(y, m, 1, 0, 0, 0, 0, 0)),
+    getDateTimeDayEnd(
+      DateTime(y, m, getLastDayOfMonth(m, year: y), 23, 59, 59, 9, 0),
+    ),
+  );
 }
 
 /// Returns start of previous month, using as reference [month] and [year].
@@ -712,8 +742,11 @@ enum DateRangeType {
 ///
 /// [weekFirstDay] the desired first day of week for computation behavior.
 /// [time] if null uses [ DateTime.now ].
-Pair<DateTime> getDateTimeRange(DateRangeType rangeType,
-    [DateTime? time, DateTimeWeekDay? weekFirstDay]) {
+Pair<DateTime> getDateTimeRange(
+  DateRangeType rangeType, [
+  DateTime? time,
+  DateTimeWeekDay? weekFirstDay,
+]) {
   time ??= getDateTimeNow();
 
   var nowStart = getDateTimeDayStart(time);
@@ -752,8 +785,12 @@ Pair<DateTime> getDateTimeRange(DateRangeType rangeType,
 ///
 /// [weekFirstDay] the desired first day of week for computation behavior.
 /// [locale] Locale code to use if [weekFirstDay] is null and need to be defined.
-DateTime? getDateTimeStartOf(DateTime time, Object? unit,
-    {DateTimeWeekDay? weekFirstDay, String? locale}) {
+DateTime? getDateTimeStartOf(
+  DateTime time,
+  Object? unit, {
+  DateTimeWeekDay? weekFirstDay,
+  String? locale,
+}) {
   var unitParsed = parseUnit(unit);
   if (unitParsed == null) return null;
 
@@ -765,8 +802,11 @@ DateTime? getDateTimeStartOf(DateTime time, Object? unit,
     case Unit.weeks:
       {
         weekFirstDay ??= getWeekFirstDay(locale);
-        var dateTimeRange =
-            getDateTimeRange(DateRangeType.thisWeek, time, weekFirstDay);
+        var dateTimeRange = getDateTimeRange(
+          DateRangeType.thisWeek,
+          time,
+          weekFirstDay,
+        );
         return dateTimeRange.a;
       }
     case Unit.months:
@@ -779,7 +819,13 @@ DateTime? getDateTimeStartOf(DateTime time, Object? unit,
       return DateTime(time.year, time.month, time.day, time.hour, time.minute);
     case Unit.seconds:
       return DateTime(
-          time.year, time.month, time.day, time.hour, time.minute, time.second);
+        time.year,
+        time.month,
+        time.day,
+        time.hour,
+        time.minute,
+        time.second,
+      );
     default:
       break;
   }
@@ -795,8 +841,12 @@ DateTime? getDateTimeStartOf(DateTime time, Object? unit,
 ///
 /// [weekFirstDay] the desired first day of week for computation behavior.
 /// [locale] Locale code to use if [weekFirstDay] is null and need to be defined.
-DateTime? getDateTimeEndOf(DateTime time, Object? unit,
-    {DateTimeWeekDay? weekFirstDay, String? locale}) {
+DateTime? getDateTimeEndOf(
+  DateTime time,
+  Object? unit, {
+  DateTimeWeekDay? weekFirstDay,
+  String? locale,
+}) {
   var unitParsed = parseUnit(unit);
   if (unitParsed == null) return null;
 
@@ -808,8 +858,11 @@ DateTime? getDateTimeEndOf(DateTime time, Object? unit,
     case Unit.weeks:
       {
         weekFirstDay ??= getWeekFirstDay(locale);
-        var dateTimeRange =
-            getDateTimeRange(DateRangeType.thisWeek, time, weekFirstDay);
+        var dateTimeRange = getDateTimeRange(
+          DateRangeType.thisWeek,
+          time,
+          weekFirstDay,
+        );
         return dateTimeRange.b;
       }
     case Unit.months:
@@ -820,18 +873,33 @@ DateTime? getDateTimeEndOf(DateTime time, Object? unit,
       return DateTime(time.year, time.month, time.day, time.hour, 59, 59, 999);
     case Unit.minutes:
       return DateTime(
-          time.year, time.month, time.day, time.hour, time.minute, 59, 999);
+        time.year,
+        time.month,
+        time.day,
+        time.hour,
+        time.minute,
+        59,
+        999,
+      );
     case Unit.seconds:
-      return DateTime(time.year, time.month, time.day, time.hour, time.minute,
-          time.second, 999);
+      return DateTime(
+        time.year,
+        time.month,
+        time.day,
+        time.hour,
+        time.minute,
+        time.second,
+        999,
+      );
     default:
       break;
   }
 
   if ('$unit'.toLowerCase().trim() == 'date') {
     var startOf = getDateTimeStartOf(time, unit)!;
-    return startOf
-        .add(Duration(hours: 23, minutes: 59, seconds: 59, milliseconds: 999));
+    return startOf.add(
+      Duration(hours: 23, minutes: 59, seconds: 59, milliseconds: 999),
+    );
   }
 
   throw ArgumentError("Can't handle unit: $unit");

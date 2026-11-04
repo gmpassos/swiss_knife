@@ -428,8 +428,11 @@ bool? parseBool(Object? v, [bool? def]) {
 ///
 /// [delimiter] pattern for delimiter if [s] is a [String].
 /// [def] the default value if [s] is invalid.
-List<int>? parseIntsFromInlineList(Object? s,
-    [Pattern delimiter = ',', List<int>? def]) {
+List<int>? parseIntsFromInlineList(
+  Object? s, [
+  Pattern delimiter = ',',
+  List<int>? def,
+]) {
   if (s == null) return def;
   if (s is int) return [s];
   if (s is List) {
@@ -446,39 +449,60 @@ List<int>? parseIntsFromInlineList(Object? s,
 ///
 /// [delimiter] pattern for delimiter if [s] is a [String].
 /// [def] the default value if [s] is invalid.
-List<num>? parseNumsFromInlineList(Object? s,
-    [Pattern delimiter = ',', List<num>? def]) {
+List<num>? parseNumsFromInlineList(
+  Object? s, [
+  Pattern delimiter = ',',
+  List<num>? def,
+]) {
   if (s == null) return def;
   if (s is num) return [s];
   if (s is List) return s.map((e) => parseNum(e)).toList() as List<num>?;
   return parseFromInlineList(
-      s.toString(), delimiter, parseNum as num Function(String)?, def);
+    s.toString(),
+    delimiter,
+    parseNum as num Function(String)?,
+    def,
+  );
 }
 
 /// Parses [s] to a [List<double>].
 ///
 /// [delimiter] pattern for delimiter if [s] is a [String].
 /// [def] the default value if [s] is invalid.
-List<double>? parseDoublesFromInlineList(Object? s,
-    [Pattern delimiter = ',', List<double>? def]) {
+List<double>? parseDoublesFromInlineList(
+  Object? s, [
+  Pattern delimiter = ',',
+  List<double>? def,
+]) {
   if (s == null) return def;
   if (s is double) return [s];
   if (s is List) return s.map((e) => parseDouble(e)).toList() as List<double>?;
   return parseFromInlineList(
-      s.toString(), delimiter, parseDouble as double Function(String)?, def);
+    s.toString(),
+    delimiter,
+    parseDouble as double Function(String)?,
+    def,
+  );
 }
 
 /// Parses [s] to a [List<bool>].
 ///
 /// [delimiter] pattern for delimiter if [s] is a [String].
 /// [def] the default value if [s] is invalid.
-List<bool>? parseBoolsFromInlineList(Object? s, Pattern delimiter,
-    [List<bool>? def]) {
+List<bool>? parseBoolsFromInlineList(
+  Object? s,
+  Pattern delimiter, [
+  List<bool>? def,
+]) {
   if (s == null) return def;
   if (s is bool) return [s];
   if (s is List) return s.map((e) => parseBool(e)).toList() as List<bool>?;
   return parseFromInlineList(
-      s.toString(), delimiter, parseBool as bool Function(String)?, def);
+    s.toString(),
+    delimiter,
+    parseBool as bool Function(String)?,
+    def,
+  );
 }
 
 RegExp _regexpSplitComma = RegExp(r'\s*,\s*');
@@ -535,8 +559,11 @@ num? parsePercent(Object? v, [double? def]) {
 ///
 /// [precision] amount of decimal places.
 /// [decimalSeparator] decimal separator, usually `.` or `,`.
-String? formatDecimal(Object? value,
-    {int precision = 2, String decimalSeparator = '.'}) {
+String? formatDecimal(
+  Object? value, {
+  int precision = 2,
+  String decimalSeparator = '.',
+}) {
   if (value == null) return null;
 
   var p = parseNum(value);
@@ -589,8 +616,11 @@ String? formatDecimal(Object? value,
 ///
 /// [precision] amount of decimal places.
 /// [isRatio] if true the [percent] parameter is in the range 0..1.
-String formatPercent(Object? percent,
-    {int precision = 2, bool isRatio = false}) {
+String formatPercent(
+  Object? percent, {
+  int precision = 2,
+  bool isRatio = false,
+}) {
   if (percent == null) return '0%';
 
   var p = parseNum(percent);
@@ -721,10 +751,9 @@ bool isBoolList(Object? value, [String delimiter = ',']) {
   }
 
   var s = value.toString().toLowerCase();
-  return RegExp(r'^(?:true|false|yes|no)(?:' +
-          delimiter +
-          r'(?:true|false|yes|no))+$')
-      .hasMatch(s);
+  return RegExp(
+    r'^(?:true|false|yes|no)(?:' + delimiter + r'(?:true|false|yes|no))+$',
+  ).hasMatch(s);
 }
 
 /// Represents a scale with [minimum], [maximum] and [length].

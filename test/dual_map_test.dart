@@ -132,19 +132,21 @@ void main() {
   });
 
   group('edge consistency cases', () {
-    test('reusing same value overwrites reverse mapping (documented behavior)',
-        () {
-      final m = DualMap<int, String>();
+    test(
+      'reusing same value overwrites reverse mapping (documented behavior)',
+      () {
+        final m = DualMap<int, String>();
 
-      m[1] = 'a';
-      m[2] = 'a';
+        m[1] = 'a';
+        m[2] = 'a';
 
-      expect(m[1], 'a');
-      expect(m[2], 'a');
+        expect(m[1], 'a');
+        expect(m[2], 'a');
 
-      // Only last survives in reverse map
-      expect(m.getKeyFromValue('a'), 2);
-    });
+        // Only last survives in reverse map
+        expect(m.getKeyFromValue('a'), 2);
+      },
+    );
 
     test('remove after overwrite keeps correct reverse', () {
       final m = DualMap<int, String>();

@@ -280,7 +280,7 @@ class CachedComputation<R, T, K> {
   final K? Function(T) keyGenerator;
 
   CachedComputation(this.function, [K Function(T)? keyGenerator])
-      : keyGenerator = keyGenerator ?? ((T value) => deepCopy(value as K));
+    : keyGenerator = keyGenerator ?? ((T value) => deepCopy(value as K));
 
   final Map<K?, R> _cache = {};
 

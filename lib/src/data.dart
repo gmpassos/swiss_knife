@@ -249,8 +249,10 @@ class MimeType {
   /// Creates an instance by file [extension].
   ///
   /// [defaultAsApplication] if true returns 'application/[extension]'.
-  static MimeType? byExtension(String? extension,
-      {bool defaultAsApplication = true}) {
+  static MimeType? byExtension(
+    String? extension, {
+    bool defaultAsApplication = true,
+  }) {
     if (extension == null) return null;
 
     var idx = extension.lastIndexOf('.');
@@ -349,7 +351,7 @@ class MimeType {
   final String? charset;
 
   MimeType(this.type, this.subType, [String? charSet])
-      : charset = normalizeCharset(charSet);
+    : charset = normalizeCharset(charSet);
 
   /// Returns [true] if [charset] is defined.
   bool get hasCharset => charset != null && charset!.isNotEmpty;
@@ -664,25 +666,30 @@ class DataURLBase64 {
       _payloadArrayBuffer ??= Base64.decodeAsArrayBuffer(payloadBase64);
 
   DataURLBase64(this.payloadBase64, [String? mimeType])
-      : mimeType = MimeType.parse(mimeType);
+    : mimeType = MimeType.parse(mimeType);
 
   /// Instantiates a [DataURLBase64] automatically resolving [payload] and [mimeType].
   factory DataURLBase64.from(Object payload, [Object? mimeType]) {
-    String? m =
-        mimeType is MimeType ? mimeType.toString() : mimeType?.toString();
+    String? m = mimeType is MimeType
+        ? mimeType.toString()
+        : mimeType?.toString();
 
     if (payload is List<int>) {
       return DataURLBase64(base64.encode(payload), m);
     } else if (payload is DataURLBase64) {
       return DataURLBase64(
-          payload.payloadBase64, m ?? payload.mimeTypeAsString);
+        payload.payloadBase64,
+        m ?? payload.mimeTypeAsString,
+      );
     } else {
       var s = payload.toString();
 
       var dataUrl = DataURLBase64.parse(s);
       if (dataUrl != null) {
         return DataURLBase64(
-            dataUrl.payloadBase64, m ?? dataUrl.mimeTypeAsString);
+          dataUrl.payloadBase64,
+          m ?? dataUrl.mimeTypeAsString,
+        );
       } else {
         var bs = _decodeBase64(s);
         if (bs != null) {
@@ -699,8 +706,9 @@ class DataURLBase64 {
   /// [defaultMimeType] if [s] is invalid.
   static MimeType? parseMimeType(String s, {String? defaultMimeType}) {
     return MimeType.parse(
-        parseMimeTypeAsString(s, defaultMimeType: defaultMimeType),
-        defaultMimeType);
+      parseMimeTypeAsString(s, defaultMimeType: defaultMimeType),
+      defaultMimeType,
+    );
   }
 
   /// Parses only the MIME-Type of the Data URL [s] as string.
@@ -771,7 +779,8 @@ Uint8List? _decodeBase64(String s) {
 }
 
 final regExpEmail = RegExp(
-    r'''^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?)*$''');
+  r'''^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?)*$''',
+);
 
 /// Returns [true] if [value] represents an e-mail address.
 bool isEmail(Object? value) {
@@ -780,11 +789,14 @@ bool isEmail(Object? value) {
 
 /// Represents a Geo Location in latitude and longitude.
 class Geolocation {
-  static final RegExp geolocationFormat =
-      RegExp(r'([-=]?)(\d+[,.]?\d*)\s*[°o]?\s*(\w)');
+  static final RegExp geolocationFormat = RegExp(
+    r'([-=]?)(\d+[,.]?\d*)\s*[°o]?\s*(\w)',
+  );
 
-  static num? parseLatitudeOrLongitudeValue(String? s,
-      [bool onlyWithCardinals = false]) {
+  static num? parseLatitudeOrLongitudeValue(
+    String? s, [
+    bool onlyWithCardinals = false,
+  ]) {
     if (s == null) return null;
 
     var match = geolocationFormat.firstMatch(s);
@@ -834,8 +846,10 @@ class Geolocation {
 
   Geolocation(this._latitude, this._longitude);
 
-  static Geolocation? fromCoords(String? coords,
-      [bool onlyWithCardinals = false]) {
+  static Geolocation? fromCoords(
+    String? coords, [
+    bool onlyWithCardinals = false,
+  ]) {
     if (coords == null) return null;
     coords = coords.trim();
     if (coords.isEmpty) return null;
@@ -945,9 +959,11 @@ Point<num>? parsePointFromList(List? list) {
 /// Parses [map] as a [Point].
 Point<num>? parsePointFromMap(Map map) {
   var x = parseNum(
-      findKeyValue(toNonNullMap<String, Object>(map), ['x', 'left'], true));
+    findKeyValue(toNonNullMap<String, Object>(map), ['x', 'left'], true),
+  );
   var y = parseNum(
-      findKeyValue(toNonNullMap<String, Object>(map), ['y', 'top'], true));
+    findKeyValue(toNonNullMap<String, Object>(map), ['y', 'top'], true),
+  );
   if (x == null || y == null) return null;
   return Point<num>(x, y);
 }

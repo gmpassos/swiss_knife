@@ -11,7 +11,10 @@ class _ListenSignature {
   final bool _cancelOnError;
 
   _ListenSignature(
-      this._identifier, this._identifyByInstance, this._cancelOnError);
+    this._identifier,
+    this._identifyByInstance,
+    this._cancelOnError,
+  );
 
   Object get identifier => _identifier;
 
@@ -61,7 +64,9 @@ class _ListenSignature {
 }
 
 typedef EventValidatorFunction<T> = bool Function(
-    EventStream<T> eventStream, T event);
+  EventStream<T> eventStream,
+  T event,
+);
 
 /// Implements a Stream for events and additional features.
 ///
@@ -110,9 +115,10 @@ class EventStream<T> implements Stream<T> {
   }
 
   @override
-  Stream<T> asBroadcastStream(
-      {void Function(StreamSubscription<T> subscription)? onListen,
-      void Function(StreamSubscription<T> subscription)? onCancel}) {
+  Stream<T> asBroadcastStream({
+    void Function(StreamSubscription<T> subscription)? onListen,
+    void Function(StreamSubscription<T> subscription)? onCancel,
+  }) {
     return _stream.asBroadcastStream(onListen: onListen, onCancel: onCancel);
   }
 
@@ -180,8 +186,10 @@ class EventStream<T> implements Stream<T> {
   }
 
   @override
-  Stream<T> handleError(Function onError,
-      {bool Function(Object? error)? test}) {
+  Stream<T> handleError(
+    Function onError, {
+    bool Function(Object? error)? test,
+  }) {
     return _stream.handleError(onError, test: test);
   }
 
@@ -222,10 +230,14 @@ class EventStream<T> implements Stream<T> {
   }
 
   /// Cancels [StreamSubscription] associated with [singletonIdentifier].
-  bool cancelSingletonSubscription(Object singletonIdentifier,
-      [bool singletonIdentifyByInstance = true]) {
-    var signature =
-        _getListenSignature(singletonIdentifier, singletonIdentifyByInstance);
+  bool cancelSingletonSubscription(
+    Object singletonIdentifier, [
+    bool singletonIdentifyByInstance = true,
+  ]) {
+    var signature = _getListenSignature(
+      singletonIdentifier,
+      singletonIdentifyByInstance,
+    );
 
     if (signature != null) {
       _listenSignatures?.remove(signature);
@@ -236,17 +248,26 @@ class EventStream<T> implements Stream<T> {
   }
 
   /// Returns a [StreamSubscription] associated with [singletonIdentifier].
-  StreamSubscription<T?>? getSingletonSubscription(Object singletonIdentifier,
-      [bool singletonIdentifyByInstance = true]) {
-    var signature =
-        _getListenSignature(singletonIdentifier, singletonIdentifyByInstance);
+  StreamSubscription<T?>? getSingletonSubscription(
+    Object singletonIdentifier, [
+    bool singletonIdentifyByInstance = true,
+  ]) {
+    var signature = _getListenSignature(
+      singletonIdentifier,
+      singletonIdentifyByInstance,
+    );
     return signature?.subscription as StreamSubscription<T?>?;
   }
 
-  _ListenSignature? _getListenSignature(Object singletonIdentifier,
-      [bool singletonIdentifyByInstance = true]) {
+  _ListenSignature? _getListenSignature(
+    Object singletonIdentifier, [
+    bool singletonIdentifyByInstance = true,
+  ]) {
     var listenSignature = _ListenSignature(
-        singletonIdentifier, singletonIdentifyByInstance, false);
+      singletonIdentifier,
+      singletonIdentifyByInstance,
+      false,
+    );
 
     final listenSignatures = _listenSignatures;
     if (listenSignatures == null) return null;
@@ -269,14 +290,16 @@ class EventStream<T> implements Stream<T> {
   /// [singletonIdentifier] identifier to avoid multiple listeners with the same identifier. This will register a singleton [StreamSubscription] associated with [singletonIdentifier].
   /// [singletonIdentifyByInstance] if true uses `identical(...)` to compare the [singletonIdentifier].
   @override
-  StreamSubscription<T> listen(void Function(T event)? onData,
-      {Function? onError,
-      void Function()? onDone,
-      bool? cancelOnError = false,
-      Object? singletonIdentifier,
-      bool singletonIdentifyByInstance = true,
-      EventValidatorFunction<T>? eventValidator,
-      bool overwriteSingletonSubscription = false}) {
+  StreamSubscription<T> listen(
+    void Function(T event)? onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError = false,
+    Object? singletonIdentifier,
+    bool singletonIdentifyByInstance = true,
+    EventValidatorFunction<T>? eventValidator,
+    bool overwriteSingletonSubscription = false,
+  }) {
     try {
       eventValidator ??= this.eventValidator;
 
@@ -292,11 +315,16 @@ class EventStream<T> implements Stream<T> {
       }
 
       if (singletonIdentifier != null) {
-        var listenSignature = _ListenSignature(singletonIdentifier,
-            singletonIdentifyByInstance, cancelOnError ?? false);
+        var listenSignature = _ListenSignature(
+          singletonIdentifier,
+          singletonIdentifyByInstance,
+          cancelOnError ?? false,
+        );
 
-        var prevSubscription =
-            getSetEntryInstance(_listenSignatures, listenSignature);
+        var prevSubscription = getSetEntryInstance(
+          _listenSignatures,
+          listenSignature,
+        );
 
         if (overwriteSingletonSubscription && prevSubscription != null) {
           _listenSignatures?.remove(prevSubscription);
@@ -316,38 +344,52 @@ class EventStream<T> implements Stream<T> {
         final listenSignatures = _listenSignatures ??= {};
         listenSignatures.add(listenSignature);
 
-        var subscription = _stream.listen(onData, onError: onError, onDone: () {
-          listenSignature._cancel(false);
-          listenSignatures.remove(listenSignature);
+        var subscription = _stream.listen(
+          onData,
+          onError: onError,
+          onDone: () {
+            listenSignature._cancel(false);
+            listenSignatures.remove(listenSignature);
 
-          if (onDone != null) {
-            onDone();
-          }
-        }, cancelOnError: cancelOnError);
+            if (onDone != null) {
+              onDone();
+            }
+          },
+          cancelOnError: cancelOnError,
+        );
 
         listenSignature.subscription = subscription;
 
         return subscription;
       } else {
-        return _stream.listen(onData,
-            onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+        return _stream.listen(
+          onData,
+          onError: onError,
+          onDone: onDone,
+          cancelOnError: cancelOnError,
+        );
       }
     } catch (e) {
       rethrow;
     }
   }
 
-  ListenerWrapper<T>? listenOneShot(void Function(T event) onData,
-      {Function? onError,
-      void Function()? onDone,
-      bool cancelOnError = false,
-      Object? singletonIdentifier,
-      bool? singletonIdentifyByInstance = true}) {
-    var listenerWrapper = ListenerWrapper<T>(this, onData,
-        onError: onError,
-        onDone: onDone,
-        cancelOnError: cancelOnError,
-        oneShot: true);
+  ListenerWrapper<T>? listenOneShot(
+    void Function(T event) onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool cancelOnError = false,
+    Object? singletonIdentifier,
+    bool? singletonIdentifyByInstance = true,
+  }) {
+    var listenerWrapper = ListenerWrapper<T>(
+      this,
+      onData,
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
+      oneShot: true,
+    );
     var ok = listenerWrapper.listen();
     return ok ? listenerWrapper : null;
   }
@@ -407,8 +449,10 @@ class EventStream<T> implements Stream<T> {
   }
 
   @override
-  Stream<T> timeout(Duration timeLimit,
-      {void Function(EventSink<T> sink)? onTimeout}) {
+  Stream<T> timeout(
+    Duration timeLimit, {
+    void Function(EventSink<T> sink)? onTimeout,
+  }) {
     return _stream.timeout(timeLimit, onTimeout: onTimeout);
   }
 
@@ -442,18 +486,19 @@ class EventStreamDelegator<T> implements EventStream<T> {
   final EventStream<T>? Function()? _eventStreamProvider;
 
   EventStreamDelegator(EventStream<T> eventStream)
-      : _eventStream = eventStream,
-        _eventStreamProvider = null;
+    : _eventStream = eventStream,
+      _eventStreamProvider = null;
 
   EventStreamDelegator.provider(EventStream<T>? Function() eventStreamProvider)
-      : _eventStream = null,
-        _eventStreamProvider = eventStreamProvider;
+    : _eventStream = null,
+      _eventStreamProvider = eventStreamProvider;
 
   /// Returns the main [EventStream].
   EventStream<T>? get eventStream {
     if (_eventStream == null) {
-      _eventStream =
-          _eventStreamProvider != null ? _eventStreamProvider() : null;
+      _eventStream = _eventStreamProvider != null
+          ? _eventStreamProvider()
+          : null;
       if (_eventStream != null) {
         flush();
       }
@@ -492,12 +537,14 @@ class EventStreamDelegator<T> implements EventStream<T> {
     }
 
     for (var v in _listenOneShotBuffer) {
-      es.listenOneShot(v[0],
-          onError: v[1],
-          onDone: v[2],
-          cancelOnError: v[3],
-          singletonIdentifier: v[4],
-          singletonIdentifyByInstance: v[5]);
+      es.listenOneShot(
+        v[0],
+        onError: v[1],
+        onDone: v[2],
+        cancelOnError: v[3],
+        singletonIdentifier: v[4],
+        singletonIdentifyByInstance: v[5],
+      );
     }
 
     for (var v in _addBuffer) {
@@ -532,8 +579,10 @@ class EventStreamDelegator<T> implements EventStream<T> {
   Stream<T> get _stream => throw UnimplementedError();
 
   @override
-  _ListenSignature _getListenSignature(singletonIdentifier,
-      [bool singletonIdentifyByInstance = true]) {
+  _ListenSignature _getListenSignature(
+    singletonIdentifier, [
+    bool singletonIdentifyByInstance = true,
+  ]) {
     throw UnimplementedError();
   }
 
@@ -571,14 +620,16 @@ class EventStreamDelegator<T> implements EventStream<T> {
   final List _listenBuffer = [];
 
   @override
-  StreamSubscription<T> listen(void Function(T event)? onData,
-      {Function? onError,
-      void Function()? onDone,
-      bool? cancelOnError = false,
-      singletonIdentifier,
-      bool singletonIdentifyByInstance = true,
-      EventValidatorFunction<T>? eventValidator,
-      bool overwriteSingletonSubscription = false}) {
+  StreamSubscription<T> listen(
+    void Function(T event)? onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError = false,
+    singletonIdentifier,
+    bool singletonIdentifyByInstance = true,
+    EventValidatorFunction<T>? eventValidator,
+    bool overwriteSingletonSubscription = false,
+  }) {
     var es = eventStream;
     if (es == null) {
       _listenBuffer.add([
@@ -589,41 +640,47 @@ class EventStreamDelegator<T> implements EventStream<T> {
         singletonIdentifier,
         singletonIdentifyByInstance,
         eventValidator,
-        overwriteSingletonSubscription
+        overwriteSingletonSubscription,
       ]);
 
       return _StreamSubscriptionProvider(() {
         var es2 = eventStream;
-        return es2?.listen(onData,
-            onError: onError,
-            onDone: onDone,
-            cancelOnError: cancelOnError,
-            singletonIdentifier: singletonIdentifier,
-            singletonIdentifyByInstance: singletonIdentifyByInstance,
-            eventValidator: eventValidator,
-            overwriteSingletonSubscription: overwriteSingletonSubscription);
-      });
-    } else {
-      return es.listen(onData,
+        return es2?.listen(
+          onData,
           onError: onError,
           onDone: onDone,
           cancelOnError: cancelOnError,
           singletonIdentifier: singletonIdentifier,
           singletonIdentifyByInstance: singletonIdentifyByInstance,
           eventValidator: eventValidator,
-          overwriteSingletonSubscription: overwriteSingletonSubscription);
+          overwriteSingletonSubscription: overwriteSingletonSubscription,
+        );
+      });
+    } else {
+      return es.listen(
+        onData,
+        onError: onError,
+        onDone: onDone,
+        cancelOnError: cancelOnError,
+        singletonIdentifier: singletonIdentifier,
+        singletonIdentifyByInstance: singletonIdentifyByInstance,
+        eventValidator: eventValidator,
+        overwriteSingletonSubscription: overwriteSingletonSubscription,
+      );
     }
   }
 
   final List _listenOneShotBuffer = [];
 
   @override
-  ListenerWrapper<T>? listenOneShot(void Function(T event) onData,
-      {Function? onError,
-      void Function()? onDone,
-      bool? cancelOnError,
-      singletonIdentifier,
-      bool? singletonIdentifyByInstance = true}) {
+  ListenerWrapper<T>? listenOneShot(
+    void Function(T event) onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+    singletonIdentifier,
+    bool? singletonIdentifyByInstance = true,
+  }) {
     var es = eventStream;
     if (es == null) {
       _listenOneShotBuffer.add([
@@ -636,12 +693,14 @@ class EventStreamDelegator<T> implements EventStream<T> {
       ]);
       return null;
     } else {
-      return es.listenOneShot(onData,
-          onError: onError,
-          onDone: onDone,
-          cancelOnError: cancelOnError!,
-          singletonIdentifier: singletonIdentifier,
-          singletonIdentifyByInstance: singletonIdentifyByInstance);
+      return es.listenOneShot(
+        onData,
+        onError: onError,
+        onDone: onDone,
+        cancelOnError: cancelOnError!,
+        singletonIdentifier: singletonIdentifier,
+        singletonIdentifyByInstance: singletonIdentifyByInstance,
+      );
     }
   }
 
@@ -653,10 +712,10 @@ class EventStreamDelegator<T> implements EventStream<T> {
   Future<bool> any(bool Function(T element) test) => eventStream!.any(test);
 
   @override
-  Stream<T> asBroadcastStream(
-          {void Function(StreamSubscription<T> subscription)? onListen,
-          void Function(StreamSubscription<T> subscription)? onCancel}) =>
-      eventStream!.asBroadcastStream(onListen: onListen, onCancel: onCancel);
+  Stream<T> asBroadcastStream({
+    void Function(StreamSubscription<T> subscription)? onListen,
+    void Function(StreamSubscription<T> subscription)? onCancel,
+  }) => eventStream!.asBroadcastStream(onListen: onListen, onCancel: onCancel);
 
   @override
   Stream<E> asyncExpand<E>(Stream<E>? Function(T event) convert) =>
@@ -671,10 +730,13 @@ class EventStreamDelegator<T> implements EventStream<T> {
       eventStream!.cancelAllSingletonSubscriptions();
 
   @override
-  bool cancelSingletonSubscription(singletonIdentifier,
-          [bool singletonIdentifyByInstance = true]) =>
-      eventStream!.cancelSingletonSubscription(
-          singletonIdentifier, singletonIdentifyByInstance);
+  bool cancelSingletonSubscription(
+    singletonIdentifier, [
+    bool singletonIdentifyByInstance = true,
+  ]) => eventStream!.cancelSingletonSubscription(
+    singletonIdentifier,
+    singletonIdentifyByInstance,
+  );
 
   @override
   Stream<R> cast<R>() => eventStream!.cast<R>();
@@ -712,23 +774,28 @@ class EventStreamDelegator<T> implements EventStream<T> {
 
   @override
   Future<S> fold<S>(
-          S initialValue, S Function(S previous, T element) combine) =>
-      eventStream!.fold(initialValue, combine);
+    S initialValue,
+    S Function(S previous, T element) combine,
+  ) => eventStream!.fold(initialValue, combine);
 
   @override
   Future forEach(void Function(T element) action) =>
       eventStream!.forEach(action);
 
   @override
-  StreamSubscription<T?>? getSingletonSubscription(singletonIdentifier,
-          [bool singletonIdentifyByInstance = true]) =>
-      eventStream?.getSingletonSubscription(
-          singletonIdentifier, singletonIdentifyByInstance);
+  StreamSubscription<T?>? getSingletonSubscription(
+    singletonIdentifier, [
+    bool singletonIdentifyByInstance = true,
+  ]) => eventStream?.getSingletonSubscription(
+    singletonIdentifier,
+    singletonIdentifyByInstance,
+  );
 
   @override
-  Stream<T> handleError(Function onError,
-          {bool Function(Object? error)? test}) =>
-      eventStream!.handleError(onError, test: test);
+  Stream<T> handleError(
+    Function onError, {
+    bool Function(Object? error)? test,
+  }) => eventStream!.handleError(onError, test: test);
 
   @override
   bool get isBroadcast => eventStream!.isBroadcast;
@@ -776,9 +843,10 @@ class EventStreamDelegator<T> implements EventStream<T> {
   Future<T> get single => eventStream!.single;
 
   @override
-  Future<T> singleWhere(bool Function(T element) test,
-          {T Function()? orElse}) =>
-      eventStream!.singleWhere(test, orElse: orElse);
+  Future<T> singleWhere(
+    bool Function(T element) test, {
+    T Function()? orElse,
+  }) => eventStream!.singleWhere(test, orElse: orElse);
 
   @override
   Stream<T> skip(int count) => eventStream!.skip(count);
@@ -795,9 +863,10 @@ class EventStreamDelegator<T> implements EventStream<T> {
       eventStream!.takeWhile(test);
 
   @override
-  Stream<T> timeout(Duration timeLimit,
-          {void Function(EventSink<T> sink)? onTimeout}) =>
-      eventStream!.timeout(timeLimit, onTimeout: onTimeout);
+  Stream<T> timeout(
+    Duration timeLimit, {
+    void Function(EventSink<T> sink)? onTimeout,
+  }) => eventStream!.timeout(timeLimit, onTimeout: onTimeout);
 
   @override
   Future<List<T>> toList() => eventStream!.toList();
@@ -884,9 +953,12 @@ class InteractionCompleter {
 
   Function? functionToTrigger;
 
-  InteractionCompleter(this.name,
-      {Duration? triggerDelay, this.functionToTrigger, this.triggerDelayLimit})
-      : triggerDelay = triggerDelay ?? Duration(milliseconds: 500);
+  InteractionCompleter(
+    this.name, {
+    Duration? triggerDelay,
+    this.functionToTrigger,
+    this.triggerDelayLimit,
+  }) : triggerDelay = triggerDelay ?? Duration(milliseconds: 500);
 
   int get now {
     return DateTime.now().millisecondsSinceEpoch;
@@ -918,10 +990,11 @@ class InteractionCompleter {
   ///
   /// [noTriggering] If [true] won't schedule trigger, only mark interaction.
   /// [interactionParameters] Stores parameters that can be used while triggering, using [lastInteractionParameters].
-  void interact(
-      {noTriggering = false,
-      List? interactionParameters,
-      bool ignoreConsecutiveEqualsParameters = false}) {
+  void interact({
+    bool? noTriggering = false,
+    List? interactionParameters,
+    bool ignoreConsecutiveEqualsParameters = false,
+  }) {
     noTriggering ??= false;
 
     if (interactionParameters != null) {
@@ -981,7 +1054,9 @@ class InteractionCompleter {
         triggerNow();
       } else {
         Future.delayed(
-            Duration(milliseconds: timeUntilNextTrigger), () => _callTrigger());
+          Duration(milliseconds: timeUntilNextTrigger),
+          () => _callTrigger(),
+        );
       }
     } else {
       triggerNow();
@@ -1047,10 +1122,11 @@ class InteractionCompleterDummy extends InteractionCompleter {
   InteractionCompleterDummy() : super('');
 
   @override
-  void interact(
-      {noTriggering = false,
-      List? interactionParameters,
-      bool ignoreConsecutiveEqualsParameters = false}) {}
+  void interact({
+    bool? noTriggering = false,
+    List? interactionParameters,
+    bool ignoreConsecutiveEqualsParameters = false,
+  }) {}
 
   @override
   void triggerIfHasInteraction({List? interactionParameters}) {}
@@ -1064,15 +1140,20 @@ class InteractionCompleterDummy extends InteractionCompleter {
 /// [onData] is only called when [stream] event is triggered and stays
 /// without any new event for [triggerDelay] duration.
 InteractionCompleter listenStreamWithInteractionCompleter<T>(
-    Stream<T> stream, Duration triggerDelay, void Function(T? event) onData) {
+  Stream<T> stream,
+  Duration triggerDelay,
+  void Function(T? event) onData,
+) {
   var lastEvent = [];
 
   var interactionCompleter = InteractionCompleter(
-      'listenStreamWithInteractionCompleter[$stream]',
-      triggerDelay: triggerDelay, functionToTrigger: () {
-    var event = lastEvent.isNotEmpty ? lastEvent.first : null;
-    onData(event is T ? event : null);
-  });
+    'listenStreamWithInteractionCompleter[$stream]',
+    triggerDelay: triggerDelay,
+    functionToTrigger: () {
+      var event = lastEvent.isNotEmpty ? lastEvent.first : null;
+      onData(event is T ? event : null);
+    },
+  );
 
   stream.listen((Object? event) {
     lastEvent.clear();
@@ -1088,7 +1169,16 @@ class AsyncValue<T> {
   late final Future<T> _future;
 
   AsyncValue(Future<T> future) {
-    _future = future.then((v) => _onLoad(v)!, onError: _onError);
+    _future = future.then(
+      _onLoad,
+      onError: (Object error, StackTrace stackTrace) {
+        _onError(error);
+        // A nullable `T` completes with `null` on error (previous behaviour).
+        if (null is T) return null as T;
+        // A non-nullable `T` can't complete with `null`: propagate the error.
+        Error.throwWithStackTrace(error, stackTrace);
+      },
+    );
   }
 
   factory AsyncValue.from(Object? value) {
@@ -1144,14 +1234,14 @@ class AsyncValue<T> {
 
   T? _value;
 
-  T? _onLoad(value) {
+  T _onLoad(T value) {
     _loaded = true;
     _value = value;
     onLoad.add(value);
     return value;
   }
 
-  void _onError(error) {
+  void _onError(Object? error) {
     _loaded = true;
     _error = error ?? 'error';
     onLoad.add(null);
@@ -1203,13 +1293,16 @@ class ListenerWrapper<T> {
   final bool singletonIdentifyByInstance;
 
   /// See [Stream.listen].
-  ListenerWrapper(this.stream, this.onData,
-      {this.onError,
-      this.onDone,
-      this.cancelOnError = false,
-      this.oneShot = false,
-      this.singletonIdentifier,
-      this.singletonIdentifyByInstance = true});
+  ListenerWrapper(
+    this.stream,
+    this.onData, {
+    this.onError,
+    this.onDone,
+    this.cancelOnError = false,
+    this.oneShot = false,
+    this.singletonIdentifier,
+    this.singletonIdentifyByInstance = true,
+  });
 
   /// If [true] will wait for 1 event and call [cancel].
   bool oneShot = false;
@@ -1278,18 +1371,20 @@ class ListenerWrapper<T> {
     if (stream is EventStream) {
       var eventStream = stream as EventStream;
       _subscription = eventStream.listen(
-              onDataWrapper as void Function(Object?),
-              onError: onErrorWrapper,
-              onDone: onDoneWrapper,
-              cancelOnError: cancelOnError,
-              singletonIdentifier: singletonIdentifier,
-              singletonIdentifyByInstance: singletonIdentifyByInstance)
-          as StreamSubscription<T>?;
+        onDataWrapper as void Function(Object?),
+        onError: onErrorWrapper,
+        onDone: onDoneWrapper,
+        cancelOnError: cancelOnError,
+        singletonIdentifier: singletonIdentifier,
+        singletonIdentifyByInstance: singletonIdentifyByInstance,
+      ) as StreamSubscription<T>?;
     } else {
-      _subscription = stream.listen(onDataWrapper,
-          onError: onErrorWrapper,
-          onDone: onDoneWrapper,
-          cancelOnError: cancelOnError);
+      _subscription = stream.listen(
+        onDataWrapper,
+        onError: onErrorWrapper,
+        onDone: onDoneWrapper,
+        cancelOnError: cancelOnError,
+      );
     }
 
     return _subscription != null;
@@ -1325,13 +1420,16 @@ class UniqueCaller<R> {
     return s;
   }
 
-  UniqueCaller(this.function,
-      {Object? identifier,
-      StackTrace? stackTraceIdentifier,
-      this.onDuplicatedCall})
-      : _identifier = _IdentifierWrapper(identifier ??
-            stackTraceIdentifier?.toString() ??
-            UniqueCaller.stackTraceIdentifier());
+  UniqueCaller(
+    this.function, {
+    Object? identifier,
+    StackTrace? stackTraceIdentifier,
+    this.onDuplicatedCall,
+  }) : _identifier = _IdentifierWrapper(
+         identifier ??
+             stackTraceIdentifier?.toString() ??
+             UniqueCaller.stackTraceIdentifier(),
+       );
 
   Object get identifier => _identifier;
 

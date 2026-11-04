@@ -178,10 +178,10 @@ void main() {
 
       expect(map.keys.toSet(), {1, 2});
       expect(map.values.toSet(), {'a', 'b'});
-      expect(
-        map.entries.map((e) => '${e.key}:${e.value}').toSet(),
-        {'1:a', '2:b'},
-      );
+      expect(map.entries.map((e) => '${e.key}:${e.value}').toSet(), {
+        '1:a',
+        '2:b',
+      });
     });
 
     test('clear resets map', () {
@@ -198,8 +198,11 @@ void main() {
   group('Edge cases and invariants', () {
     test('null key behavior', () {
       final map = FlatHashMap<int, String>();
+      // ignore: collection_methods_unrelated_type
       expect(map[null], isNull);
+      // ignore: collection_methods_unrelated_type
       expect(map.remove(null), isNull);
+      // ignore: collection_methods_unrelated_type
       expect(map.containsKey(null), isFalse);
     });
 

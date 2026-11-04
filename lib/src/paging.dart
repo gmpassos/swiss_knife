@@ -11,17 +11,21 @@ typedef PagingRequester = Future<JSONPaging?> Function(int page);
 /// Generic representation of a paging result in JSON.
 abstract class JSONPaging extends MapDelegate<String, dynamic> {
   static final Map<PagingFormatMatcher, PagingFormatInstantiator>
-      _pagingFormats = {};
+  _pagingFormats = {};
 
   static void registerPagingFormat(
-      PagingFormatMatcher matcher, PagingFormatInstantiator instantiator) {
+    PagingFormatMatcher matcher,
+    PagingFormatInstantiator instantiator,
+  ) {
     _registerPagingFormats();
 
     _registerPagingFormatImpl(matcher, instantiator);
   }
 
   static void _registerPagingFormatImpl(
-      PagingFormatMatcher matcher, PagingFormatInstantiator instantiator) {
+    PagingFormatMatcher matcher,
+    PagingFormatInstantiator instantiator,
+  ) {
     _pagingFormats[matcher] = instantiator;
   }
 
@@ -152,7 +156,7 @@ abstract class JSONPaging extends MapDelegate<String, dynamic> {
 class ColossusPaging extends JSONPaging {
   static final PagingFormatMatcher matcher = matches;
 
-  static JSONPaging instantiator(json) => ColossusPaging(json);
+  static JSONPaging instantiator(dynamic json) => ColossusPaging(json);
 
   static bool matches(dynamic json) {
     if (isMapOfStringKeys(json)) {
@@ -200,8 +204,8 @@ class ColossusPaging extends JSONPaging {
   String pagingRequestURL(String url, int page) {
     var uri = Uri.parse(url);
 
-    var queryParameters =
-        Map.from(uri.queryParametersAll).cast<String, dynamic>();
+    var queryParameters = Map.from(uri.queryParametersAll)
+        .cast<String, dynamic>();
 
     var pageEntry = findKeyEntry(queryParameters, ['-PAGE', '--PAGE']);
 
@@ -212,13 +216,13 @@ class ColossusPaging extends JSONPaging {
     }
 
     return Uri(
-            scheme: uri.scheme,
-            userInfo: uri.userInfo,
-            host: uri.host,
-            port: uri.port,
-            path: uri.path,
-            queryParameters: queryParameters)
-        .toString();
+      scheme: uri.scheme,
+      userInfo: uri.userInfo,
+      host: uri.host,
+      port: uri.port,
+      path: uri.path,
+      queryParameters: queryParameters,
+    ).toString();
   }
 }
 
@@ -226,7 +230,7 @@ class ColossusPaging extends JSONPaging {
 class SpringBootPaging extends JSONPaging {
   static final PagingFormatMatcher matcher = matches;
 
-  static JSONPaging instantiator(json) => SpringBootPaging(json);
+  static JSONPaging instantiator(dynamic json) => SpringBootPaging(json);
 
   static bool matches(dynamic json) {
     if (isMapOfStringKeys(json)) {
@@ -290,13 +294,13 @@ class SpringBootPaging extends JSONPaging {
     }
 
     return Uri(
-            scheme: uri.scheme,
-            userInfo: uri.userInfo,
-            host: uri.host,
-            port: uri.port,
-            path: uri.path,
-            queryParameters: queryParameters)
-        .toString();
+      scheme: uri.scheme,
+      userInfo: uri.userInfo,
+      host: uri.host,
+      port: uri.port,
+      path: uri.path,
+      queryParameters: queryParameters,
+    ).toString();
   }
 }
 
@@ -307,9 +311,13 @@ bool _registerPagingFormats() {
   _registerPagingFormatsCalled = true;
 
   JSONPaging._registerPagingFormatImpl(
-      ColossusPaging.matcher, ColossusPaging.instantiator);
+    ColossusPaging.matcher,
+    ColossusPaging.instantiator,
+  );
   JSONPaging._registerPagingFormatImpl(
-      SpringBootPaging.matcher, SpringBootPaging.instantiator);
+    SpringBootPaging.matcher,
+    SpringBootPaging.instantiator,
+  );
 
   return true;
 }

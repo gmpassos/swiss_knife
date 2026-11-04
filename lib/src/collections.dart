@@ -15,7 +15,7 @@ class Pair<T> {
   Pair(this.a, this.b);
 
   Pair.fromList(List<T> list)
-      : this(list[0], list.length > 1 ? list[1] : list[0]);
+    : this(list[0], list.length > 1 ? list[1] : list[0]);
 
   Pair<T> swapAB() {
     return Pair(b, a);
@@ -110,8 +110,11 @@ class Dimension implements Comparable<Dimension> {
     return null;
   }
 
-  static final RegExp _regexpNonDigit =
-      RegExp(r'\D', multiLine: false, caseSensitive: true);
+  static final RegExp _regexpNonDigit = RegExp(
+    r'\D',
+    multiLine: false,
+    caseSensitive: true,
+  );
 
   /// Parsers [wh] String, trying to split with [delimiter] between 2 numbers
   /// in the string.
@@ -237,8 +240,12 @@ bool isEqualsAsString(Object? o1, Object? o2) {
 ///
 /// [sort] If [true] sorts [l1] and [l2] before check.
 /// [deep] If [true] checks deeply collections elements.
-bool isEquivalentList(List? l1, List? l2,
-    {bool sort = false, bool deep = false}) {
+bool isEquivalentList(
+  List? l1,
+  List? l2, {
+  bool sort = false,
+  bool deep = false,
+}) {
   if (l1 == l2) return true;
 
   if (l1 == null) return false;
@@ -534,15 +541,17 @@ void addAllToList(List list, Object? values) {
 }
 
 /// Joins all parameters to a single list.
-List joinLists(List? l1,
-    [List? l2,
-    List? l3,
-    List? l4,
-    List? l5,
-    List? l6,
-    List? l7,
-    List? l8,
-    List? l9]) {
+List joinLists(
+  List? l1, [
+  List? l2,
+  List? l3,
+  List? l4,
+  List? l5,
+  List? l6,
+  List? l7,
+  List? l8,
+  List? l9,
+]) {
   var l = [];
 
   if (l1 != null) l.addAll(l1);
@@ -652,26 +661,40 @@ List<Map>? asListOfMap(Object? o) {
 
   var s = o.toString();
   var map = parseFromInlineMap(
-      s, _inlinePropertiesDelimiterPairs, _inlinePropertiesDelimiterKeysValues);
+    s,
+    _inlinePropertiesDelimiterPairs,
+    _inlinePropertiesDelimiterKeysValues,
+  );
   return [map!];
 }
 
 typedef CompareMapEntryFunction<K, V> = int Function(
-    MapEntry<K, V> entry1, MapEntry<K, V> entry2);
+  MapEntry<K, V> entry1,
+  MapEntry<K, V> entry2,
+);
 
 /// Returns a Map sorted by keys.
 Map<K, V?> sortMapEntriesByKey<K, V>(Map<K, V?> map, [bool reversed = false]) =>
     sortMapEntries(
-        map, (a, b) => parseComparable(a.key)!.compareTo(b.key), reversed);
+      map,
+      (a, b) => parseComparable(a.key)!.compareTo(b.key),
+      reversed,
+    );
 
 /// Returns a Map sorted by keys.
 Map<K, V> sortMapEntriesByValue<K, V>(Map<K, V> map, [bool reversed = false]) =>
     sortMapEntries(
-        map, (a, b) => parseComparable(a.value)!.compareTo(b.value), reversed);
+      map,
+      (a, b) => parseComparable(a.value)!.compareTo(b.value),
+      reversed,
+    );
 
 /// Returns a Map with sorted entries.
-Map<K, V> sortMapEntries<K, V>(Map<K, V> map,
-    [CompareMapEntryFunction<K, V>? compare, bool reversed = false]) {
+Map<K, V> sortMapEntries<K, V>(
+  Map<K, V> map, [
+  CompareMapEntryFunction<K, V>? compare,
+  bool reversed = false,
+]) {
   compare ??= (a, b) => parseComparable(a.key)!.compareTo(b.key);
 
   if (reversed) {
@@ -679,8 +702,9 @@ Map<K, V> sortMapEntries<K, V>(Map<K, V> map,
     compare = (a, b) => compareOriginal(b, a);
   }
 
-  var mapSorted =
-      LinkedHashMap<K, V>.fromEntries(map.entries.toList()..sort(compare));
+  var mapSorted = LinkedHashMap<K, V>.fromEntries(
+    map.entries.toList()..sort(compare),
+  );
 
   return mapSorted;
 }
@@ -717,9 +741,14 @@ dynamic asTreeOfKeyString(Object? tree) {
   if (tree == null) return null;
 
   if (tree is Map) {
-    return Map<String, dynamic>.fromEntries(tree.entries.map((e) {
-      return MapEntry<String, dynamic>('${e.key}', asTreeOfKeyString(e.value));
-    }));
+    return Map<String, dynamic>.fromEntries(
+      tree.entries.map((e) {
+        return MapEntry<String, dynamic>(
+          '${e.key}',
+          asTreeOfKeyString(e.value),
+        );
+      }),
+    );
   } else if (tree is List) {
     return tree.map(asTreeOfKeyString).toList();
   } else {
@@ -731,24 +760,44 @@ final RegExp _toListOfStringsDelimiter = RegExp(r'\s+');
 
 /// Converts [s] to a [List<String>].
 /// Converts any collection to a flat list of strings.
-List<String> toFlatListOfStrings(Object? s,
-    {Pattern? delimiter, bool trim = true, bool ignoreEmpty = true}) {
+List<String> toFlatListOfStrings(
+  Object? s, {
+  Pattern? delimiter,
+  bool trim = true,
+  bool ignoreEmpty = true,
+}) {
   if (s == null) {
     return <String>[];
   } else if (s is String) {
     return _toFlatListOfStringsFromString(
-        s, delimiter ?? _toListOfStringsDelimiter, trim, ignoreEmpty);
+      s,
+      delimiter ?? _toListOfStringsDelimiter,
+      trim,
+      ignoreEmpty,
+    );
   } else if (s is Iterable) {
     return _toFlatListOfStringsFromIterable(
-        s, delimiter ?? _toListOfStringsDelimiter, trim, ignoreEmpty);
+      s,
+      delimiter ?? _toListOfStringsDelimiter,
+      trim,
+      ignoreEmpty,
+    );
   } else {
     return _toFlatListOfStringsFromString(
-        '$s', delimiter ?? _toListOfStringsDelimiter, trim, ignoreEmpty);
+      '$s',
+      delimiter ?? _toListOfStringsDelimiter,
+      trim,
+      ignoreEmpty,
+    );
   }
 }
 
 List<String> _toFlatListOfStringsFromString(
-    String s, Pattern delimiter, bool trim, bool ignoreEmpty) {
+  String s,
+  Pattern delimiter,
+  bool trim,
+  bool ignoreEmpty,
+) {
   var list = s.split(delimiter);
 
   if (trim) {
@@ -763,7 +812,11 @@ List<String> _toFlatListOfStringsFromString(
 }
 
 List<String> _toFlatListOfStringsFromIterable(
-    Iterable s, Pattern delimiter, bool trim, bool ignoreEmpty) {
+  Iterable s,
+  Pattern delimiter,
+  bool trim,
+  bool ignoreEmpty,
+) {
   var list = <String>[];
 
   for (var e in s) {
@@ -773,12 +826,20 @@ List<String> _toFlatListOfStringsFromIterable(
       var l2 = _toFlatListOfStringsFromString(e, delimiter, trim, ignoreEmpty);
       list.addAll(l2);
     } else if (e is Iterable) {
-      var l2 =
-          _toFlatListOfStringsFromIterable(e, delimiter, trim, ignoreEmpty);
+      var l2 = _toFlatListOfStringsFromIterable(
+        e,
+        delimiter,
+        trim,
+        ignoreEmpty,
+      );
       list.addAll(l2);
     } else {
-      var l2 =
-          _toFlatListOfStringsFromString('$e', delimiter, trim, ignoreEmpty);
+      var l2 = _toFlatListOfStringsFromString(
+        '$e',
+        delimiter,
+        trim,
+        ignoreEmpty,
+      );
       list.addAll(l2);
     }
   }
@@ -928,8 +989,11 @@ bool isListValuesAllEquals(Object? list, [Object? eqValue]) {
 
 /// Returns [true] if [list] elements are all equals to value
 /// at index [valueIndex].
-bool isListOfListValuesAllEquals(Iterable<List>? list,
-    {Object? eqValue, int? eqValueIndex}) {
+bool isListOfListValuesAllEquals(
+  Iterable<List>? list, {
+  Object? eqValue,
+  int? eqValueIndex,
+}) {
   if (list == null) return false;
 
   if (list.isEmpty) return false;
@@ -950,8 +1014,11 @@ typedef ParserFunction<T, R> = R Function(T value);
 /// Parses [s] to a [List<R>], where [R] is the result of [parse].
 ///
 /// [def] The default value if [s] is invalid.
-List<R>? parseListOf<T, R>(Object? s, ParserFunction<T, R> parser,
-    [List<R>? def]) {
+List<R>? parseListOf<T, R>(
+  Object? s,
+  ParserFunction<T, R> parser, [
+  List<R>? def,
+]) {
   if (s == null) return def;
   if (s is List) return s.map((e) => parser(e)).toList();
   return [parser(s as T)];
@@ -960,8 +1027,11 @@ List<R>? parseListOf<T, R>(Object? s, ParserFunction<T, R> parser,
 /// Parses [s] to a [List<List<R>>], where [R] is the result of [parse].
 ///
 /// [def] The default value if [s] is invalid.
-List<List<R>>? parseListOfList<T, R>(Object? s, ParserFunction<T, R> parser,
-    [List<List<R>>? def]) {
+List<List<R>>? parseListOfList<T, R>(
+  Object? s,
+  ParserFunction<T, R> parser, [
+  List<List<R>>? def,
+]) {
   if (s == null) return def;
   if (s is List) {
     return s
@@ -1008,7 +1078,9 @@ bool isMapOfStringKeysAndListValues(Map? map) {
   if (map.isEmpty) return false;
 
   if (listNotMatchesAll<MapEntry>(
-      map.entries, (e) => (e.key is String) && (e.value is List))) {
+    map.entries,
+    (e) => (e.key is String) && (e.value is List),
+  )) {
     return false;
   }
 
@@ -1022,7 +1094,9 @@ bool isMapOfStringKeysAndNumValues(Map? map) {
   if (map.isEmpty) return false;
 
   if (listNotMatchesAll<MapEntry>(
-      map.entries, (e) => (e.key is String) && (e.value is num))) {
+    map.entries,
+    (e) => (e.key is String) && (e.value is num),
+  )) {
     return false;
   }
 
@@ -1093,8 +1167,11 @@ Set<T> toNonNullSet<T>(Set? set, {bool forceTypeCast = true}) {
 /// Finds in [map] a entry that has one of [keys].
 ///
 /// [ignoreCase] If [true] ignores the case of the keys.
-MapEntry<K, V?>? findKeyEntry<K, V>(Map? map, List<K>? keys,
-    [bool ignoreCase = false]) {
+MapEntry<K, V?>? findKeyEntry<K, V>(
+  Map? map,
+  List<K>? keys, [
+  bool ignoreCase = false,
+]) {
   if (map == null || keys == null || map.isEmpty || keys.isEmpty) return null;
 
   if (ignoreCase) {
@@ -1137,8 +1214,12 @@ V? findKeyValue<K, V>(Map? map, List<K>? keys, [bool ignoreCase = false]) {
 ///
 /// [keyDelimiter] The key path delimiter.
 /// [isValidValue] validates a matching value.
-V? findKeyPathValue<V>(Map? map, String? keyPath,
-    {String keyDelimiter = '/', bool Function(Object? value)? isValidValue}) {
+V? findKeyPathValue<V>(
+  Map? map,
+  String? keyPath, {
+  String keyDelimiter = '/',
+  bool Function(Object? value)? isValidValue,
+}) {
   if (map == null || map.isEmpty || keyPath == null || keyPath.isEmpty) {
     return null;
   }
@@ -1250,8 +1331,11 @@ bool removeEmptyEntries(List? list) {
 typedef ValueValidator<V> = bool Function(V? value);
 
 /// Validates [value] and returns [value] or [def].
-T? resolveValue<T>(T? value,
-    [T? def, ValueValidator valueValidator = isNotEmptyObject]) {
+T? resolveValue<T>(
+  T? value, [
+  T? def,
+  ValueValidator valueValidator = isNotEmptyObject,
+]) {
   if (value == null) return def;
   var valid = valueValidator(value);
   return valid ? value : def;
@@ -1266,10 +1350,13 @@ typedef StringMapper<T> = T Function(String s);
 /// [mapperKey] Maps keys to another type.
 /// [mapperValue] Maps values to another type.
 Map<K, V>? parseFromInlineMap<K, V>(
-    String? s, Pattern delimiterPairs, Pattern delimiterKeyValue,
-    [StringMapper<K>? mapperKey,
-    StringMapper<V>? mapperValue,
-    Map<K, V>? def]) {
+  String? s,
+  Pattern delimiterPairs,
+  Pattern delimiterKeyValue, [
+  StringMapper<K>? mapperKey,
+  StringMapper<V>? mapperValue,
+  Map<K, V>? def,
+]) {
   if (s == null) return def;
   s = s.trim();
   if (s.isEmpty) return def;
@@ -1295,8 +1382,12 @@ Map<K, V>? parseFromInlineMap<K, V>(
 ///
 /// [delimiter] Elements delimiter.
 /// [mapper] Maps elements to another type.
-List<T>? parseFromInlineList<T>(String? s, Pattern delimiter,
-    [StringMapper<T>? mapper, List<T>? def]) {
+List<T>? parseFromInlineList<T>(
+  String? s,
+  Pattern delimiter, [
+  StringMapper<T>? mapper,
+  List<T>? def,
+]) {
   if (s == null) return def;
   s = s.trim();
   if (s.isEmpty) return def;
@@ -1318,12 +1409,20 @@ final RegExp _inlinePropertiesDelimiterPairs = RegExp(r'\s*;\s*');
 final RegExp _inlinePropertiesDelimiterKeysValues = RegExp(r'\s*[:=]\s*');
 
 /// Parses an inline properties, like inline CSS, to a [Map<String,String>].
-Map<String, String>? parseFromInlineProperties(String s,
-    [StringMapper<String>? mapperKey,
-    StringMapper<String>? mapperValue,
-    Map<String, String>? def]) {
-  return parseFromInlineMap(s, _inlinePropertiesDelimiterPairs,
-      _inlinePropertiesDelimiterKeysValues, mapperKey, mapperValue, def);
+Map<String, String>? parseFromInlineProperties(
+  String s, [
+  StringMapper<String>? mapperKey,
+  StringMapper<String>? mapperValue,
+  Map<String, String>? def,
+]) {
+  return parseFromInlineMap(
+    s,
+    _inlinePropertiesDelimiterPairs,
+    _inlinePropertiesDelimiterKeysValues,
+    mapperKey,
+    mapperValue,
+    def,
+  );
 }
 
 /// Parses [v] as [String].
@@ -1347,14 +1446,23 @@ String? parseString(Object? v, [String? def]) {
 /// [delimiterKeyValue] Delimiter for keys and values.
 /// [def] Default map if [s] is invalid.
 Map<String, String>? parseStringFromInlineMap(
-    Object? s, Pattern delimiterPairs, Pattern delimiterKeyValue,
-    [Map<String, String>? def]) {
+  Object? s,
+  Pattern delimiterPairs,
+  Pattern delimiterKeyValue, [
+  Map<String, String>? def,
+]) {
   if (s == null) return def;
   if (s is Map) {
     return s.map((k, v) => MapEntry(parseString(k, '')!, parseString(v, '')!));
   }
-  return parseFromInlineMap(s.toString(), delimiterPairs, delimiterKeyValue,
-      (e) => parseString(e)!, (e) => parseString(e)!, def);
+  return parseFromInlineMap(
+    s.toString(),
+    delimiterPairs,
+    delimiterKeyValue,
+    (e) => parseString(e)!,
+    (e) => parseString(e)!,
+    def,
+  );
 }
 
 /// Parses [s] as inline [List<String>].
@@ -1362,13 +1470,20 @@ Map<String, String>? parseStringFromInlineMap(
 /// [delimiter] The delimiter of elements.
 ///
 /// [def] The default value if [s] is invalid.
-List<String>? parseStringFromInlineList(Object? s,
-    [Pattern? delimiter, List<String>? def]) {
+List<String>? parseStringFromInlineList(
+  Object? s, [
+  Pattern? delimiter,
+  List<String>? def,
+]) {
   if (s == null) return def;
   if (s is List) return s.map((e) => parseString(e, '')!).toList();
   delimiter ??= RegExp(r'\s*,\s*');
   return parseFromInlineList(
-      s.toString(), delimiter, (e) => parseString(e, '')!, def);
+    s.toString(),
+    delimiter,
+    (e) => parseString(e, '')!,
+    def,
+  );
 }
 
 /// Parses [v] as to a [Comparable] type.
@@ -1382,8 +1497,11 @@ Comparable<T>? parseComparable<T>(Object? v) {
 }
 
 /// Parses [e] as a [MapEntry<String, String>]
-MapEntry<String, String>? parseMapEntryOfStrings<K, V>(Object? e,
-    [Pattern? delimiter, MapEntry<String, String>? def]) {
+MapEntry<String, String>? parseMapEntryOfStrings<K, V>(
+  Object? e, [
+  Pattern? delimiter,
+  MapEntry<String, String>? def,
+]) {
   if (e == null) return def;
 
   if (e is Map) {
@@ -1391,7 +1509,9 @@ MapEntry<String, String>? parseMapEntryOfStrings<K, V>(Object? e,
       var elem = e.entries.first;
       if (elem.key == null) return def;
       return MapEntry<String, String>(
-          parseString(elem.key, '')!, parseString(elem.value, '')!);
+        parseString(elem.key, '')!,
+        parseString(elem.value, '')!,
+      );
     } else {
       return def;
     }
@@ -1499,19 +1619,32 @@ List<T>? deepCopyList<T>(List<T>? l, {Copier? copier}) {
 Map<K, V>? deepCopyMap<K, V>(Map<K, V>? map, {Copier? copier}) {
   if (map == null) return null;
   if (map.isEmpty) return <K, V>{};
-  return map.map((K k, V v) => MapEntry<K, V>(
-      deepCopy(k, copier: copier) as K, deepCopy(v, copier: copier) as V));
+  return map.map(
+    (K k, V v) => MapEntry<K, V>(
+      deepCopy(k, copier: copier) as K,
+      deepCopy(v, copier: copier) as V,
+    ),
+  );
 }
 
 typedef ValueFilter = bool Function(
-    Object? collection, Object? key, Object? value);
+  Object? collection,
+  Object? key,
+  Object? value,
+);
 
 typedef ValueReplacer = Object? Function(
-    Object? collection, Object? key, Object? value);
+  Object? collection,
+  Object? key,
+  Object? value,
+);
 
 /// Replaces values applying [replacer] to values that matches [filter].
 Object? deepReplaceValues<T>(
-    Object? o, ValueFilter filter, ValueReplacer replacer) {
+  Object? o,
+  ValueFilter filter,
+  ValueReplacer replacer,
+) {
   if (o == null) return null;
 
   if (filter(null, null, o)) {
@@ -1532,7 +1665,10 @@ Object? deepReplaceValues<T>(
 
 /// Replaces values applying [replacer] to values that matches [filter].
 void deepReplaceListValues<T>(
-    List? list, ValueFilter filter, ValueReplacer replacer) {
+  List? list,
+  ValueFilter filter,
+  ValueReplacer replacer,
+) {
   if (list == null || list.isEmpty) return;
 
   for (var i = 0; i < list.length; ++i) {
@@ -1547,7 +1683,10 @@ void deepReplaceListValues<T>(
 
 /// Replaces values applying [replacer] to values that matches [filter].
 void deepReplaceMapValues<T>(
-    Map? map, ValueFilter filter, ValueReplacer replacer) {
+  Map? map,
+  ValueFilter filter,
+  ValueReplacer replacer,
+) {
   if (map == null || map.isEmpty) return;
 
   for (var entry in map.entries) {
@@ -1563,7 +1702,10 @@ void deepReplaceMapValues<T>(
 
 /// Replaces values applying [replacer] to values that matches [filter].
 void deepReplaceSetValues<T>(
-    Set? set, ValueFilter filter, ValueReplacer replacer) {
+  Set? set,
+  ValueFilter filter,
+  ValueReplacer replacer,
+) {
   if (set == null || set.isEmpty) return;
 
   var entries = set.toList();
@@ -1782,7 +1924,8 @@ class MapProperties extends MapDelegate<String, dynamic> {
 
   /// Parse [stringProperties] to properties values.
   static Map<String, dynamic> parseStringProperties(
-      Map<String, String>? stringProperties) {
+    Map<String, String>? stringProperties,
+  ) {
     if (stringProperties == null || stringProperties.isEmpty) {
       return <String, dynamic>{};
     }
@@ -1792,14 +1935,17 @@ class MapProperties extends MapDelegate<String, dynamic> {
   MapProperties() : super({});
 
   MapProperties.fromProperties(Map<String, dynamic> properties)
-      : super(Map<String, dynamic>.from(properties));
+    : super(Map<String, dynamic>.from(properties));
 
   MapProperties.fromStringProperties(Map<String, String> stringProperties)
-      : super(parseStringProperties(stringProperties));
+    : super(parseStringProperties(stringProperties));
 
   MapProperties.fromMap(Map properties)
-      : super(properties
-            .map((k, v) => MapEntry(parseString(k, '')!, parseString(v, '')!)));
+    : super(
+        properties.map(
+          (k, v) => MapEntry(parseString(k, '')!, parseString(v, '')!),
+        ),
+      );
 
   /// Gets a property with [key].
   ///
@@ -1990,15 +2136,19 @@ class MapProperties extends MapDelegate<String, dynamic> {
   /// Gets a property with [key] as [List<DateTime>].
   ///
   /// [def] The default value if [key] not found.
-  List<DateTime>? getPropertyAsDateTimeList(String key,
-          [List<DateTime>? def]) =>
+  List<DateTime>? getPropertyAsDateTimeList(
+    String key, [
+    List<DateTime>? def,
+  ]) =>
       getPropertyAs(key, (v) => parseDateTimeFromInlineList(v, ',', def), def);
 
   /// Finds a property with [keys] as [List<String>].
   ///
   /// [def] The default value if [keys] not found.
-  List<String>? findPropertyAsStringList(List<String> keys,
-          [List<String>? def]) =>
+  List<String>? findPropertyAsStringList(
+    List<String> keys, [
+    List<String>? def,
+  ]) =>
       findPropertyAs(keys, (v) => parseStringFromInlineList(v, ',', def), def);
 
   /// Finds a property with [keys] as [List<int>].
@@ -2010,8 +2160,10 @@ class MapProperties extends MapDelegate<String, dynamic> {
   /// Finds a property with [keys] as [List<int>].
   ///
   /// [def] The default value if [keys] not found.
-  List<double>? findPropertyAsDoubleList(List<String> keys,
-          [List<double>? def]) =>
+  List<double>? findPropertyAsDoubleList(
+    List<String> keys, [
+    List<double>? def,
+  ]) =>
       findPropertyAs(keys, (v) => parseDoublesFromInlineList(v, ',', def), def);
 
   /// Finds a property with [keys] as [List<num>].
@@ -2029,26 +2181,38 @@ class MapProperties extends MapDelegate<String, dynamic> {
   /// Finds a property with [keys] as [List<DateTime>].
   ///
   /// [def] The default value if [keys] not found.
-  List<DateTime>? findPropertyAsDateTimeList(List<String> keys,
-          [List<DateTime>? def]) =>
-      findPropertyAs(
-          keys, (v) => parseDateTimeFromInlineList(v, ',', def), def);
+  List<DateTime>? findPropertyAsDateTimeList(
+    List<String> keys, [
+    List<DateTime>? def,
+  ]) => findPropertyAs(
+    keys,
+    (v) => parseDateTimeFromInlineList(v, ',', def),
+    def,
+  );
 
   /// Gets a property with [key] as [List<Map>].
   ///
   /// [def] The default value if [key] not found.
-  Map<String, String>? getPropertyAsStringMap(String key,
-          [Map<String, String>? def]) =>
-      getPropertyAs(
-          key, (v) => parseStringFromInlineMap(v, ';', ':', def), def);
+  Map<String, String>? getPropertyAsStringMap(
+    String key, [
+    Map<String, String>? def,
+  ]) => getPropertyAs(
+    key,
+    (v) => parseStringFromInlineMap(v, ';', ':', def),
+    def,
+  );
 
   /// Finds a property with [keys] as [List<Map>].
   ///
   /// [def] The default value if [keys] not found.
-  Map<String, String>? findPropertyAsStringMap(List<String> keys,
-          [Map<String, String>? def]) =>
-      findPropertyAs(
-          keys, (v) => parseStringFromInlineMap(v, ';', ':', def), def);
+  Map<String, String>? findPropertyAsStringMap(
+    List<String> keys, [
+    Map<String, String>? def,
+  ]) => findPropertyAs(
+    keys,
+    (v) => parseStringFromInlineMap(v, ';', ':', def),
+    def,
+  );
 
   /// Returns this as a [Map<String,dynamic>].
   Map<String, dynamic> toProperties() {
@@ -2131,9 +2295,10 @@ class MapProperties extends MapDelegate<String, dynamic> {
 /// Groups [interable] entries using [map] to generate a [MapEntry] for
 /// each entry, than uses [merge] to group entries of the same group (key).
 Map<K, V> groupIterableBy<K, V, I>(
-    Iterable<I> iterable,
-    MapEntry<K, V> Function(I entry) map,
-    V Function(K key, V value1, V value2) merge) {
+  Iterable<I> iterable,
+  MapEntry<K, V> Function(I entry) map,
+  V Function(K key, V value1, V value2) merge,
+) {
   if (iterable.isEmpty) return <K, V>{};
 
   var groups = <K, V>{};
@@ -2160,8 +2325,10 @@ Map<K, V> groupIterableBy<K, V, I>(
 ///
 /// [init] The initial value of total.
 R? mergeIterable<I, R>(
-    Iterable<I> iterable, R Function(R? total, I value) merge,
-    [R? init]) {
+  Iterable<I> iterable,
+  R Function(R? total, I value) merge, [
+  R? init,
+]) {
   if (iterable.isEmpty) return init;
 
   var total = init;
@@ -2181,7 +2348,10 @@ num sumIterable<I, R>(Iterable<num> iterable, {num init = 0}) =>
 num? maxInIterable<I, R>(Iterable<num> iterable) => iterable.isEmpty
     ? null
     : mergeIterable(
-        iterable, (num? total, num value) => value > total! ? value : total, 0);
+        iterable,
+        (num? total, num value) => value > total! ? value : total,
+        0,
+      );
 
 /// Uses [mergeIterable] to find minimum value in [iterable].
 num? minInIterable<I, R>(Iterable<num> iterable) => iterable.isEmpty
@@ -2189,7 +2359,8 @@ num? minInIterable<I, R>(Iterable<num> iterable) => iterable.isEmpty
     : mergeIterable(
         iterable,
         (num? total, num value) => value < total! ? value : total,
-        iterable.first);
+        iterable.first,
+      );
 
 /// Calculate the average value of [iterable].
 num? averageIterable<I, R>(Iterable<num> iterable) =>
@@ -2211,9 +2382,12 @@ class NNField<T> {
 
   T _value;
 
-  NNField(this.defaultValue,
-      {this.deepHashcode = false, this.filter, this.resolver})
-      : _value = defaultValue;
+  NNField(
+    this.defaultValue, {
+    this.deepHashcode = false,
+    this.filter,
+    this.resolver,
+  }) : _value = defaultValue;
 
   /// The filed value as [T].
   T get value => get();
@@ -2372,12 +2546,16 @@ class ObjectCache {
 
   /// Sets the [cacheValidator] for [key]
   void setCacheValidator<O>(
-          String key, bool Function(Object o) cacheValidator) =>
-      _cacheValidators[key] = cacheValidator;
+    String key,
+    bool Function(Object o) cacheValidator,
+  ) => _cacheValidators[key] = cacheValidator;
 
   /// Defines instantiator and cache-validator for [key].
-  void define<O>(String key, O Function() instantiator,
-      [bool Function(Object o)? cacheValidator]) {
+  void define<O>(
+    String key,
+    O Function() instantiator, [
+    bool Function(Object o)? cacheValidator,
+  ]) {
     _cacheInstantiators[key] = instantiator;
     if (cacheValidator != null) {
       _cacheValidators[key] = cacheValidator;
@@ -2420,8 +2598,11 @@ class ObjectCache {
   /// Uses [instantiator] (or pre-defined) to instantiate.
   ///
   /// Uses [cacheValidator] (or pre-defined) to validade already cached instance.
-  O? get<O>(String key,
-      [O Function()? instantiator, bool Function(Object o)? cacheValidator]) {
+  O? get<O>(
+    String key, [
+    O Function()? instantiator,
+    bool Function(Object o)? cacheValidator,
+  ]) {
     var o = _cacheInstances[key];
 
     if (o != null) {
@@ -2544,17 +2725,18 @@ class TreeReferenceMap<K extends Object, V extends Object>
   /// the purge operation.
   void Function(Map<K, V> purgedEntries)? onPurgedEntries;
 
-  TreeReferenceMap(this.root,
-      {this.autoPurge = false,
-      this.autoPurgeThreshold = defaultAutoPurgeThreshold,
-      bool keepPurgedKeys = false,
-      this.purgedEntriesTimeout,
-      this.maxPurgedEntries,
-      this.parentGetter,
-      this.childrenGetter,
-      this.childChecker,
-      this.onPurgedEntries})
-      : keepPurgedEntries = keepPurgedKeys;
+  TreeReferenceMap(
+    this.root, {
+    this.autoPurge = false,
+    this.autoPurgeThreshold = defaultAutoPurgeThreshold,
+    bool keepPurgedKeys = false,
+    this.purgedEntriesTimeout,
+    this.maxPurgedEntries,
+    this.parentGetter,
+    this.childrenGetter,
+    this.childChecker,
+    this.onPurgedEntries,
+  }) : keepPurgedEntries = keepPurgedKeys;
 
   final Map<K, V> _map = {};
 
@@ -2605,22 +2787,33 @@ class TreeReferenceMap<K extends Object, V extends Object>
   /// - [traverseSubValues]: If `true`, explores children after finding a value. Defaults to `false`.
   ///
   /// Returns: A [List<V>] of non-null values from child nodes.
-  List<V> getSubValues(K? key,
-      {bool includePurgedEntries = false, bool traverseSubValues = false}) {
+  List<V> getSubValues(
+    K? key, {
+    bool includePurgedEntries = false,
+    bool traverseSubValues = false,
+  }) {
     var subValues = <V>[];
     if (key == null) return subValues;
 
     if (includePurgedEntries) {
       _getSubValuesImpl(
-          key, subValues, traverseSubValues, getAlsoFromPurgedEntries);
+        key,
+        subValues,
+        traverseSubValues,
+        getAlsoFromPurgedEntries,
+      );
     } else {
       _getSubValuesImpl(key, subValues, traverseSubValues, get);
     }
     return subValues;
   }
 
-  void _getSubValuesImpl(K key, List<V> subValues, bool traverseSubValues,
-      V? Function(K key) get) {
+  void _getSubValuesImpl(
+    K key,
+    List<V> subValues,
+    bool traverseSubValues,
+    V? Function(K key) get,
+  ) {
     final stack = Queue<K>()..add(key);
 
     // Skip root key, push its children to stack in reverse order:
@@ -2665,8 +2858,8 @@ class TreeReferenceMap<K extends Object, V extends Object>
     var parent = getParentKey(child);
     return parent != null
         ? (includePurgedEntries
-            ? getAlsoFromPurgedEntries(parent)
-            : get(parent))
+              ? getAlsoFromPurgedEntries(parent)
+              : get(parent))
         : null;
   }
 

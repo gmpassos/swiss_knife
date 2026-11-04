@@ -50,9 +50,7 @@ class FlatHashMap<K extends Object, V extends Object> extends MapBase<K, V> {
   /// Creates an empty map with an initial bucket count of 8.
   Uint32List _groupsSizes;
 
-  FlatHashMap()
-      : _groups = Uint32List(8),
-        _groupsSizes = Uint32List(8) {
+  FlatHashMap() : _groups = Uint32List(8), _groupsSizes = Uint32List(8) {
     _skipFirstChainPos();
   }
 
@@ -139,25 +137,25 @@ class FlatHashMap<K extends Object, V extends Object> extends MapBase<K, V> {
   int memory({int objectReferenceBytes = 8}) {
     final capacityBytes = capacityBits ~/ 8;
     return
-        // key/value references
+    // key/value references
+    objectReferenceBytes +
+        (_chainKey.length * objectReferenceBytes) +
         objectReferenceBytes +
-            (_chainKey.length * objectReferenceBytes) +
-            objectReferenceBytes +
-            (_chainVal.length * objectReferenceBytes) +
-            // stored hash codes (Uint32)
-            objectReferenceBytes +
-            (_chainHash.length * 4) +
-            // chain pointers (adaptive width)
-            objectReferenceBytes +
-            (_chainNext.length * capacityBytes) +
-            // bucket heads and bucket sizes (Uint32)
-            objectReferenceBytes +
-            (_groups.length * 4) +
-            objectReferenceBytes +
-            (_groupsSizes.length * 4) +
-            // scalar fields (ints):
-            // _size, _chainLength, _chainRemoved
-            (3 * 8);
+        (_chainVal.length * objectReferenceBytes) +
+        // stored hash codes (Uint32)
+        objectReferenceBytes +
+        (_chainHash.length * 4) +
+        // chain pointers (adaptive width)
+        objectReferenceBytes +
+        (_chainNext.length * capacityBytes) +
+        // bucket heads and bucket sizes (Uint32)
+        objectReferenceBytes +
+        (_groups.length * 4) +
+        objectReferenceBytes +
+        (_groupsSizes.length * 4) +
+        // scalar fields (ints):
+        // _size, _chainLength, _chainRemoved
+        (3 * 8);
   }
 
   @override

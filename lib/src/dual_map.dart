@@ -84,10 +84,10 @@ class DualMap<K extends Object, V extends Object> extends MapBase<K, V> {
 
   @override
   V putIfAbsent(K key, V Function() ifAbsent) => _map.putIfAbsent(key, () {
-        var value = ifAbsent();
-        _map2[value] = key;
-        return value;
-      });
+    var value = ifAbsent();
+    _map2[value] = key;
+    return value;
+  });
 
   /// Inserts [value] only if [key] is not already present.
   ///
