@@ -587,7 +587,7 @@ void main() {
       var calls = 0;
       var ic = InteractionCompleter(
         'limit',
-        triggerDelay: Duration(milliseconds: 60),
+        triggerDelay: Duration(milliseconds: 200),
         triggerDelayLimit: Duration(milliseconds: 1),
         functionToTrigger: () => calls++,
       );
@@ -599,7 +599,7 @@ void main() {
       expect(ic.isTriggerScheduled, isTrue);
 
       // A new interaction postpones the trigger, but the limit was exceeded:
-      await Future.delayed(Duration(milliseconds: 30));
+      await Future.delayed(Duration(milliseconds: 50));
       ic.interact();
       var secondInteraction = DateTime.now();
 
@@ -608,10 +608,10 @@ void main() {
       expect(ic.isTriggerScheduled, isFalse);
       expect(ic.hasInteractionNotTriggered, isFalse);
 
-      // Triggered at the first schedule (~30ms after the 2nd interaction),
-      // not after a full `triggerDelay` (60ms) since the 2nd interaction:
+      // Triggered at the first schedule (~150ms after the 2nd interaction),
+      // not after a full `triggerDelay` (200ms) since the 2nd interaction:
       var elapsed = DateTime.now().difference(secondInteraction);
-      expect(elapsed.inMilliseconds, lessThan(60));
+      expect(elapsed.inMilliseconds, lessThan(200));
     });
 
     test('without a limit a new interaction postpones the trigger', () async {
