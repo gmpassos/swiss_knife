@@ -738,6 +738,24 @@ void main() {
       expect(geo.longitude, equals(-20.25));
 
       expect(Geolocation.fromCoords('-10.5N 20.25W', true), isNull);
+
+      // Separated by `, ` or `;` (and `,` as decimal separator):
+      expect(
+        Geolocation.fromCoords('10.5N, 20.3E')!.asPoint(),
+        equals(const Point(10.5, 20.3)),
+      );
+      expect(
+        Geolocation.fromCoords('-23.5, -46.6')!.asPoint(),
+        equals(const Point(-23.5, -46.6)),
+      );
+      expect(
+        Geolocation.fromCoords('-23,5;-46,6')!.asPoint(),
+        equals(const Point(-23.5, -46.6)),
+      );
+      expect(
+        Geolocation.fromCoords('10,5N 20,3W')!.asPoint(),
+        equals(const Point(10.5, -20.3)),
+      );
       var geo2 = Geolocation.fromCoords('10.5S 20.25E', true)!;
       expect(geo2.asPoint(), equals(const Point(-10.5, 20.25)));
     });

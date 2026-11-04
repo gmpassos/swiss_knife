@@ -118,11 +118,12 @@ void main() {
       // same identifier were both registered and no singleton subscription
       // was recorded.
       var w1 = es.listenOneShot(a.add, singletonIdentifier: 'ONE')!;
-      var w2 = es.listenOneShot(b.add, singletonIdentifier: 'ONE')!;
+      // Not registered while the singleton is listening:
+      var w2 = es.listenOneShot(b.add, singletonIdentifier: 'ONE');
+      expect(w2, isNull);
 
       expect(w1.singletonIdentifier, equals('ONE'));
       expect(w1.singletonIdentifyByInstance, isTrue);
-      expect(identical(w1.subscription, w2.subscription), isTrue);
       expect(es.getSingletonSubscription('ONE'), same(w1.subscription));
 
       es.add(1);
@@ -149,7 +150,7 @@ void main() {
       var e = <int>[];
       var id1 = 'T${1}';
       var id2 = 'T${1}';
-      var w4 = es.listenOneShot(
+      es.listenOneShot(
         d.add,
         singletonIdentifier: id1,
         singletonIdentifyByInstance: false,
@@ -158,8 +159,8 @@ void main() {
         e.add,
         singletonIdentifier: id2,
         singletonIdentifyByInstance: false,
-      )!;
-      expect(identical(w4.subscription, w5.subscription), isTrue);
+      );
+      expect(w5, isNull);
       es.add(5);
       await _tick();
       expect(d, equals([5]));
@@ -178,6 +179,34 @@ void main() {
 
       var b = <int>[];
       es.listenOneShot(b.add, singletonIdentifier: 'X')!;
+      es.add(1);
+      await _tick();
+      expect(a, isEmpty);
+      expect(b, equals([1]));
+
+      await es.close();
+    });
+
+    test('ListenerWrapper singleton through a buffering delegator', () async {
+      EventStream<int>? target;
+      var d = EventStreamDelegator<int>.provider(() => target);
+
+      var a = <int>[];
+      var w1 = ListenerWrapper<int>(d, a.add, singletonIdentifier: 'id');
+      expect(w1.listen(), isTrue);
+
+      var es = EventStream<int>();
+      d.eventStream = es;
+      expect(es.getSingletonSubscription('id'), isNotNull);
+
+      // The wrapper holds the buffered subscription: cancelling it releases
+      // the singleton registered on flush.
+      w1.cancel();
+      expect(es.getSingletonSubscription('id'), isNull);
+
+      var b = <int>[];
+      var w2 = ListenerWrapper<int>(es, b.add, singletonIdentifier: 'id');
+      expect(w2.listen(), isTrue);
       es.add(1);
       await _tick();
       expect(a, isEmpty);

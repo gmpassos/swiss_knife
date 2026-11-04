@@ -309,7 +309,9 @@ class CachedComputation<R, T, K> {
 
   /// Generates the cache key of a value. The default one is a deep copy of
   /// the value (see [deepCopy]), so changing a value after the computation
-  /// doesn't change its cached key.
+  /// doesn't change its cached key. Limit: a map whose types [deepCopy] can't
+  /// reproduce isn't copied, so it must not be changed after the computation
+  /// (or use a custom key generator).
   final K? Function(T) keyGenerator;
 
   CachedComputation(this.function, [K Function(T)? keyGenerator])
@@ -317,8 +319,31 @@ class CachedComputation<R, T, K> {
 
   final Map<K?, R> _cache = LinkedHashMap<K?, R>(
     equals: isEqualsDeep,
-    hashCode: deepHashCode,
+    hashCode: _cacheKeyHashCode,
   );
+
+  /// A deep hash code consistent with [isEqualsDeep] that, unlike
+  /// [deepHashCode] (XOR), is order-sensitive for lists and doesn't cancel
+  /// out repeated values (`[x, x]`, `{k: k}`), to avoid bucket collisions.
+  static int _cacheKeyHashCode(Object? o) {
+    if (o is List) {
+      var h = 1;
+      for (var e in o) {
+        h = (h * 31 + _cacheKeyHashCode(e)) & 0x3fffffff;
+      }
+      return h;
+    } else if (o is Map) {
+      // Order-insensitive (map equality ignores the order):
+      var h = 0;
+      for (var e in o.entries) {
+        var eh = _cacheKeyHashCode(e.key) * 31 + _cacheKeyHashCode(e.value);
+        h = (h + (eh & 0x3fffffff)) & 0x3fffffff;
+      }
+      return h;
+    } else {
+      return o.hashCode;
+    }
+  }
 
   int get cacheSize => _cache.length;
 

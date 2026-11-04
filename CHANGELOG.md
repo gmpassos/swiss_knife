@@ -10,7 +10,8 @@ Fixes the 28 behaviours the 3.4.1 tests pinned as "possibly a bug". Changes of v
   - `parseLatitudeOrLongitudeValue` (and `fromCoords`): a plain number parses fully (`'123'` was `12`), `,` is a
     decimal separator (`'10,5N'` is `10.5`, it threw), `+` is a sign, and an invalid value returns `null`
     (`'=10.5N'` threw a `FormatException`; trailing garbage was ignored): the whole trimmed value must match
-    `geolocationFormat`, whose cardinal is now optional (it required a trailing word char).
+    `geolocationFormat`, whose cardinal is now optional (it required a trailing word char). `fromCoords` also
+    accepts `, ` and `;` between the values (`'10.5N, 20.3E'`, `'-23,5;-46,6'`).
 - `MimeType.parse`:
   - `mp3`, `audio/mp3` and `audio/mpeg` return `audio/mpeg` (= `MimeType.mp3`); they returned the non-standard
     `audio/mp3` **(output change)**. `byExtension('mp3')` too.
@@ -37,13 +38,13 @@ Fixes the 28 behaviours the 3.4.1 tests pinned as "possibly a bug". Changes of v
     (they were rebuilt as `Map<dynamic, dynamic>` and then cast). This also fixes `Parameter*.copy()` with typed
     maps. Limit: Dart can't create a map with another map's type arguments, so the copy reproduces keys of type
     `String`, `int`, `Object` or `dynamic` and values of the common JSON-like types; a map with other types is
-    copied with a wider type when that satisfies the requested type, otherwise the original instance is kept
-    (not copied) instead of throwing.
+    copied with a wider type when that satisfies the requested type, otherwise the original instance is returned
+    (shared, not copied) instead of throwing. Nested in a typed list, such a map is kept as is.
   - A typed-data list (`Uint8List`, ...) is copied with its class (it threw a `TypeError` for a `Uint8List` `T`).
   - `deepCopyList` accepts `null` elements (it threw).
 - `CachedComputation`:
-  - Keys are compared deeply, so `List`/`Map` inputs hit the cache (with the default key generator a `List` input
-    was never found and the cache grew on every call).
+  - Keys are compared deeply (with a collision-resistant deep hash), so `List`/`Map` inputs hit the cache (with
+    the default key generator a `List` input was never found and the cache grew on every call).
   - `null` results are cached (they were recomputed every time).
 - `Parameter`/`Parameters2`/`Parameters3`/`Parameters4`: `==` is symmetric and consistent with `hashCode`:
   parameters of different arities are never equal (`Parameter(1) == Parameters2(1, 2)` was `true`, the reverse
@@ -51,7 +52,11 @@ Fixes the 28 behaviours the 3.4.1 tests pinned as "possibly a bug". Changes of v
 - `isListOfListValuesAllEquals` without `eqValueIndex`: compares every value of every sub-list, as documented (it
   always returned `false`, and threw a `StateError` when all the sub-lists were empty).
 - `EventStream.listenOneShot`: honours `singletonIdentifier`/`singletonIdentifyByInstance` like `listen` (they were
-  ignored). The singleton is released after the one shot (or `ListenerWrapper.cancel`).
+  ignored) **(behaviour change)**: while a listener with the same identifier is registered, it returns `null` and
+  doesn't register a new one. The singleton is released after the one shot.
+- `ListenerWrapper.cancel`: also unregisters its singleton subscription (also through an `EventStreamDelegator`),
+  so a new listener with the same identifier can be registered (the identifier stayed bound to a cancelled
+  subscription).
 - `EventStreamDelegator.listen` while buffering: returns a single subscription, bound to the one registered on
   flush (events are delivered once; `pause`/`resume`/`cancel`/handlers act on it, including calls made before the
   flush). It was a lazy proxy that called `listen` again on first use (duplicated events; `cancel` didn't cancel

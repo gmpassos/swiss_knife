@@ -886,7 +886,9 @@ class Geolocation {
     coords = coords.trim();
     if (coords.isEmpty) return null;
 
-    var parts = coords.split(RegExp(r'\s+'));
+    // Separated by blanks, optionally after a `,` or `;` (`10.5N, 20.3E`).
+    // A `,` not followed by a blank is a decimal separator (`10,5N`).
+    var parts = coords.split(RegExp(r'\s*;\s*|,\s+|\s+'));
     if (parts.length < 2) return null;
 
     var lat = parseLatitudeOrLongitudeValue(parts[0], onlyWithCardinals);

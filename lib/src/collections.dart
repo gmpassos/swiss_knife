@@ -1613,9 +1613,11 @@ typedef Copier = T? Function<T>(T? o);
 ///   `double`, `bool`, `num`, nullable or not), a `List` or a `Map<String, *>`
 ///   of those, `Object` or `dynamic`. A map with other key/value types is
 ///   copied with a wider type (such as `Map<Object, Object>`) when that still
-///   satisfies [T], otherwise the original instance is kept (not copied).
-///   The same applies to such a map nested in a collection whose type
-///   doesn't accept the wider type.
+///   satisfies [T], otherwise the original instance is returned (shared, not
+///   copied, even with a [copier]). Nested in a collection, such a map is
+///   only replaced by its wider copy when the collection surely accepts it
+///   (a map, or a list of `dynamic`, `Object` or `Map<String, dynamic>`);
+///   otherwise the original instance is kept.
 /// - Other objects: [copier] is used, if provided, otherwise the same
 ///   instance is returned.
 ///
@@ -1643,10 +1645,11 @@ Object? _deepCopyImpl(Object? o, Copier? copier) {
     for (var i = 0; i < copy.length; ++i) {
       var e = copy[i];
       var c = _deepCopyImpl(e, copier);
-      if (_isStorableCopy(c, e)) {
+      // A map copy with a (possibly) wider type is only stored if the list
+      // surely accepts it (explicit check: implicit covariance checks can be
+      // omitted in optimized web builds); otherwise the original is kept.
+      if (_isExactCopy(c, e) || _listAccepts(copy, c)) {
         copy[i] = c;
-      } else {
-        _setListCopy(copy, i, c);
       }
     }
     return copy;
@@ -1664,62 +1667,66 @@ Object? _deepCopyImpl(Object? o, Copier? copier) {
 /// Deep copy of [o] into a [LinkedHashMap] with the key/value types of [o]
 /// (see [_mapCopyTypeOf]).
 Map _deepCopyMapTyped(Map o, Copier? copier) {
-  var copy = _mapCopyTypeOf(o).create();
+  var mapType = _mapCopyTypeOf(o);
+  var copy = mapType.create();
   for (var e in o.entries) {
     var k = e.key;
     var v = e.value;
     var kc = _deepCopyImpl(k, copier);
     var vc = _deepCopyImpl(v, copier);
-    if (_isStorableCopy(kc, k) && _isStorableCopy(vc, v)) {
-      copy[kc] = vc;
-    } else {
-      _setMapCopy(copy, kc, vc, k, v);
-    }
+    // The originals are always accepted (`o` is a `Map<K, V>` of `mapType`):
+    copy[_isExactCopy(kc, k) || mapType.acceptsKey(kc) ? kc : k] =
+        _isExactCopy(vc, v) || mapType.acceptsValue(vc) ? vc : v;
   }
   return copy;
 }
 
 /// Whether the [copy] of [original] can surely be stored where [original]
 /// was: anything but a map copy with a (possibly) wider type.
-bool _isStorableCopy(Object? copy, Object? original) =>
+bool _isExactCopy(Object? copy, Object? original) =>
     copy is! Map ||
     identical(copy, original) ||
     copy.runtimeType == original.runtimeType;
 
-/// Stores the map [copy] at [index] of [list] (that holds the original). If
-/// the [copy] (with a wider type) isn't accepted by [list], keeps the
-/// original.
-void _setListCopy(List list, int index, Object? copy) {
-  try {
-    list[index] = copy;
-  } on TypeError {
-    // Keeps the original (already at `index`).
+/// Whether [list] (a list created by `toList`) surely accepts [value]: only
+/// for lists of the element types in [_listElementTypes].
+bool _listAccepts(List list, Object? value) {
+  var runtimeType = list.runtimeType;
+  _ListElementType? t;
+  if (_listElementTypesByRuntimeType.containsKey(runtimeType)) {
+    t = _listElementTypesByRuntimeType[runtimeType];
+  } else {
+    t = _listElementTypes.where((t) => t.matches(list)).firstOrNull;
+    _listElementTypesByRuntimeType[runtimeType] = t;
   }
+  return t != null && t.accepts(value);
 }
 
-/// Stores [keyCopy] -> [valueCopy] in [map]. If a (map) copy with a wider
-/// type isn't accepted by [map], stores the original [key] or [value].
-void _setMapCopy(
-  Map map,
-  Object? keyCopy,
-  Object? valueCopy,
-  Object? key,
-  Object? value,
-) {
-  try {
-    map[keyCopy] = valueCopy;
-    return;
-  } on TypeError {
-    // Try with the originals below.
-  }
-  try {
-    map[keyCopy] = value;
-    return;
-  } on TypeError {
-    // Try with the original key below.
-  }
-  map[key] = value;
+/// An element type of a [List] (matched by exact `runtimeType`).
+class _ListElementType<E> {
+  _ListElementType();
+
+  late final Type _listRuntimeType = <E>[].runtimeType;
+
+  bool matches(List l) => l.runtimeType == _listRuntimeType;
+
+  bool accepts(Object? value) => value is E;
 }
+
+final List<_ListElementType> _listElementTypes = <_ListElementType>[
+  _ListElementType<dynamic>(),
+  _ListElementType<Object?>(),
+  _ListElementType<Object>(),
+  _ListElementType<Map<dynamic, dynamic>>(),
+  _ListElementType<Map<dynamic, dynamic>?>(),
+  _ListElementType<Map<String, dynamic>>(),
+  _ListElementType<Map<String, dynamic>?>(),
+  _ListElementType<Map<String, Object?>>(),
+  _ListElementType<Map<String, Object>>(),
+];
+
+final Map<Type, _ListElementType?> _listElementTypesByRuntimeType =
+    <Type, _ListElementType?>{};
 
 /// Returns the [_MapCopyType] for [o] (cached by `runtimeType`): the one
 /// that creates a map with the same `runtimeType` as [o], if any, otherwise
@@ -1743,6 +1750,10 @@ class _MapCopyType<K, V> {
   _MapCopyType();
 
   bool accepts(Map m) => m is Map<K, V>;
+
+  bool acceptsKey(Object? key) => key is K;
+
+  bool acceptsValue(Object? value) => value is V;
 
   Map<K, V> create() => <K, V>{};
 

@@ -328,6 +328,24 @@ void main() {
       expect(cc.compute({'a': 2}), equals(1));
       expect(cc.computationCount, equals(2));
       expect(cc.cacheSize, equals(2));
+
+      // Map key equality ignores the order:
+      expect(cc.compute({'x': 1, 'y': 2}), equals(2));
+      expect(cc.compute({'y': 2, 'x': 1}), equals(2));
+      expect(cc.computationCount, equals(3));
+    });
+
+    test('List keys with repeated values', () {
+      var cc = CachedComputation<int, List<int>, List<int>>((l) => l.first);
+      for (var i = 0; i < 50; ++i) {
+        expect(cc.compute([i, i]), equals(i));
+      }
+      for (var i = 0; i < 50; ++i) {
+        expect(cc.compute([i, i]), equals(i));
+      }
+      expect(cc.compute([1, 2]), equals(1));
+      expect(cc.compute([2, 1]), equals(2));
+      expect(cc.computationCount, equals(52));
     });
   });
 }

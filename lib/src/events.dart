@@ -377,9 +377,9 @@ class EventStream<T> implements Stream<T> {
   /// Listens for a single event (data or error), then cancels the listener.
   ///
   /// [singletonIdentifier] and [singletonIdentifyByInstance] work like in
-  /// [listen]: while a one-shot listener with the same identifier is
-  /// registered (hasn't received its event yet), a new one isn't registered
-  /// (it shares the registered subscription).
+  /// [listen]: while a listener with the same identifier is registered (a
+  /// one-shot one that hasn't received its event yet), a new one isn't
+  /// registered and `null` is returned.
   ListenerWrapper<T>? listenOneShot(
     void Function(T event) onData, {
     Function? onError,
@@ -388,6 +388,15 @@ class EventStream<T> implements Stream<T> {
     Object? singletonIdentifier,
     bool? singletonIdentifyByInstance = true,
   }) {
+    if (singletonIdentifier != null &&
+        getSingletonSubscription(
+              singletonIdentifier,
+              singletonIdentifyByInstance ?? true,
+            ) !=
+            null) {
+      return null;
+    }
+
     var listenerWrapper = ListenerWrapper<T>(
       this,
       onData,
@@ -1520,7 +1529,12 @@ class ListenerWrapper<T> {
         singletonIdentifier,
         singletonIdentifyByInstance,
       );
-      if (identical(singletonSubscription, subscription)) {
+      // Through an `EventStreamDelegator` the subscription may be a buffered
+      // one, bound to the registered subscription:
+      var registered = subscription is _BufferedStreamSubscription<T>
+          ? subscription._source
+          : subscription;
+      if (identical(singletonSubscription, registered)) {
         stream.cancelSingletonSubscription(
           singletonIdentifier,
           singletonIdentifyByInstance,
