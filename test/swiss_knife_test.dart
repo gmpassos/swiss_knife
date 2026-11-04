@@ -4,18 +4,21 @@ import 'dart:convert';
 import 'package:swiss_knife/swiss_knife.dart';
 import 'package:test/test.dart';
 
-String uriRootScheme =
-    Uri.base.toString().startsWith('file:/') ? 'file' : 'http';
+String uriRootScheme = Uri.base.toString().startsWith('file:/')
+    ? 'file'
+    : 'http';
 
 String uriRootInit = uriRootScheme == 'file' ? 'file:///' : 'http://';
 
 String uriRootHost = uriRootScheme == 'file' ? '' : 'localhost';
 
-RegExp uriRootHostAndPort =
-    uriRootScheme == 'file' ? RegExp(r'^$') : RegExp(r'^localhost:\d+$');
+RegExp uriRootHostAndPort = uriRootScheme == 'file'
+    ? RegExp(r'^$')
+    : RegExp(r'^localhost:\d+$');
 
-RegExp uriRootPort =
-    uriRootScheme == 'file' ? RegExp(r'^0$') : RegExp(r'^\d+$');
+RegExp uriRootPort = uriRootScheme == 'file'
+    ? RegExp(r'^0$')
+    : RegExp(r'^\d+$');
 
 String uriRoot = getUriRoot().toString();
 
@@ -56,12 +59,18 @@ void main() {
     test('Collections', () {
       expect(isEquivalentMap({'a': 1, 'b': 2}, {'b': 2, 'a': 1}), equals(true));
       expect(
-          isEquivalentMap({'a': 1, 'b': 2}, {'b': 3, 'a': 1}), equals(false));
+        isEquivalentMap({'a': 1, 'b': 2}, {'b': 3, 'a': 1}),
+        equals(false),
+      );
 
-      expect(isEquivalentList([1, 2, 3, 4], [4, 3, 2, 1], sort: true),
-          equals(true));
-      expect(isEquivalentList([1, 2, 3, 4], [4, 3, 2, 1], sort: false),
-          equals(false));
+      expect(
+        isEquivalentList([1, 2, 3, 4], [4, 3, 2, 1], sort: true),
+        equals(true),
+      );
+      expect(
+        isEquivalentList([1, 2, 3, 4], [4, 3, 2, 1], sort: false),
+        equals(false),
+      );
 
       expect(findKeyValue({'a': 11, 'b': 22}, ['A'], true), equals(11));
       expect(findKeyValue({'a': 11, 'b': 22}, ['A'], false), equals(null));
@@ -72,10 +81,14 @@ void main() {
       expect(findKeyName({'a': 11, 'b': 22}, ['a'], false), equals('a'));
 
       expect(
-          findKeyName({'Aa': 11, 'b': 22}, ['aa', 'Aa'], false), equals('Aa'));
+        findKeyName({'Aa': 11, 'b': 22}, ['aa', 'Aa'], false),
+        equals('Aa'),
+      );
 
-      expect(findKeyEntry({'Aa': 11, 'b': 22}, ['aa', 'Aa'], false).toString(),
-          equals(MapEntry('Aa', 11).toString()));
+      expect(
+        findKeyEntry({'Aa': 11, 'b': 22}, ['aa', 'Aa'], false).toString(),
+        equals(MapEntry('Aa', 11).toString()),
+      );
 
       expect(getIgnoreCase({'Aa': 11, 'b': 22}, 'aa'), equals(11));
       expect(getEntryIgnoreCase({'Aa': 11, 'b': 22}, 'aa')!.value, equals(11));
@@ -90,72 +103,100 @@ void main() {
 
     test('deep', () {
       expect(
-          isEquivalentMap({
+        isEquivalentMap(
+          {
             'a': [1, 2],
-            'b': 2
-          }, {
             'b': 2,
-            'a': [1, 2]
-          }),
-          equals(false));
+          },
+          {
+            'b': 2,
+            'a': [1, 2],
+          },
+        ),
+        equals(false),
+      );
       expect(
-          isEquivalentMap({
+        isEquivalentMap(
+          {
             'a': [1, 2],
-            'b': 2
-          }, {
             'b': 2,
-            'a': [1, 2]
-          }, deep: true),
-          equals(true));
+          },
+          {
+            'b': 2,
+            'a': [1, 2],
+          },
+          deep: true,
+        ),
+        equals(true),
+      );
       expect(
-          isEquivalentMap({
+        isEquivalentMap(
+          {
             'a': [1, 2],
-            'b': 2
-          }, {
             'b': 2,
-            'a': [1, '2']
-          }, deep: true),
-          equals(false));
+          },
+          {
+            'b': 2,
+            'a': [1, '2'],
+          },
+          deep: true,
+        ),
+        equals(false),
+      );
 
       expect(
-          isEquivalentMap({
+        isEquivalentMap(
+          {
             'a': {
-              'x': [1, 2]
+              'x': [1, 2],
             },
-            'b': 2
-          }, {
+            'b': 2,
+          },
+          {
             'b': 2,
             'a': {
-              'x': [1, 2]
-            }
-          }),
-          equals(false));
+              'x': [1, 2],
+            },
+          },
+        ),
+        equals(false),
+      );
       expect(
-          isEquivalentMap({
+        isEquivalentMap(
+          {
             'a': {
-              'x': [1, 2]
+              'x': [1, 2],
             },
-            'b': 2
-          }, {
+            'b': 2,
+          },
+          {
             'b': 2,
             'a': {
-              'x': [1, 2]
-            }
-          }, deep: true),
-          equals(true));
+              'x': [1, 2],
+            },
+          },
+          deep: true,
+        ),
+        equals(true),
+      );
       expect(
-          isEquivalentMap({
+        isEquivalentMap(
+          {
             'a': {
-              'x': [1, 2]
+              'x': [1, 2],
             },
-            'b': 2
-          }, {
+            'b': 2,
+          },
+          {
             'b': 2,
             'a': {
-              'x': [1, '2']
-            }
-          }, deep: true),
-          equals(false));
+              'x': [1, '2'],
+            },
+          },
+          deep: true,
+        ),
+        equals(false),
+      );
 
       var deepObj = [
         'a',
@@ -167,9 +208,9 @@ void main() {
           'b': 2,
           'c': [
             {'id', 1},
-            {'id', 2}
-          ]
-        }
+            {'id', 2},
+          ],
+        },
       ];
 
       expect(isEqualsDeep(deepObj, deepCopy(deepObj)), isTrue);
@@ -177,21 +218,25 @@ void main() {
       var deepObj2 = {
         'list': [
           {'id': 1},
-          {'id': 2}
-        ]
+          {'id': 2},
+        ],
       };
 
       deepReplaceValues(
-          deepObj2, (c, k, v) => k == 'id', (c, k, v) => (v as int) * 10);
+        deepObj2,
+        (c, k, v) => k == 'id',
+        (c, k, v) => (v as int) * 10,
+      );
 
       expect(
-          isEqualsDeep(deepObj2, {
-            'list': [
-              {'id': 10},
-              {'id': 20}
-            ]
-          }),
-          isTrue);
+        isEqualsDeep(deepObj2, {
+          'list': [
+            {'id': 10},
+            {'id': 20},
+          ],
+        }),
+        isTrue,
+      );
     });
 
     test('sort', () {
@@ -204,7 +249,9 @@ void main() {
       expect(sortMapEntriesByKey(map1).keys.toList(), equals(['a', 'b', 'c']));
 
       expect(
-          sortMapEntriesByValue(map1).keys.toList(), equals(['c', 'b', 'a']));
+        sortMapEntriesByValue(map1).keys.toList(),
+        equals(['c', 'b', 'a']),
+      );
     });
   });
 
@@ -398,8 +445,10 @@ void main() {
       expect(parseNum('-2'), equals(-2));
       expect(parseNum('-5.5'), equals(-5.5));
 
-      expect(parseNumsFromList([1, 2, 3.3, '-5.5', '11.5']),
-          equals([1, 2, 3.3, -5.5, 11.5]));
+      expect(
+        parseNumsFromList([1, 2, 3.3, '-5.5', '11.5']),
+        equals([1, 2, 3.3, -5.5, 11.5]),
+      );
     });
 
     test('parseInt', () {
@@ -455,15 +504,25 @@ void main() {
 
       expect(formatPercent(0.33, precision: 2, isRatio: true), equals('33%'));
       expect(
-          formatPercent(0.333, precision: 2, isRatio: true), equals('33.30%'));
+        formatPercent(0.333, precision: 2, isRatio: true),
+        equals('33.30%'),
+      );
       expect(
-          formatPercent(0.3333, precision: 2, isRatio: true), equals('33.33%'));
+        formatPercent(0.3333, precision: 2, isRatio: true),
+        equals('33.33%'),
+      );
       expect(
-          formatPercent(1 / 3, precision: 2, isRatio: true), equals('33.33%'));
+        formatPercent(1 / 3, precision: 2, isRatio: true),
+        equals('33.33%'),
+      );
       expect(
-          formatPercent(1 / 3, precision: 3, isRatio: true), equals('33.333%'));
-      expect(formatPercent(1 / 3, precision: 4, isRatio: true),
-          equals('33.3333%'));
+        formatPercent(1 / 3, precision: 3, isRatio: true),
+        equals('33.333%'),
+      );
+      expect(
+        formatPercent(1 / 3, precision: 4, isRatio: true),
+        equals('33.3333%'),
+      );
 
       expect(formatPercent(33), equals('33%'));
       expect(formatPercent(33.3), equals('33.3%'));
@@ -497,10 +556,16 @@ void main() {
 
       expect(formatDecimal(1.0E-4 / 3), equals('0.00'));
 
-      expect(formatDecimal(1.0E-20 / 3), equals('3.3e-21'),
-          reason: '${1.0E-20 / 3}');
-      expect(formatDecimal(1.0E10 / 3), equals('3333333333.33'),
-          reason: '${1.0E10 / 3}');
+      expect(
+        formatDecimal(1.0E-20 / 3),
+        equals('3.3e-21'),
+        reason: '${1.0E-20 / 3}',
+      );
+      expect(
+        formatDecimal(1.0E10 / 3),
+        equals('3333333333.33'),
+        reason: '${1.0E10 / 3}',
+      );
       expect(formatDecimal(1.0E30), equals('1e+30'), reason: '${1.0E30}');
     });
 
@@ -568,42 +633,65 @@ void main() {
       expect(Base64.encode(text), equals(textBase64));
       expect(Base64.decode(textBase64), equals(text));
 
-      expect(DataURLBase64.matches('data:text/plain;base64,$textBase64'),
-          equals(true));
+      expect(
+        DataURLBase64.matches('data:text/plain;base64,$textBase64'),
+        equals(true),
+      );
 
       expect(
-          DataURLBase64.parse('data:text/plain;base64,$textBase64')!
-              .payloadBase64,
-          equals(textBase64));
-      expect(DataURLBase64.parse('data:text/plain;base64,$textBase64')!.payload,
-          equals(text));
+        DataURLBase64.parse('data:text/plain;base64,$textBase64')!
+            .payloadBase64,
+        equals(textBase64),
+      );
+      expect(
+        DataURLBase64.parse('data:text/plain;base64,$textBase64')!.payload,
+        equals(text),
+      );
 
       expect(DataURLBase64.from(text).payload, equals(text));
       expect(DataURLBase64.from(textBase64).payload, equals(text));
-      expect(DataURLBase64.from('data:text/plain;base64,$textBase64').payload,
-          equals(text));
+      expect(
+        DataURLBase64.from('data:text/plain;base64,$textBase64').payload,
+        equals(text),
+      );
       expect(DataURLBase64.from(utf8.encode(text)).payload, equals(text));
       expect(
-          DataURLBase64.from(DataURLBase64.from(text)).payload, equals(text));
+        DataURLBase64.from(DataURLBase64.from(text)).payload,
+        equals(text),
+      );
     });
 
     test('MimeType', () {
       expect(
-          MimeType.parse('text/plain').toString(), equals(MimeType.textPlain));
+        MimeType.parse('text/plain').toString(),
+        equals(MimeType.textPlain),
+      );
       expect(
-          MimeType.byExtension('txt').toString(), equals(MimeType.textPlain));
+        MimeType.byExtension('txt').toString(),
+        equals(MimeType.textPlain),
+      );
       expect(
-          MimeType.byExtension('text').toString(), equals(MimeType.textPlain));
-      expect(MimeType.byExtension('foo.txt').toString(),
-          equals(MimeType.textPlain));
+        MimeType.byExtension('text').toString(),
+        equals(MimeType.textPlain),
+      );
+      expect(
+        MimeType.byExtension('foo.txt').toString(),
+        equals(MimeType.textPlain),
+      );
 
       expect(
-          MimeType.parse('image/jpeg').toString(), equals(MimeType.imageJPEG));
+        MimeType.parse('image/jpeg').toString(),
+        equals(MimeType.imageJPEG),
+      );
       expect(MimeType.parse('jpeg').toString(), equals(MimeType.imageJPEG));
       expect(
-          MimeType.byExtension('jpeg').toString(), equals(MimeType.imageJPEG));
+        MimeType.byExtension('jpeg').toString(),
+        equals(MimeType.imageJPEG),
+      );
       expect(
-          MimeType.byExtension('jpg').toString(), equals(MimeType.imageJPEG));
+        MimeType.byExtension('jpg').toString(),
+        equals(MimeType.imageJPEG),
+      );
 
       expect(MimeType.parse('image/png').toString(), equals(MimeType.imagePNG));
       expect(MimeType.parse('png').toString(), equals(MimeType.imagePNG));
@@ -620,45 +708,69 @@ void main() {
       expect(MimeType.parse('text/html').toString(), equals(MimeType.textHTML));
       expect(MimeType.parse('html').toString(), equals(MimeType.textHTML));
       expect(
-          MimeType.byExtension('html').toString(), equals(MimeType.textHTML));
+        MimeType.byExtension('html').toString(),
+        equals(MimeType.textHTML),
+      );
       expect(MimeType.byExtension('htm').toString(), equals(MimeType.textHTML));
 
       expect(MimeType.parse('text/css').toString(), equals(MimeType.textCSS));
       expect(MimeType.parse('css').toString(), equals(MimeType.textCSS));
       expect(MimeType.byExtension('css').toString(), equals(MimeType.textCSS));
 
-      expect(MimeType.parse('application/json').toString(),
-          equals(MimeType.applicationJson));
       expect(
-          MimeType.parse('json').toString(), equals(MimeType.applicationJson));
-      expect(MimeType.byExtension('json').toString(),
-          equals(MimeType.applicationJson));
+        MimeType.parse('application/json').toString(),
+        equals(MimeType.applicationJson),
+      );
+      expect(
+        MimeType.parse('json').toString(),
+        equals(MimeType.applicationJson),
+      );
+      expect(
+        MimeType.byExtension('json').toString(),
+        equals(MimeType.applicationJson),
+      );
 
-      expect(MimeType.parse('javascript').toString(),
-          equals(MimeType.applicationJavaScript));
-      expect(MimeType.parse('js').toString(),
-          equals(MimeType.applicationJavaScript));
+      expect(
+        MimeType.parse('javascript').toString(),
+        equals(MimeType.applicationJavaScript),
+      );
+      expect(
+        MimeType.parse('js').toString(),
+        equals(MimeType.applicationJavaScript),
+      );
 
       expect(
-          MimeType.parse('yaml').toString(), equals(MimeType.applicationYaml));
+        MimeType.parse('yaml').toString(),
+        equals(MimeType.applicationYaml),
+      );
       expect(
-          MimeType.parse('yml').toString(), equals(MimeType.applicationYaml));
+        MimeType.parse('yml').toString(),
+        equals(MimeType.applicationYaml),
+      );
       expect(MimeType.parse('yml')?.isStringType, isTrue);
 
       expect(
-          MimeType.parse('markdown').toString(), equals(MimeType.textMarkdown));
+        MimeType.parse('markdown').toString(),
+        equals(MimeType.textMarkdown),
+      );
       expect(MimeType.parse('md').toString(), equals(MimeType.textMarkdown));
       expect(MimeType.parse('md')?.isStringType, isTrue);
 
       expect(
-          MimeType.parse('dart').toString(), equals(MimeType.applicationDart));
+        MimeType.parse('dart').toString(),
+        equals(MimeType.applicationDart),
+      );
 
-      expect(MimeType.parse('application/octet-stream').toString(),
-          equals(MimeType.applicationOctetStream));
+      expect(
+        MimeType.parse('application/octet-stream').toString(),
+        equals(MimeType.applicationOctetStream),
+      );
       expect(MimeType.parse('application/octet-stream')?.isOctetStream, isTrue);
 
-      expect(MimeType.byExtension('js').toString(),
-          equals(MimeType.applicationJavaScript));
+      expect(
+        MimeType.byExtension('js').toString(),
+        equals(MimeType.applicationJavaScript),
+      );
       expect(MimeType.byExtension('js')?.isStringType, isTrue);
 
       expect(MimeType.parse('zip').toString(), equals('application/zip'));
@@ -667,7 +779,9 @@ void main() {
       expect(MimeType.parse('gzip').toString(), equals('application/gzip'));
       expect(MimeType.parse('gz').toString(), equals('application/gzip'));
       expect(
-          MimeType.byExtension('gzip').toString(), equals('application/gzip'));
+        MimeType.byExtension('gzip').toString(),
+        equals('application/gzip'),
+      );
       expect(MimeType.byExtension('gz').toString(), equals('application/gzip'));
 
       expect(MimeType.parse('pdf').toString(), equals('application/pdf'));
@@ -678,14 +792,20 @@ void main() {
       expect(MimeType.byExtension('xml').toString(), equals('application/xml'));
       expect(MimeType.byExtension('xml')?.isStringType, isTrue);
 
-      expect(MimeType.byExtension('yaml').toString(),
-          equals(MimeType.applicationYaml));
-      expect(MimeType.byExtension('yml').toString(),
-          equals(MimeType.applicationYaml));
+      expect(
+        MimeType.byExtension('yaml').toString(),
+        equals(MimeType.applicationYaml),
+      );
+      expect(
+        MimeType.byExtension('yml').toString(),
+        equals(MimeType.applicationYaml),
+      );
       expect(MimeType.byExtension('yml')?.isStringType, isTrue);
 
       expect(
-          MimeType.byExtension('md').toString(), equals(MimeType.textMarkdown));
+        MimeType.byExtension('md').toString(),
+        equals(MimeType.textMarkdown),
+      );
 
       expect(MimeType.parse('otf').toString(), equals(MimeType.fontOtf));
       expect(MimeType.byExtension('otf').toString(), equals(MimeType.fontOtf));
@@ -693,27 +813,45 @@ void main() {
       expect(MimeType.byExtension('ttf').toString(), equals(MimeType.fontTtf));
       expect(MimeType.parse('woff').toString(), equals(MimeType.fontWoff));
       expect(
-          MimeType.byExtension('woff').toString(), equals(MimeType.fontWoff));
+        MimeType.byExtension('woff').toString(),
+        equals(MimeType.fontWoff),
+      );
       expect(MimeType.parse('woff2').toString(), equals(MimeType.fontWoff2));
       expect(
-          MimeType.byExtension('woff2').toString(), equals(MimeType.fontWoff2));
+        MimeType.byExtension('woff2').toString(),
+        equals(MimeType.fontWoff2),
+      );
 
       expect(
-          MimeType.byExtension('webp').toString(), equals(MimeType.imageWebp));
+        MimeType.byExtension('webp').toString(),
+        equals(MimeType.imageWebp),
+      );
 
       expect(
-          MimeType.byExtension('weba').toString(), equals(MimeType.audioWebm));
+        MimeType.byExtension('weba').toString(),
+        equals(MimeType.audioWebm),
+      );
       expect(
-          MimeType.parse('audio/webm').toString(), equals(MimeType.audioWebm));
+        MimeType.parse('audio/webm').toString(),
+        equals(MimeType.audioWebm),
+      );
       expect(
-          MimeType.parse('audio/weba').toString(), equals(MimeType.audioWebm));
+        MimeType.parse('audio/weba').toString(),
+        equals(MimeType.audioWebm),
+      );
       expect(
-          MimeType.byExtension('webm').toString(), equals(MimeType.videoWebm));
+        MimeType.byExtension('webm').toString(),
+        equals(MimeType.videoWebm),
+      );
       expect(
-          MimeType.parse('video/webm').toString(), equals(MimeType.videoWebm));
+        MimeType.parse('video/webm').toString(),
+        equals(MimeType.videoWebm),
+      );
 
-      expect(MimeType.byExtension('dart').toString(),
-          equals(MimeType.applicationDart));
+      expect(
+        MimeType.byExtension('dart').toString(),
+        equals(MimeType.applicationDart),
+      );
       expect(MimeType.byExtension('dart')?.isDart, isTrue);
       expect(MimeType.byExtension('dart')?.isStringType, isTrue);
 
@@ -730,35 +868,54 @@ void main() {
 
     test('MimeType preferredStringEncoding', () {
       expect(
-          MimeType.parse('text/html')?.preferredStringEncoding, equals(utf8));
-
-      expect(MimeType.parse('application/dart')?.preferredStringEncoding,
-          equals(utf8));
-
-      expect(MimeType.parse('application/json')?.preferredStringEncoding,
-          equals(utf8));
+        MimeType.parse('text/html')?.preferredStringEncoding,
+        equals(utf8),
+      );
 
       expect(
-          MimeType.parse('image/svg')?.preferredStringEncoding, equals(utf8));
-
-      expect(MimeType.parse('application/x-tar')?.preferredStringEncoding,
-          equals(latin1));
-
-      expect(MimeType.parse('application/pdf')?.preferredStringEncoding,
-          equals(latin1));
-
-      expect(MimeType.parse('application/zip')?.preferredStringEncoding,
-          equals(latin1));
-
-      expect(MimeType.parse('application/gzip')?.preferredStringEncoding,
-          equals(latin1));
+        MimeType.parse('application/dart')?.preferredStringEncoding,
+        equals(utf8),
+      );
 
       expect(
-          MimeType.parse('application/octet-stream')?.preferredStringEncoding,
-          equals(latin1));
+        MimeType.parse('application/json')?.preferredStringEncoding,
+        equals(utf8),
+      );
 
       expect(
-          MimeType.parse('image/png')?.preferredStringEncoding, equals(latin1));
+        MimeType.parse('image/svg')?.preferredStringEncoding,
+        equals(utf8),
+      );
+
+      expect(
+        MimeType.parse('application/x-tar')?.preferredStringEncoding,
+        equals(latin1),
+      );
+
+      expect(
+        MimeType.parse('application/pdf')?.preferredStringEncoding,
+        equals(latin1),
+      );
+
+      expect(
+        MimeType.parse('application/zip')?.preferredStringEncoding,
+        equals(latin1),
+      );
+
+      expect(
+        MimeType.parse('application/gzip')?.preferredStringEncoding,
+        equals(latin1),
+      );
+
+      expect(
+        MimeType.parse('application/octet-stream')?.preferredStringEncoding,
+        equals(latin1),
+      );
+
+      expect(
+        MimeType.parse('image/png')?.preferredStringEncoding,
+        equals(latin1),
+      );
     });
 
     test('MimeType charset', () {
@@ -816,15 +973,21 @@ void main() {
       expect(dataSizeFormat(1000 * 1000), equals('1 MB'));
       expect(dataSizeFormat(1000 * 1000 * 2), equals('2 MB'));
       expect(dataSizeFormat((1000 * 1000 * 2.5).toInt()), equals('2.5 MB'));
-      expect(dataSizeFormat((1000 * 1000 * (2 + 1 / 3)).toInt()),
-          equals('2.33 MB'));
+      expect(
+        dataSizeFormat((1000 * 1000 * (2 + 1 / 3)).toInt()),
+        equals('2.33 MB'),
+      );
 
       expect(dataSizeFormat(1000 * 2, decimalBase: true), equals('2 KB'));
       expect(dataSizeFormat(1000 * 2, binaryBase: false), equals('2 KB'));
-      expect(dataSizeFormat(1000 * 2, decimalBase: true, binaryBase: false),
-          equals('2 KB'));
-      expect(dataSizeFormat(1000 * 2, decimalBase: true, binaryBase: true),
-          equals('2 KB'));
+      expect(
+        dataSizeFormat(1000 * 2, decimalBase: true, binaryBase: false),
+        equals('2 KB'),
+      );
+      expect(
+        dataSizeFormat(1000 * 2, decimalBase: true, binaryBase: true),
+        equals('2 KB'),
+      );
     });
 
     test('dataSizeFormat() binary', () {
@@ -834,15 +997,22 @@ void main() {
 
       expect(dataSizeFormat(1024 * 1024, binaryBase: true), equals('1 MiB'));
       expect(
-          dataSizeFormat(1024 * 1024 * 2, binaryBase: true), equals('2 MiB'));
-      expect(dataSizeFormat((1024 * 1024 * 2.5).toInt(), binaryBase: true),
-          equals('2.5 MiB'));
+        dataSizeFormat(1024 * 1024 * 2, binaryBase: true),
+        equals('2 MiB'),
+      );
       expect(
-          dataSizeFormat((1024 * 1024 * (2 + 1 / 3)).toInt(), binaryBase: true),
-          equals('2.33 MiB'));
+        dataSizeFormat((1024 * 1024 * 2.5).toInt(), binaryBase: true),
+        equals('2.5 MiB'),
+      );
+      expect(
+        dataSizeFormat((1024 * 1024 * (2 + 1 / 3)).toInt(), binaryBase: true),
+        equals('2.33 MiB'),
+      );
 
-      expect(dataSizeFormat(1024 * 2, binaryBase: true, decimalBase: false),
-          equals('2 KiB'));
+      expect(
+        dataSizeFormat(1024 * 2, binaryBase: true, decimalBase: false),
+        equals('2 KiB'),
+      );
     });
   });
 
@@ -859,12 +1029,16 @@ void main() {
       expect(formatTimeMillis(1000 * 60 * 2), equals('2 min'));
       expect(formatTimeMillis((1000 * 60 * 2.5).toInt()), equals('2 min 30 s'));
       expect(formatTimeMillis(1000 * 60 * 60), equals('1 h'));
-      expect(formatTimeMillis((1000 * 60 * 60 * 2.5).toInt()),
-          equals('2 h 30 min'));
+      expect(
+        formatTimeMillis((1000 * 60 * 60 * 2.5).toInt()),
+        equals('2 h 30 min'),
+      );
       expect(formatTimeMillis(1000 * 60 * 60 * 24), equals('1 d'));
       expect(formatTimeMillis(1000 * 60 * 60 * 24 * 2), equals('2 d'));
-      expect(formatTimeMillis((1000 * 60 * 60 * 24 * 2.5).toInt()),
-          equals('2 d 12 h'));
+      expect(
+        formatTimeMillis((1000 * 60 * 60 * 24 * 2.5).toInt()),
+        equals('2 d 12 h'),
+      );
     });
   });
 
@@ -872,12 +1046,18 @@ void main() {
     setUp(() {});
 
     test('Base64,DataURLBase64', () {
-      expect({'a': 1, 'b': 1}.hashCode == {'a': 1, 'b': 1}.hashCode,
-          equals(false));
-      expect(deepHashCode({'a': 1, 'b': 1}) == {'a': 1, 'b': 1}.hashCode,
-          equals(false));
-      expect(deepHashCode({'a': 1, 'b': 1}) == deepHashCode({'a': 1, 'b': 1}),
-          equals(true));
+      expect(
+        {'a': 1, 'b': 1}.hashCode == {'a': 1, 'b': 1}.hashCode,
+        equals(false),
+      );
+      expect(
+        deepHashCode({'a': 1, 'b': 1}) == {'a': 1, 'b': 1}.hashCode,
+        equals(false),
+      );
+      expect(
+        deepHashCode({'a': 1, 'b': 1}) == deepHashCode({'a': 1, 'b': 1}),
+        equals(true),
+      );
     });
   });
 
@@ -893,15 +1073,23 @@ void main() {
     });
 
     test('regExpReplaceAll', () {
-      expect(regExpReplaceAll(r'\s*(,+)\s*', 'a ,b, c ,, d', '\$1'),
-          equals('a,b,c,,d'));
-      expect(regExpReplaceAll(r'\s*(,+)\s*', 'a ,b, c ,, d', '-\$1-'),
-          equals('a-,-b-,-c-,,-d'));
+      expect(
+        regExpReplaceAll(r'\s*(,+)\s*', 'a ,b, c ,, d', '\$1'),
+        equals('a,b,c,,d'),
+      );
+      expect(
+        regExpReplaceAll(r'\s*(,+)\s*', 'a ,b, c ,, d', '-\$1-'),
+        equals('a-,-b-,-c-,,-d'),
+      );
 
-      expect(regExpReplaceAll(r'\s*(,+)\s*', 'a ,b, c ,, d', '\${1}'),
-          equals('a,b,c,,d'));
-      expect(regExpReplaceAll(r'\s*(,+)\s*', 'a ,b, c ,, d', '-\${1}-'),
-          equals('a-,-b-,-c-,,-d'));
+      expect(
+        regExpReplaceAll(r'\s*(,+)\s*', 'a ,b, c ,, d', '\${1}'),
+        equals('a,b,c,,d'),
+      );
+      expect(
+        regExpReplaceAll(r'\s*(,+)\s*', 'a ,b, c ,, d', '-\${1}-'),
+        equals('a-,-b-,-c-,,-d'),
+      );
     });
 
     test('regExpDialect', () {
@@ -910,36 +1098,44 @@ void main() {
         'commas': ',+',
       }, r'$s*($commas)$s*');
 
-      expect(regExpReplaceAll(pattern1, 'a ,b, c ,, d', '\$1'),
-          equals('a,b,c,,d'));
-      expect(regExpReplaceAll(pattern1, 'a ,b, c ,, d', '-\$1-'),
-          equals('a-,-b-,-c-,,-d'));
+      expect(
+        regExpReplaceAll(pattern1, 'a ,b, c ,, d', '\$1'),
+        equals('a,b,c,,d'),
+      );
+      expect(
+        regExpReplaceAll(pattern1, 'a ,b, c ,, d', '-\$1-'),
+        equals('a-,-b-,-c-,,-d'),
+      );
     });
 
     test('RegExpDialect', () {
-      var dialect = RegExpDialect.from({
-        's': '[ \t]',
-        'commas': ',+',
-      }, multiLine: false, caseSensitive: false)!;
+      var dialect = RegExpDialect.from(
+        {'s': '[ \t]', 'commas': ',+'},
+        multiLine: false,
+        caseSensitive: false,
+      )!;
 
       expect(dialect.hasErrors, isFalse);
 
       var pattern1 = dialect.getPattern(r'$s*($commas)$s*');
 
-      expect(regExpReplaceAll(pattern1, 'a ,b, c ,, d', '\$1'),
-          equals('a,b,c,,d'));
-      expect(regExpReplaceAll(pattern1, 'a ,b, c ,, d', '-\$1-'),
-          equals('a-,-b-,-c-,,-d'));
+      expect(
+        regExpReplaceAll(pattern1, 'a ,b, c ,, d', '\$1'),
+        equals('a,b,c,,d'),
+      );
+      expect(
+        regExpReplaceAll(pattern1, 'a ,b, c ,, d', '-\$1-'),
+        equals('a-,-b-,-c-,,-d'),
+      );
     });
 
     test('RegExpDialect error', () {
-      var dialect = RegExpDialect.from({
-        's': r'[ \t',
-        'commas': ',+',
-      },
-          multiLine: false,
-          caseSensitive: false,
-          throwCompilationErrors: false)!;
+      var dialect = RegExpDialect.from(
+        {'s': r'[ \t', 'commas': ',+'},
+        multiLine: false,
+        caseSensitive: false,
+        throwCompilationErrors: false,
+      )!;
 
       expect(dialect.hasErrors, isTrue);
 
@@ -951,31 +1147,46 @@ void main() {
 
     test('buildStringPattern', () {
       expect(
-          buildStringPattern('user: <{{username}}>', {}), equals('user: <>'));
-      expect(buildStringPattern('user: <{{username}}>', {'username': 'joe'}),
-          equals('user: <joe>'));
-      expect(buildStringPattern('user: {{username}}', {'username': 'joe'}),
-          equals('user: joe'));
-      expect(buildStringPattern('{{username}}', {'username': 'joe'}),
-          equals('joe'));
-      expect(buildStringPattern('{{username}}!', {'username': 'joe'}),
-          equals('joe!'));
+        buildStringPattern('user: <{{username}}>', {}),
+        equals('user: <>'),
+      );
       expect(
-          buildStringPattern('user: <{{username}}> ; email: <{{email}}>', {
-            'username': 'joe'
-          }, [
-            {'email': 'joe@mail.com'}
-          ]),
-          equals('user: <joe> ; email: <joe@mail.com>'));
+        buildStringPattern('user: <{{username}}>', {'username': 'joe'}),
+        equals('user: <joe>'),
+      );
       expect(
-          buildStringPattern(
-              'user: <{{username}}> ; email: <{{email}}> ; id: #{{id}}', {
-            'username': 'joe'
-          }, [
+        buildStringPattern('user: {{username}}', {'username': 'joe'}),
+        equals('user: joe'),
+      );
+      expect(
+        buildStringPattern('{{username}}', {'username': 'joe'}),
+        equals('joe'),
+      );
+      expect(
+        buildStringPattern('{{username}}!', {'username': 'joe'}),
+        equals('joe!'),
+      );
+      expect(
+        buildStringPattern(
+          'user: <{{username}}> ; email: <{{email}}>',
+          {'username': 'joe'},
+          [
             {'email': 'joe@mail.com'},
-            {'id': 123}
-          ]),
-          equals('user: <joe> ; email: <joe@mail.com> ; id: #123'));
+          ],
+        ),
+        equals('user: <joe> ; email: <joe@mail.com>'),
+      );
+      expect(
+        buildStringPattern(
+          'user: <{{username}}> ; email: <{{email}}> ; id: #{{id}}',
+          {'username': 'joe'},
+          [
+            {'email': 'joe@mail.com'},
+            {'id': 123},
+          ],
+        ),
+        equals('user: <joe> ; email: <joe@mail.com> ; id: #123'),
+      );
     });
   });
 
@@ -1000,8 +1211,10 @@ void main() {
 
       expect(isIPv6Address('::'), equals(true));
       expect(isIPv6Address('::/0'), equals(true));
-      expect(isIPv6Address('0000:0000:0000:0000:0000:0000:0000:0000'),
-          equals(true));
+      expect(
+        isIPv6Address('0000:0000:0000:0000:0000:0000:0000:0000'),
+        equals(true),
+      );
 
       expect(isIPv6Address('2001:db8:a0b:12f0::1'), equals(true));
 
@@ -1026,8 +1239,11 @@ void main() {
       expect(getUriBaseHostAndPort(), matches(uriRootHostAndPort));
       expect(getUriRootURL(), equals(uriRoot));
 
-      expect(isUriBaseLocalhost(), equals(true),
-          reason: 'getUriBaseHost: ${getUriBaseHost()}');
+      expect(
+        isUriBaseLocalhost(),
+        equals(true),
+        reason: 'getUriBaseHost: ${getUriBaseHost()}',
+      );
 
       expect(isLocalhost('localhost'), equals(true));
       expect(isLocalhost('127.0.0.1'), equals(true));
@@ -1048,75 +1264,108 @@ void main() {
       expect(buildUri('http', 'foo', 81).toString(), equals('http://foo:81/'));
 
       expect(
-          buildUri('http', 'foo', 81,
-                  path: 'path/x', queryString: 'query=1', fragment: 'frag1')
-              .toString(),
-          equals('http://foo:81/path/x?query=1#frag1'));
+        buildUri(
+          'http',
+          'foo',
+          81,
+          path: 'path/x',
+          queryString: 'query=1',
+          fragment: 'frag1',
+        ).toString(),
+        equals('http://foo:81/path/x?query=1#frag1'),
+      );
 
       expect(
-          buildUri('http', 'foo', 81,
-                  path: 'path/x',
-                  path2: './y',
-                  queryString: 'query=1',
-                  fragment: 'frag1')
-              .toString(),
-          equals('http://foo:81/path/y?query=1#frag1'));
+        buildUri(
+          'http',
+          'foo',
+          81,
+          path: 'path/x',
+          path2: './y',
+          queryString: 'query=1',
+          fragment: 'frag1',
+        ).toString(),
+        equals('http://foo:81/path/y?query=1#frag1'),
+      );
       expect(
-          buildUri('http', 'foo', 81,
-                  path: 'path/x',
-                  path2: 'y',
-                  queryString: 'query=1',
-                  fragment: 'frag1')
-              .toString(),
-          equals('http://foo:81/path/y?query=1#frag1'));
+        buildUri(
+          'http',
+          'foo',
+          81,
+          path: 'path/x',
+          path2: 'y',
+          queryString: 'query=1',
+          fragment: 'frag1',
+        ).toString(),
+        equals('http://foo:81/path/y?query=1#frag1'),
+      );
 
       expect(
-          buildUri('http', 'foo', 81,
-                  path: 'path/x/',
-                  path2: './y',
-                  queryString: 'query=1',
-                  fragment: 'frag1')
-              .toString(),
-          equals('http://foo:81/path/x/y?query=1#frag1'));
+        buildUri(
+          'http',
+          'foo',
+          81,
+          path: 'path/x/',
+          path2: './y',
+          queryString: 'query=1',
+          fragment: 'frag1',
+        ).toString(),
+        equals('http://foo:81/path/x/y?query=1#frag1'),
+      );
       expect(
-          buildUri('http', 'foo', 81,
-                  path: 'path/x/',
-                  path2: 'y',
-                  queryString: 'query=1',
-                  fragment: 'frag1')
-              .toString(),
-          equals('http://foo:81/path/x/y?query=1#frag1'));
+        buildUri(
+          'http',
+          'foo',
+          81,
+          path: 'path/x/',
+          path2: 'y',
+          queryString: 'query=1',
+          fragment: 'frag1',
+        ).toString(),
+        equals('http://foo:81/path/x/y?query=1#frag1'),
+      );
 
       expect(
-          buildUri('http', 'foo', 81,
-                  path: 'path/x',
-                  path2: '/y',
-                  queryString: 'query=1',
-                  fragment: 'frag1')
-              .toString(),
-          equals('http://foo:81/y?query=1#frag1'));
+        buildUri(
+          'http',
+          'foo',
+          81,
+          path: 'path/x',
+          path2: '/y',
+          queryString: 'query=1',
+          fragment: 'frag1',
+        ).toString(),
+        equals('http://foo:81/y?query=1#frag1'),
+      );
 
       expect(resolveUri('/').toString(), equals(uriRoot));
       expect(resolveUri('/foo.txt').toString(), equals('${uriRoot}foo.txt'));
 
-      expect(resolveUri('./foo.txt').toString(),
-          matches(r'^' + uriRootInit + r'.+?/foo\.txt$'));
+      expect(
+        resolveUri('./foo.txt').toString(),
+        matches(r'^' + uriRootInit + r'.+?/foo\.txt$'),
+      );
 
       expect(
-          removeUriFragment('https://foo:81/path/x?query=1#section1')
-              .toString(),
-          equals('https://foo:81/path/x?query=1'));
+        removeUriFragment('https://foo:81/path/x?query=1#section1').toString(),
+        equals('https://foo:81/path/x?query=1'),
+      );
       expect(
-          removeUriQueryString('https://foo:81/path/x?query=1#section1')
-              .toString(),
-          equals('https://foo:81/path/x#section1'));
+        removeUriQueryString('https://foo:81/path/x?query=1#section1')
+            .toString(),
+        equals('https://foo:81/path/x#section1'),
+      );
     });
 
     test('Path', () {
-      expect(getPathFileName('/some/path/file-x.txt').toString(),
-          equals('file-x.txt'));
       expect(
-          getPathExtension('/some/path/file-x.txt').toString(), equals('txt'));
+        getPathFileName('/some/path/file-x.txt').toString(),
+        equals('file-x.txt'),
+      );
+      expect(
+        getPathExtension('/some/path/file-x.txt').toString(),
+        equals('txt'),
+      );
     });
   });
 
@@ -1272,68 +1521,78 @@ void main() {
       expect(toFlatListOfStrings('a b c'), equals(['a', 'b', 'c']));
 
       expect(
-          toFlatListOfStrings([
-            'a b c',
-            ['d e', ' f ', 'g']
-          ]),
-          equals(['a', 'b', 'c', 'd', 'e', 'f', 'g']));
+        toFlatListOfStrings([
+          'a b c',
+          ['d e', ' f ', 'g'],
+        ]),
+        equals(['a', 'b', 'c', 'd', 'e', 'f', 'g']),
+      );
 
       expect(
-          toFlatListOfStrings([
-            'a b c',
-            [
-              'd e',
-              [' f '],
-              'g'
-            ]
-          ]),
-          equals(['a', 'b', 'c', 'd', 'e', 'f', 'g']));
+        toFlatListOfStrings([
+          'a b c',
+          [
+            'd e',
+            [' f '],
+            'g',
+          ],
+        ]),
+        equals(['a', 'b', 'c', 'd', 'e', 'f', 'g']),
+      );
 
       expect(
-          toFlatListOfStrings([
-            '   ',
-            'a b c  ',
-            [
-              'd e',
-              null,
-              '',
-              [' f ', 'g'],
-              [],
-              'h'
-            ]
-          ]),
-          equals(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']));
+        toFlatListOfStrings([
+          '   ',
+          'a b c  ',
+          [
+            'd e',
+            null,
+            '',
+            [' f ', 'g'],
+            [],
+            'h',
+          ],
+        ]),
+        equals(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']),
+      );
 
       expect(toFlatListOfStrings(['a', ' b ', 'c']), equals(['a', 'b', 'c']));
-      expect(toFlatListOfStrings(['a', ' b ', 'c'], trim: true),
-          equals(['a', 'b', 'c']));
-      expect(toFlatListOfStrings(['a', ' b ', 'c'], trim: false),
-          equals(['a', 'b', 'c']));
+      expect(
+        toFlatListOfStrings(['a', ' b ', 'c'], trim: true),
+        equals(['a', 'b', 'c']),
+      );
+      expect(
+        toFlatListOfStrings(['a', ' b ', 'c'], trim: false),
+        equals(['a', 'b', 'c']),
+      );
 
       expect(toFlatListOfStrings(['a', ' b ', 'c']), equals(['a', 'b', 'c']));
 
-      expect(toFlatListOfStrings([' a ', ' b ', 'c_d'], delimiter: '_'),
-          equals(['a', 'b', 'c', 'd']));
       expect(
-          toFlatListOfStrings([' a ', ' b ', 'c_d'],
-              delimiter: '_', trim: true),
-          equals(['a', 'b', 'c', 'd']));
+        toFlatListOfStrings([' a ', ' b ', 'c_d'], delimiter: '_'),
+        equals(['a', 'b', 'c', 'd']),
+      );
       expect(
-          toFlatListOfStrings([' a ', ' b ', 'c_d'],
-              delimiter: '_', trim: false),
-          equals([' a ', ' b ', 'c', 'd']));
+        toFlatListOfStrings([' a ', ' b ', 'c_d'], delimiter: '_', trim: true),
+        equals(['a', 'b', 'c', 'd']),
+      );
+      expect(
+        toFlatListOfStrings([' a ', ' b ', 'c_d'], delimiter: '_', trim: false),
+        equals([' a ', ' b ', 'c', 'd']),
+      );
 
       expect(
-          toFlatListOfStrings([
-            1,
-            DateTime.utc(2000, 1, 1, 1, 1, 1, 1, 1),
-            [
-              2,
-              3,
-              [4, [], 5]
-            ]
-          ]),
-          equals(['1', '2000-01-01', '01:01:01.001001Z', '2', '3', '4', '5']));
+        toFlatListOfStrings([
+          1,
+          DateTime.utc(2000, 1, 1, 1, 1, 1, 1, 1),
+          [
+            2,
+            3,
+            [4, [], 5],
+          ],
+        ]),
+        equals(['1', '2000-01-01', '01:01:01.001001Z', '2', '3', '4', '5']),
+      );
     });
 
     test('trimListOfStrings', () {
@@ -1446,22 +1705,29 @@ void main() {
       expect(toEncodableJSON(['a', 'b']), equals(['a', 'b']));
       expect(toEncodableJSON([1, 2, 3]), equals([1, 2, 3]));
       expect(
-          toEncodableJSON(['a', 2, Foo(2, 'b')]),
-          equals([
-            'a',
-            2,
-            {'id': 2, 'name': 'b'}
-          ]));
+        toEncodableJSON(['a', 2, Foo(2, 'b')]),
+        equals([
+          'a',
+          2,
+          {'id': 2, 'name': 'b'},
+        ]),
+      );
 
       expect(
-          toEncodableJSON({'a': 'A', 'b': 'B'}), equals({'a': 'A', 'b': 'B'}));
+        toEncodableJSON({'a': 'A', 'b': 'B'}),
+        equals({'a': 'A', 'b': 'B'}),
+      );
       expect(toEncodableJSON({'a': 1, 'b': 2}), equals({'a': 1, 'b': 2}));
 
       expect(
-          toEncodableJSON(Foo(123, 'abc')), equals({'id': 123, 'name': 'abc'}));
+        toEncodableJSON(Foo(123, 'abc')),
+        equals({'id': 123, 'name': 'abc'}),
+      );
 
       expect(
-          toEncodableJSON(Bar(123, 'abc')), equals('Bar{id: 123, name: abc}'));
+        toEncodableJSON(Bar(123, 'abc')),
+        equals('Bar{id: 123, name: abc}'),
+      );
     });
   });
 
@@ -1509,7 +1775,7 @@ void main() {
       var map = MapProperties.fromProperties({
         'a': 1,
         'b': [20, 21],
-        'c': '30,31,32'
+        'c': '30,31,32',
       });
 
       expect(map.getPropertyAsInt('a'), equals(1));
@@ -1524,12 +1790,13 @@ void main() {
 
       var map3 = map.toProperties();
       expect(
-          map3,
-          equals({
-            'a': 1,
-            'b': [20, 21],
-            'c': '30,31,32'
-          }));
+        map3,
+        equals({
+          'a': 1,
+          'b': [20, 21],
+          'c': '30,31,32',
+        }),
+      );
     });
   });
 
@@ -1538,41 +1805,61 @@ void main() {
 
     test('getDateTimeStartOf/EndOf', () {
       expect(
-          getDateTimeStartOf(
-              DateTime(2020, 03, 12, 10, 30, 59, 300), Unit.seconds),
-          equals(DateTime(2020, 03, 12, 10, 30, 59, 0)));
-      expect(getDateTimeEndOf(DateTime(2020, 03, 12, 10, 30, 59, 300), 'sec'),
-          equals(DateTime(2020, 03, 12, 10, 30, 59, 999)));
-
-      expect(getDateTimeStartOf(DateTime(2020, 03, 12, 10, 30, 59, 300), 'min'),
-          equals(DateTime(2020, 03, 12, 10, 30, 0, 0)));
-      expect(getDateTimeEndOf(DateTime(2020, 03, 12, 10, 30, 59, 300), 'min'),
-          equals(DateTime(2020, 03, 12, 10, 30, 59, 999)));
+        getDateTimeStartOf(
+          DateTime(2020, 03, 12, 10, 30, 59, 300),
+          Unit.seconds,
+        ),
+        equals(DateTime(2020, 03, 12, 10, 30, 59, 0)),
+      );
+      expect(
+        getDateTimeEndOf(DateTime(2020, 03, 12, 10, 30, 59, 300), 'sec'),
+        equals(DateTime(2020, 03, 12, 10, 30, 59, 999)),
+      );
 
       expect(
-          getDateTimeStartOf(DateTime(2020, 03, 12, 10, 30, 59, 300), 'hour'),
-          equals(DateTime(2020, 03, 12, 10, 0, 0, 0)));
-      expect(getDateTimeEndOf(DateTime(2020, 03, 12, 10, 30, 59, 300), 'hour'),
-          equals(DateTime(2020, 03, 12, 10, 59, 59, 999)));
-
-      expect(getDateTimeStartOf(DateTime(2020, 03, 12, 10, 30, 59, 300), 'day'),
-          equals(DateTime(2020, 03, 12, 0, 0, 0, 0)));
-      expect(getDateTimeEndOf(DateTime(2020, 03, 12, 10, 30, 59, 300), 'day'),
-          equals(DateTime(2020, 03, 12, 23, 59, 59, 999)));
+        getDateTimeStartOf(DateTime(2020, 03, 12, 10, 30, 59, 300), 'min'),
+        equals(DateTime(2020, 03, 12, 10, 30, 0, 0)),
+      );
+      expect(
+        getDateTimeEndOf(DateTime(2020, 03, 12, 10, 30, 59, 300), 'min'),
+        equals(DateTime(2020, 03, 12, 10, 30, 59, 999)),
+      );
 
       expect(
-          getDateTimeStartOf(DateTime(2020, 03, 12, 10, 30, 59, 300), 'month'),
-          equals(DateTime(2020, 03, 1, 0, 0, 0, 0)));
+        getDateTimeStartOf(DateTime(2020, 03, 12, 10, 30, 59, 300), 'hour'),
+        equals(DateTime(2020, 03, 12, 10, 0, 0, 0)),
+      );
       expect(
-          getDateTimeEndOf(
-              DateTime(2020, 03, 12, 10, 30, 59, 300), Unit.months),
-          equals(DateTime(2020, 03, 31, 23, 59, 59, 999)));
+        getDateTimeEndOf(DateTime(2020, 03, 12, 10, 30, 59, 300), 'hour'),
+        equals(DateTime(2020, 03, 12, 10, 59, 59, 999)),
+      );
 
-      expect(getDateTimeStartOf(DateTime(2020, 03, 12, 10, 30, 59, 300), 'y'),
-          equals(DateTime(2020, 01, 1, 0, 0, 0, 0)));
       expect(
-          getDateTimeEndOf(DateTime(2020, 03, 12, 10, 30, 59, 300), Unit.years),
-          equals(DateTime(2020, 12, 31, 23, 59, 59, 999)));
+        getDateTimeStartOf(DateTime(2020, 03, 12, 10, 30, 59, 300), 'day'),
+        equals(DateTime(2020, 03, 12, 0, 0, 0, 0)),
+      );
+      expect(
+        getDateTimeEndOf(DateTime(2020, 03, 12, 10, 30, 59, 300), 'day'),
+        equals(DateTime(2020, 03, 12, 23, 59, 59, 999)),
+      );
+
+      expect(
+        getDateTimeStartOf(DateTime(2020, 03, 12, 10, 30, 59, 300), 'month'),
+        equals(DateTime(2020, 03, 1, 0, 0, 0, 0)),
+      );
+      expect(
+        getDateTimeEndOf(DateTime(2020, 03, 12, 10, 30, 59, 300), Unit.months),
+        equals(DateTime(2020, 03, 31, 23, 59, 59, 999)),
+      );
+
+      expect(
+        getDateTimeStartOf(DateTime(2020, 03, 12, 10, 30, 59, 300), 'y'),
+        equals(DateTime(2020, 01, 1, 0, 0, 0, 0)),
+      );
+      expect(
+        getDateTimeEndOf(DateTime(2020, 03, 12, 10, 30, 59, 300), Unit.years),
+        equals(DateTime(2020, 12, 31, 23, 59, 59, 999)),
+      );
     });
   });
 
@@ -1580,10 +1867,14 @@ void main() {
     setUp(() {});
 
     test('getDateTimeStartOf/EndOf', () {
-      var cachedComputation = CachedComputation<int,
-          Parameters2<List<int>, int>, Parameters2<List<int>, int>>((v) {
-        return sumIterable(v.a.map((n) => n * v.b)) as int;
-      });
+      var cachedComputation =
+          CachedComputation<
+            int,
+            Parameters2<List<int>, int>,
+            Parameters2<List<int>, int>
+          >((v) {
+            return sumIterable(v.a.map((n) => n * v.b)) as int;
+          });
 
       expect(cachedComputation.cacheSize, equals(0));
       expect(cachedComputation.computationCount, equals(0));

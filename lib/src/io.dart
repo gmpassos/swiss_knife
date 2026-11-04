@@ -17,8 +17,11 @@ Future<Uint8List> catFileBytes(File file) async {
 /// Saves a [file] from [data] string using [encoding].
 ///
 /// [encoding] If null uses UTF-8.
-Future<File> saveFile(File file, String data,
-    [Encoding encoding = utf8]) async {
+Future<File> saveFile(
+  File file,
+  String data, [
+  Encoding encoding = utf8,
+]) async {
   return file.writeAsString(data, encoding: encoding, flush: true);
 }
 

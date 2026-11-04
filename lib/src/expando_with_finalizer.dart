@@ -60,8 +60,11 @@ typedef FinalizerCallback<V> = void Function(V value);
 ///
 /// The finalizer is automatically attached and detached as associations
 /// are added, replaced, or manually removed.
-abstract class WithFinalizer<K extends Object, V extends Object,
-    W extends FinalizerValueWrapper<V>> {
+abstract class WithFinalizer<
+  K extends Object,
+  V extends Object,
+  W extends FinalizerValueWrapper<V>
+> {
   /// User-provided callback invoked when a key is garbage-collected.
   final FinalizerCallback<V> onFinalize;
 

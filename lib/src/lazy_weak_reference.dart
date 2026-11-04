@@ -107,14 +107,14 @@ final class LazyWeakReference<T extends Object> extends GenericReference<T>
   /// The timestamp [_unixTimeMs] is assigned later by [manager] when the
   /// instance is enqueued for weakening.
   LazyWeakReference._strong(this.id, this._manager, T target)
-      : _strongRef = target,
-        _weakRef = null,
-        _unixTimeMs = 0;
+    : _strongRef = target,
+      _weakRef = null,
+      _unixTimeMs = 0;
 
   /// Creates a weak reference.
   LazyWeakReference._weak(this.id, this._manager, T target, this._unixTimeMs)
-      : _strongRef = null,
-        _weakRef = WeakReference(target);
+    : _strongRef = null,
+      _weakRef = WeakReference(target);
 
   /// Returns the object if still reachable.
   ///
@@ -324,7 +324,8 @@ final class LazyWeakReference<T extends Object> extends GenericReference<T>
   int elapsedMs(int nowUnixTime) => nowUnixTime - _unixTimeMs;
 
   @override
-  String toString() => 'LazyWeakReference#$id<$T>{'
+  String toString() =>
+      'LazyWeakReference#$id<$T>{'
       'isStrong: $isStrong, '
       'isWeak: $isWeak, '
       'isDisposed: $isDisposed, '
@@ -391,10 +392,11 @@ class LazyWeakReferenceManagerByType {
 
   /// Creates a manager that lazily provides one
   /// [LazyWeakReferenceManager] per type.
-  LazyWeakReferenceManagerByType(
-      {this.weakenDelay = LazyWeakReferenceManager.defaultWeakenDelay,
-      this.batchLimit = LazyWeakReferenceManager.defaultBatchLimit,
-      this.batchInterval = LazyWeakReferenceManager.defaultBatchInterval});
+  LazyWeakReferenceManagerByType({
+    this.weakenDelay = LazyWeakReferenceManager.defaultWeakenDelay,
+    this.batchLimit = LazyWeakReferenceManager.defaultBatchLimit,
+    this.batchInterval = LazyWeakReferenceManager.defaultBatchInterval,
+  });
 
   final Map<Type, LazyWeakReferenceManager> _managers = {};
 
@@ -421,9 +423,10 @@ class LazyWeakReferenceManagerByType {
       return prev as LazyWeakReferenceManager<T>;
     }
     return _managers[T] = LazyWeakReferenceManager<T>(
-        weakenDelay: weakenDelay,
-        batchLimit: batchLimit,
-        batchInterval: batchInterval);
+      weakenDelay: weakenDelay,
+      batchLimit: batchLimit,
+      batchInterval: batchInterval,
+    );
   }
 
   /// Removes and returns the manager associated with [T] or [type].
@@ -472,16 +475,17 @@ class LazyWeakReferenceManager<T extends Object> {
   static const defaultBatchLimit = 100;
   static const defaultBatchInterval = Duration(milliseconds: 1);
 
-  LazyWeakReferenceManager(
-      {Duration weakenDelay = defaultWeakenDelay,
-      int batchLimit = defaultBatchLimit,
-      Duration batchInterval = defaultBatchInterval})
-      : weakenDelay =
-            weakenDelay.inMilliseconds > 1 ? weakenDelay : defaultWeakenDelay,
-        batchLimit = batchLimit > 1 ? batchLimit : 1,
-        batchInterval = batchInterval.inMilliseconds > 1
-            ? batchInterval
-            : defaultBatchInterval;
+  LazyWeakReferenceManager({
+    Duration weakenDelay = defaultWeakenDelay,
+    int batchLimit = defaultBatchLimit,
+    Duration batchInterval = defaultBatchInterval,
+  }) : weakenDelay = weakenDelay.inMilliseconds > 1
+           ? weakenDelay
+           : defaultWeakenDelay,
+       batchLimit = batchLimit > 1 ? batchLimit : 1,
+       batchInterval = batchInterval.inMilliseconds > 1
+           ? batchInterval
+           : defaultBatchInterval;
 
   int _refIdCount = 0;
 
@@ -494,8 +498,12 @@ class LazyWeakReferenceManager<T extends Object> {
 
   /// Creates a managed weak reference.
   LazyWeakReference<T> weak(T target) {
-    var ref =
-        LazyWeakReference<T>._weak(++_refIdCount, this, target, unixTimeMs);
+    var ref = LazyWeakReference<T>._weak(
+      ++_refIdCount,
+      this,
+      target,
+      unixTimeMs,
+    );
     _handleNewWeakRef(ref);
     return ref;
   }
@@ -632,8 +640,10 @@ class LazyWeakReferenceManager<T extends Object> {
     var scheduled = _scheduledWeakenStrongRefs;
     if (scheduled != null && !force) return;
 
-    _scheduledWeakenStrongRefs =
-        scheduled = Future.delayed(delay, _weakenStrongRefs);
+    _scheduledWeakenStrongRefs = scheduled = Future.delayed(
+      delay,
+      _weakenStrongRefs,
+    );
 
     scheduled.whenComplete(() {
       if (identical(scheduled, _scheduledWeakenStrongRefs)) {

@@ -58,9 +58,11 @@ void main() {
     test('InteractionCompleter', () async {
       var counter = NNField<int>(0);
 
-      var interactionCompleter = InteractionCompleter('test',
-          triggerDelay: Duration(seconds: 1),
-          functionToTrigger: () => counter.set(counter.value + 1));
+      var interactionCompleter = InteractionCompleter(
+        'test',
+        triggerDelay: Duration(seconds: 1),
+        functionToTrigger: () => counter.set(counter.value + 1),
+      );
 
       interactionCompleter.interact();
       expect(interactionCompleter.isTriggerScheduled, isTrue);

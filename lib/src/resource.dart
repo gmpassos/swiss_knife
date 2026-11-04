@@ -137,8 +137,11 @@ class ResourceContent {
   }
 
   /// Resolved [url] before instantiate [fromURI].
-  static ResourceContent? fromResolvedUrl(String? url,
-      {String? baseURL, String? content}) {
+  static ResourceContent? fromResolvedUrl(
+    String? url, {
+    String? baseURL,
+    String? content,
+  }) {
     if (url == null) {
       if (content != null) return ResourceContent(null, content);
       return null;
@@ -254,7 +257,9 @@ class ResourceContent {
 
   /// Resolves an [url] using another [ResourceContent] as [reference] (base [Uri]).
   static Future<Uri?> resolveURLFromReference(
-      ResourceContent? reference, String? url) async {
+    ResourceContent? reference,
+    String? url,
+  ) async {
     if (url == null) return null;
     url = url.trim();
 
@@ -285,21 +290,23 @@ class ResourceContent {
       }
 
       return Uri(
-          scheme: uri.scheme,
-          userInfo: uri.userInfo,
-          host: uri.host,
-          port: uri.port,
-          path: resolvedPath);
+        scheme: uri.scheme,
+        userInfo: uri.userInfo,
+        host: uri.host,
+        port: uri.port,
+        path: resolvedPath,
+      );
     } else if (url.startsWith('/')) {
       var uri = reference != null ? await reference.uriResolved : null;
       uri ??= await ResourceContent.fromURI('./')!.uriResolved;
 
       return Uri(
-          scheme: uri!.scheme,
-          userInfo: uri.userInfo,
-          host: uri.host,
-          port: uri.port,
-          path: url);
+        scheme: uri!.scheme,
+        userInfo: uri.userInfo,
+        host: uri.host,
+        port: uri.port,
+        path: url,
+      );
     }
 
     return Uri.parse(url);
@@ -329,11 +336,12 @@ class ContextualResource<T, C extends Comparable<C>>
   }
 
   ContextualResource(this.resource, Object? context)
-      : context = _resolveContext<T, C>(resource, context);
+    : context = _resolveContext<T, C>(resource, context);
 
   static List<ContextualResource<T, C>> toList<T, C extends Comparable<C>>(
-          Iterable<T> resources, C? Function(T resource) context) =>
-      resources.map((r) => ContextualResource<T, C>(r, context)).toList();
+    Iterable<T> resources,
+    C? Function(T resource) context,
+  ) => resources.map((r) => ContextualResource<T, C>(r, context)).toList();
 
   @override
   bool operator ==(Object other) =>
@@ -382,11 +390,12 @@ class ContextualResourceResolver<T, C extends Comparable<C>> {
   /// The context comparator, to overwrite default comparator of [C].
   final Comparator<C>? contextComparator;
 
-  ContextualResourceResolver(
-      {Map<String, dynamic>? resources,
-      this.contextComparator,
-      this.defaultContext,
-      this.defaultResource}) {
+  ContextualResourceResolver({
+    Map<String, dynamic>? resources,
+    this.contextComparator,
+    this.defaultContext,
+    this.defaultResource,
+  }) {
     if (resources != null) {
       for (var entry in resources.entries) {
         var k = entry.key;
@@ -417,8 +426,11 @@ class ContextualResourceResolver<T, C extends Comparable<C>> {
   }
 
   /// Adds a resources with a dynamic [value].
-  void addDynamic(String key, Object? value,
-      [ContextualResource<T, C> Function(Object? value)? mapper]) {
+  void addDynamic(
+    String key,
+    Object? value, [
+    ContextualResource<T, C> Function(Object? value)? mapper,
+  ]) {
     if (value is ContextualResource) {
       if (mapper != null) {
         value = mapper(value);
@@ -444,8 +456,10 @@ class ContextualResourceResolver<T, C extends Comparable<C>> {
   void add(String key, Iterable<ContextualResource<T, C>> options) {
     if (isEmptyObject(options)) return;
 
-    var entries =
-        _resources.putIfAbsent(key, () => <ContextualResource<T, C>>{});
+    var entries = _resources.putIfAbsent(
+      key,
+      () => <ContextualResource<T, C>>{},
+    );
 
     var size = entries.length;
     entries.addAll(options);
@@ -481,7 +495,9 @@ class ContextualResourceResolver<T, C extends Comparable<C>> {
   }
 
   ContextualResource<T, C> _getResource(
-      List<ContextualResource<T, C>> options, C context) {
+    List<ContextualResource<T, C>> options,
+    C context,
+  ) {
     var low = 0;
     var high = options.length - 1;
 

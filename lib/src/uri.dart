@@ -61,8 +61,15 @@ String getUriRootURL({bool suppressPort80 = true, int? port}) {
 /// Builds an Uri with the parameters.
 ///
 /// [path2] appends to [path]. If starts with `/` overwrites it.
-Uri buildUri(String? scheme, String? host, int? port,
-    {String? path, String? path2, String? queryString, String? fragment}) {
+Uri buildUri(
+  String? scheme,
+  String? host,
+  int? port, {
+  String? path,
+  String? path2,
+  String? queryString,
+  String? fragment,
+}) {
   var base = getUriBase();
 
   if (isEmptyString(scheme)) scheme = base.scheme;
@@ -213,14 +220,16 @@ Uri buildUri(String? scheme, String? host, int? port,
           host: host,
           path: path,
           query: queryString,
-          fragment: fragment)
+          fragment: fragment,
+        )
       : Uri(
           scheme: scheme,
           host: host,
           port: port,
           path: path,
           query: queryString,
-          fragment: fragment);
+          fragment: fragment,
+        );
 
   return resolved;
 }
@@ -229,15 +238,25 @@ Uri buildUri(String? scheme, String? host, int? port,
 Uri removeUriQueryString(String url) {
   var uri = Uri.parse(url);
   var fragment = uri.fragment;
-  return buildUri(uri.scheme, uri.host, uri.port,
-      path: uri.path, fragment: fragment);
+  return buildUri(
+    uri.scheme,
+    uri.host,
+    uri.port,
+    path: uri.path,
+    fragment: fragment,
+  );
 }
 
 /// Removes fragment from [url] and returns an [Uri].
 Uri removeUriFragment(String url) {
   var uri = Uri.parse(url);
-  return buildUri(uri.scheme, uri.host, uri.port,
-      path: uri.path, queryString: uri.query);
+  return buildUri(
+    uri.scheme,
+    uri.host,
+    uri.port,
+    path: uri.path,
+    queryString: uri.query,
+  );
 }
 
 /// Resolves [url] and returns an [Uri].
@@ -263,8 +282,13 @@ Uri resolveUri(String url, {String? baseURL, Uri? baseUri}) {
 
   base ??= getUriBase();
 
-  return buildUri(base.scheme, base.host, base.port,
-      path: base.path, path2: url);
+  return buildUri(
+    base.scheme,
+    base.host,
+    base.port,
+    path: base.path,
+    path2: url,
+  );
 }
 
 /// Same as [resolveUri], but returns [Uri] as URL String.
@@ -298,7 +322,8 @@ bool isIPAddress(String? host) {
 }
 
 RegExp _regexpIpv4 = RegExp(
-    r'^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$');
+  r'^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$',
+);
 
 /// Returns [true] if is a IPv4 address.
 bool isIPv4Address(String? host) {
@@ -307,7 +332,8 @@ bool isIPv4Address(String? host) {
 }
 
 RegExp _regexpIpv6 = RegExp(
-    r'^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$');
+  r'^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$',
+);
 
 /// Returns [true] if is a IPv6 address.
 bool isIPv6Address(String? host) {

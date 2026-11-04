@@ -19,8 +19,9 @@ Future<void> sleep([int ms = 0]) async {
 void main() {
   group('Creation', () {
     test('strong() starts strong', () {
-      final m =
-          LazyWeakReferenceManager<Box>(weakenDelay: Duration(seconds: 5));
+      final m = LazyWeakReferenceManager<Box>(
+        weakenDelay: Duration(seconds: 5),
+      );
       final obj = Box(1);
 
       final ref = m.strong(obj);
@@ -77,8 +78,9 @@ void main() {
 
   group('Promotion strong()', () {
     test('weak -> strong promotion', () {
-      final m =
-          LazyWeakReferenceManager<Box>(weakenDelay: Duration(seconds: 5));
+      final m = LazyWeakReferenceManager<Box>(
+        weakenDelay: Duration(seconds: 5),
+      );
       final obj = Box(3);
 
       final ref = m.weak(obj);
@@ -90,8 +92,9 @@ void main() {
     });
 
     test('strong() keeps weakRef when requested', () {
-      final m =
-          LazyWeakReferenceManager<Box>(weakenDelay: Duration(seconds: 5));
+      final m = LazyWeakReferenceManager<Box>(
+        weakenDelay: Duration(seconds: 5),
+      );
       final obj = Box(4);
 
       final ref = m.weak(obj);
@@ -102,8 +105,9 @@ void main() {
     });
 
     test('strong() removes weakRef when keepWeakRef=false', () {
-      final m =
-          LazyWeakReferenceManager<Box>(weakenDelay: Duration(seconds: 5));
+      final m = LazyWeakReferenceManager<Box>(
+        weakenDelay: Duration(seconds: 5),
+      );
       final obj = Box(5);
 
       final ref = m.weak(obj);
@@ -116,8 +120,9 @@ void main() {
 
   group('Manual weakening', () {
     test('strong -> weak', () {
-      final m =
-          LazyWeakReferenceManager<Box>(weakenDelay: Duration(seconds: 5));
+      final m = LazyWeakReferenceManager<Box>(
+        weakenDelay: Duration(seconds: 5),
+      );
       final obj = Box(6);
 
       final ref = m.strong(obj);

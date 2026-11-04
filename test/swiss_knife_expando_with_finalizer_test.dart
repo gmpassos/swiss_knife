@@ -48,14 +48,18 @@ Future<void> _encourageGC() async {
 }
 
 /// Waits until condition true or timeout
-Future<void> _waitUntil(bool Function() cond,
-    {Duration timeout = const Duration(seconds: 40)}) async {
+Future<void> _waitUntil(
+  bool Function() cond, {
+  Duration timeout = const Duration(seconds: 40),
+}) async {
   var stackTrace = StackTrace.current;
   final start = DateTime.now();
   while (!cond()) {
     if (DateTime.now().difference(start) > timeout) {
       Error.throwWithStackTrace(
-          TestFailure('Timed out waiting for condition'), stackTrace);
+        TestFailure('Timed out waiting for condition'),
+        stackTrace,
+      );
     }
     await _encourageGC();
   }
@@ -150,9 +154,7 @@ void main() {
     test('multiple replaces finalize only last value', () async {
       final finalized = <String>[];
 
-      final exp = ExpandoWithFinalizer<_Key, String>(
-        finalized.add,
-      );
+      final exp = ExpandoWithFinalizer<_Key, String>(finalized.add);
 
       void createKey() {
         final key = _Key(300);
@@ -205,14 +207,12 @@ void main() {
     test('finalizer error does not stop other finalizations', () async {
       final finalized = <String>[];
 
-      final exp = _TestExpando<_Key, String>(
-        (v) {
-          if (v == 'bad') {
-            throw StateError("Bad");
-          }
-          finalized.add(v);
-        },
-      );
+      final exp = _TestExpando<_Key, String>((v) {
+        if (v == 'bad') {
+          throw StateError("Bad");
+        }
+        finalized.add(v);
+      });
 
       void create() {
         exp[_Key(1)] = 'ok';
@@ -379,8 +379,10 @@ void main() {
     test('debug wrapper does not keep key alive', () async {
       final finalized = <String>[];
 
-      final exp = ExpandoWithFinalizer<_Key, String>((v) => finalized.add(v),
-          debug: true);
+      final exp = ExpandoWithFinalizer<_Key, String>(
+        (v) => finalized.add(v),
+        debug: true,
+      );
 
       void createKey() {
         final key = _Key(70);
@@ -417,10 +419,7 @@ void main() {
     test('remove throws', () {
       final f = AttachOnlyFinalizer<_Key, String>((_) {});
 
-      expect(
-        () => f.remove(_Key(1)),
-        throwsUnsupportedError,
-      );
+      expect(() => f.remove(_Key(1)), throwsUnsupportedError);
     });
 
     test('finalizer runs', () async {
