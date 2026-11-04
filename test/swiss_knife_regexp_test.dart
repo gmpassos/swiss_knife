@@ -148,12 +148,28 @@ void main() {
 
       var d2 = d.withParameters(multiLine: true, throwCompilationErrors: false);
       expect(d2.multiLine, isTrue);
-      // NOTE: current behaviour; possibly a bug: the copy made by
-      // `withParameters` does not carry the compilation errors, so it reports
-      // no errors and `getWordPattern` of a broken word fails with a raw
-      // FormatException instead of the StateError the original throws.
-      expect(d2.hasErrors, isFalse);
-      expect(() => d2.getWordPattern('bad'), throwsFormatException);
+      // Regression: the copy made by `withParameters` did not carry the
+      // compilation errors, so it reported no errors and `getWordPattern` of a
+      // broken word failed with a raw FormatException instead of the
+      // StateError the original throws.
+      expect(d2.hasErrors, isTrue);
+      expect(d2.errorWords, equals(['bad']));
+      expect(d2.getWordErrorPattern('bad'), equals('(a'));
+      expect(d2.getWordErrorMessage('bad'), d.getWordErrorMessage('bad'));
+      expect(() => d2.getWordPattern('bad'), throwsStateError);
+      expect(() => d2.getWordPattern('ref'), throwsStateError);
+      expect(d2.getWordPattern('ok')!.pattern, equals('b'));
+      expect(d2.getWordPattern('ok')!.isMultiLine, isTrue);
+
+      // The copy also refuses to be copied again with errors:
+      expect(() => d2.withParameters(caseSensitive: false), throwsStateError);
+      var d3 = RegExpDialect.from(
+        d2,
+        caseSensitive: false,
+        throwCompilationErrors: false,
+      )!;
+      expect(d3.hasErrors, isTrue);
+      expect(() => d3.getWordPattern('bad'), throwsStateError);
     });
   });
 

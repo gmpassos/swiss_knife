@@ -374,6 +374,12 @@ class EventStream<T> implements Stream<T> {
     }
   }
 
+  /// Listens for a single event (data or error), then cancels the listener.
+  ///
+  /// [singletonIdentifier] and [singletonIdentifyByInstance] work like in
+  /// [listen]: while a listener with the same identifier is registered (a
+  /// one-shot one that hasn't received its event yet), a new one isn't
+  /// registered and `null` is returned.
   ListenerWrapper<T>? listenOneShot(
     void Function(T event) onData, {
     Function? onError,
@@ -382,6 +388,15 @@ class EventStream<T> implements Stream<T> {
     Object? singletonIdentifier,
     bool? singletonIdentifyByInstance = true,
   }) {
+    if (singletonIdentifier != null &&
+        getSingletonSubscription(
+              singletonIdentifier,
+              singletonIdentifyByInstance ?? true,
+            ) !=
+            null) {
+      return null;
+    }
+
     var listenerWrapper = ListenerWrapper<T>(
       this,
       onData,
@@ -389,6 +404,8 @@ class EventStream<T> implements Stream<T> {
       onDone: onDone,
       cancelOnError: cancelOnError,
       oneShot: true,
+      singletonIdentifier: singletonIdentifier,
+      singletonIdentifyByInstance: singletonIdentifyByInstance ?? true,
     );
     var ok = listenerWrapper.listen();
     return ok ? listenerWrapper : null;
@@ -524,7 +541,10 @@ class EventStreamDelegator<T> implements EventStream<T> {
     if (es == null) return;
 
     for (var v in _listenBuffer) {
-      es.listen(
+      var bufferedSubscription = v[8] as _BufferedStreamSubscription<T>;
+      if (bufferedSubscription.isCanceled) continue;
+
+      var subscription = es.listen(
         v[0],
         onError: v[1],
         onDone: v[2],
@@ -534,6 +554,8 @@ class EventStreamDelegator<T> implements EventStream<T> {
         eventValidator: v[6],
         overwriteSingletonSubscription: v[7],
       );
+
+      bufferedSubscription.bind(subscription);
     }
 
     for (var v in _listenOneShotBuffer) {
@@ -559,10 +581,18 @@ class EventStreamDelegator<T> implements EventStream<T> {
   }
 
   /// Clears unflushed events.
+  ///
+  /// The buffered listeners are dropped: the [StreamSubscription]s returned by
+  /// [listen] for them won't receive events.
   void clearUnflushed() {
     _addBuffer.clear();
     _addErrorBuffer.clear();
+
+    for (var v in _listenBuffer) {
+      (v[8] as _BufferedStreamSubscription<T>).drop();
+    }
     _listenBuffer.clear();
+
     _listenOneShotBuffer.clear();
   }
 
@@ -632,7 +662,10 @@ class EventStreamDelegator<T> implements EventStream<T> {
   }) {
     var es = eventStream;
     if (es == null) {
-      _listenBuffer.add([
+      // A single subscription: bound to the one registered by `flush`.
+      var bufferedSubscription = _BufferedStreamSubscription<T>();
+
+      var entry = [
         onData,
         onError,
         onDone,
@@ -641,21 +674,14 @@ class EventStreamDelegator<T> implements EventStream<T> {
         singletonIdentifyByInstance,
         eventValidator,
         overwriteSingletonSubscription,
-      ]);
+        bufferedSubscription,
+      ];
 
-      return _StreamSubscriptionProvider(() {
-        var es2 = eventStream;
-        return es2?.listen(
-          onData,
-          onError: onError,
-          onDone: onDone,
-          cancelOnError: cancelOnError,
-          singletonIdentifier: singletonIdentifier,
-          singletonIdentifyByInstance: singletonIdentifyByInstance,
-          eventValidator: eventValidator,
-          overwriteSingletonSubscription: overwriteSingletonSubscription,
-        );
-      });
+      _listenBuffer.add(entry);
+
+      bufferedSubscription.onCancelBuffered = () => _listenBuffer.remove(entry);
+
+      return bufferedSubscription;
     } else {
       return es.listen(
         onData,
@@ -889,50 +915,132 @@ class EventStreamDelegator<T> implements EventStream<T> {
       eventStream?.eventValidator = eventValidator;
 }
 
-class _StreamSubscriptionProvider<T> implements StreamSubscription<T> {
-  final StreamSubscription<T>? Function() _provider;
-  StreamSubscription<T>? _s;
+/// The [StreamSubscription] returned by [EventStreamDelegator.listen] while
+/// the listener is buffered (no [EventStream] yet).
+///
+/// When the buffer is flushed it is bound to the single [StreamSubscription]
+/// registered by the flush, applying any state set while buffered (handlers,
+/// pauses, [asFuture]); after that it delegates to it. If it is cancelled
+/// while buffered, the buffered listener is dropped (never registered).
+class _BufferedStreamSubscription<T> implements StreamSubscription<T> {
+  StreamSubscription<T>? _source;
 
-  StreamSubscription<T> get _source {
-    _s ??= _provider();
-    return _s!;
+  bool _canceled = false;
+
+  /// `true` if the buffered listener was dropped (cancelled or cleared).
+  bool get isCanceled => _canceled;
+
+  int _pauseCount = 0;
+
+  /// The calls made while buffered, replayed (in order) on [bind].
+  List<void Function(StreamSubscription<T> source)>? _calls = [];
+
+  _BufferedStreamSubscription();
+
+  /// Binds to the subscription registered by the flush.
+  void bind(StreamSubscription<T> source) {
+    if (_source != null || _canceled) return;
+    _source = source;
+
+    var calls = _calls;
+    _calls = null;
+    _pauseCount = 0;
+
+    if (calls != null) {
+      for (var call in calls) {
+        call(source);
+      }
+    }
   }
 
-  _StreamSubscriptionProvider(this._provider);
+  /// Drops this buffered listener (it won't be registered).
+  void drop() {
+    if (_source != null) return;
+    _canceled = true;
+    _pauseCount = 0;
+    _calls = null;
+  }
+
+  /// Calls [call] on the bound subscription, or buffers it.
+  void _call(void Function(StreamSubscription<T> source) call) {
+    var source = _source;
+    if (source != null) {
+      call(source);
+    } else {
+      _calls?.add(call);
+    }
+  }
 
   @override
-  void onData(void Function(T)? handleData) {
-    _source.onData(handleData);
-  }
+  void onData(void Function(T)? handleData) =>
+      _call((s) => s.onData(handleData));
 
   @override
-  void onError(Function? handleError) {
-    _source.onError(handleError);
-  }
+  void onError(Function? handleError) => _call((s) => s.onError(handleError));
 
   @override
-  void onDone(void Function()? handleDone) {
-    _source.onDone(handleDone);
-  }
+  void onDone(void Function()? handleDone) =>
+      _call((s) => s.onDone(handleDone));
 
   @override
   void pause([Future? resumeFuture]) {
-    _source.pause(resumeFuture);
+    var source = _source;
+    if (source != null) {
+      source.pause(resumeFuture);
+    } else if (!_canceled) {
+      ++_pauseCount;
+      _calls?.add((s) => s.pause());
+      resumeFuture?.whenComplete(resume);
+    }
   }
 
   @override
   void resume() {
-    _source.resume();
+    var source = _source;
+    if (source != null) {
+      source.resume();
+    } else if (_pauseCount > 0) {
+      --_pauseCount;
+      _calls?.add((s) => s.resume());
+    }
+  }
+
+  /// Set by [EventStreamDelegator] to remove the buffered listener.
+  void Function()? onCancelBuffered;
+
+  @override
+  Future cancel() {
+    var source = _source;
+    if (source != null) return source.cancel();
+    if (!_canceled) {
+      drop();
+      var onCancelBuffered = this.onCancelBuffered;
+      this.onCancelBuffered = null;
+      if (onCancelBuffered != null) onCancelBuffered();
+    }
+    return Future.value();
   }
 
   @override
-  Future cancel() => _source.cancel();
+  Future<E> asFuture<E>([E? futureValue]) {
+    var source = _source;
+    if (source != null) return source.asFuture(futureValue);
+
+    var completer = Completer<E>();
+    _calls?.add((s) {
+      s
+          .asFuture<E>(futureValue)
+          .then(completer.complete, onError: completer.completeError);
+    });
+    return completer.future;
+  }
 
   @override
-  Future<E> asFuture<E>([E? futureValue]) => _source.asFuture(futureValue);
-
-  @override
-  bool get isPaused => _source.isPaused;
+  bool get isPaused {
+    var source = _source;
+    if (source != null) return source.isPaused;
+    return !_canceled && _pauseCount > 0;
+  }
 }
 
 /// Tracks interactions and after a delay, without interaction, triggers
@@ -1181,33 +1289,44 @@ class AsyncValue<T> {
     );
   }
 
+  /// Creates an instance from [value]:
+  /// - A [Future].
+  /// - A function returning a [Future] or a value (called in a microtask).
+  ///
+  /// A [Future] (or function) declared with a type other than `T` (such as a
+  /// `Future<dynamic>`) is accepted: its result is cast to `T`, and if it isn't
+  /// a `T`, the [future] completes with a [TypeError] (see [error]).
   factory AsyncValue.from(Object? value) {
     if (value is Future) {
-      return AsyncValue(value as Future<T>);
+      return AsyncValue<T>(_asFutureOfT<T>(value));
     } else if (value is Future<T> Function()) {
       var future = value();
       return AsyncValue<T>(future);
     } else if (value is Future Function()) {
       var future = value();
-      return AsyncValue(future as Future<T>);
+      return AsyncValue<T>(_asFutureOfT<T>(future));
     } else if (value is T Function()) {
       var future = Future.microtask(() => value());
       return AsyncValue<T>(future);
     } else if (value is Function) {
-      var future = Future.microtask(() async {
+      // A function with another declared return type (such as `dynamic`,
+      // `Object` or `FutureOr<T>`): its result must be a `T` (or a `Future`
+      // of a `T`).
+      var future = Future<T>.microtask(() async {
         var result = value();
         if (result is Future) {
-          var result2 = await result;
-          return result2;
-        } else {
-          return result;
+          result = await result;
         }
+        return result as T;
       });
-      return AsyncValue(future as Future<T>);
+      return AsyncValue<T>(future);
     } else {
       throw ArgumentError('Not an async value: $value');
     }
   }
+
+  static Future<R> _asFutureOfT<R>(Future future) =>
+      future is Future<R> ? future : future.then((r) => r as R);
 
   Future<T> get future => _future;
 
@@ -1394,9 +1513,37 @@ class ListenerWrapper<T> {
   }
 
   /// Cancels [subscription];
+  ///
+  /// If [subscription] is the singleton subscription of [singletonIdentifier]
+  /// in an [EventStream], it's also unregistered as singleton, so a new
+  /// listener with the same identifier can be registered.
   void cancel() {
-    _subscription?.cancel();
+    var subscription = _subscription;
+    if (subscription == null) return;
     _subscription = null;
+
+    var singletonIdentifier = this.singletonIdentifier;
+    Object stream = this.stream;
+    if (singletonIdentifier != null && stream is EventStream) {
+      var singletonSubscription = stream.getSingletonSubscription(
+        singletonIdentifier,
+        singletonIdentifyByInstance,
+      );
+      // Through an `EventStreamDelegator` the subscription may be a buffered
+      // one, bound to the registered subscription:
+      var registered = subscription is _BufferedStreamSubscription<T>
+          ? subscription._source
+          : subscription;
+      if (identical(singletonSubscription, registered)) {
+        stream.cancelSingletonSubscription(
+          singletonIdentifier,
+          singletonIdentifyByInstance,
+        );
+        return;
+      }
+    }
+
+    subscription.cancel();
   }
 }
 

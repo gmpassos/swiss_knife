@@ -61,14 +61,34 @@ void main() {
       expect(LazyWeakReferenceManager<Box>(batchLimit: 1).batchLimit, 1);
     });
 
-    test('a 1 ms weakenDelay is replaced by the default', () {
-      // NOTE: current behaviour; possibly a bug: the check is
-      // `weakenDelay.inMilliseconds > 1`, so a valid 1 ms delay silently
-      // becomes the 1 second default (a 1000x longer delay).
+    test('a 1 ms weakenDelay is kept', () {
+      // Regression: the check was `weakenDelay.inMilliseconds > 1`, so a
+      // valid 1 ms delay silently became the 1 second default.
       final m = LazyWeakReferenceManager<Box>(
         weakenDelay: Duration(milliseconds: 1),
       );
-      expect(m.weakenDelay, Duration(seconds: 1));
+      expect(m.weakenDelay, Duration(milliseconds: 1));
+
+      expect(
+        LazyWeakReferenceManager<Box>(weakenDelay: Duration(microseconds: 500))
+            .weakenDelay,
+        Duration(microseconds: 500),
+      );
+      expect(
+        LazyWeakReferenceManager<Box>(weakenDelay: Duration(milliseconds: -5))
+            .weakenDelay,
+        LazyWeakReferenceManager.defaultWeakenDelay,
+      );
+    });
+
+    test('a 1 ms weakenDelay weakens quickly', () async {
+      final m = LazyWeakReferenceManager<Box>(
+        weakenDelay: Duration(milliseconds: 1),
+      );
+      final ref = m.strong(Box(1));
+      expect(ref.isStrong, isTrue);
+      await Future.delayed(Duration(milliseconds: 300));
+      expect(ref.isWeak, isTrue);
     });
 
     test('ids are unique and increasing', () {

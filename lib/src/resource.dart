@@ -11,8 +11,18 @@ class ResourceContentCache {
 
   int get size => _resources.length;
 
+  /// Returns `true` if this cache has a [ResourceContent] for [resource]
+  /// (see [get] for [resource] description). It doesn't change the cache.
   bool contains(Object? resource) {
-    return get(resource) != null;
+    if (resource == null) return false;
+
+    var resourceContent = ResourceContent.from(resource);
+    if (resourceContent == null) return false;
+
+    var cacheKey = _cacheKey(resourceContent);
+    if (cacheKey == null) return false;
+
+    return _resources.containsKey(cacheKey);
   }
 
   /// Returns a [ResourceContent] using [resource] as key.
@@ -34,10 +44,8 @@ class ResourceContentCache {
       if (identical(cached, resourceContent)) return resourceContent;
 
       if (resourceContent.hasContent && !cached.hasContent) {
-        var content = resourceContent._content;
-
-        cached._content = content;
-        cached._onLoadEventStream?.add(content);
+        // The transferred content loads the cached instance:
+        cached._onLoad(resourceContent._content, false);
       }
 
       return cached;
@@ -371,15 +379,13 @@ class ContextualResource<T, C extends Comparable<C>>
     }
   }
 
+  /// Compares this [context] with [c2], using [Comparable.compareTo].
+  /// A `null` [context] is greater than any context (sorted last, like in
+  /// [compareTo]).
   int compareContext(C c2) {
     var c1 = context;
-    if (c1 != null) {
-      return -1;
-    } else if (c1 == null) {
-      return 1;
-    } else {
-      return c1.compareTo(c2);
-    }
+    if (c1 == null) return 1;
+    return c1.compareTo(c2);
   }
 
   @override
@@ -478,6 +484,16 @@ class ContextualResourceResolver<T, C extends Comparable<C>> {
   C? defaultContext;
 
   /// Resolves a resource.
+  ///
+  /// - Without a [context] (nor [defaultContext]): returns [defaultResource],
+  ///   or the first added option.
+  /// - With a [context]: returns the option with an equal context, otherwise
+  ///   the option with the next greater context (options with a `null`
+  ///   context are greater than any context). If [context] is greater than
+  ///   all the options contexts, returns the greatest option.
+  ///
+  /// Contexts are compared with [contextComparator], if provided, otherwise
+  /// with [Comparable.compareTo].
   T? resolve(String key, [C? context]) {
     var options = _resources[key];
     if (isEmptyObject(options)) return defaultResource?.resource;
@@ -489,11 +505,20 @@ class ContextualResourceResolver<T, C extends Comparable<C>> {
 
     var sortedOptions = _resourcesSorted.putIfAbsent(key, () {
       var list = options!.toList();
-      list.sort();
+      list.sort((a, b) => _compareContexts(a.context, b.context));
       return list;
     });
 
     return _getResource(sortedOptions, context).resource;
+  }
+
+  /// Compares [c1] with [c2] (a `null` context is greater than any context).
+  int _compareContexts(C? c1, C? c2) {
+    if (c1 == null) return c2 == null ? 0 : 1;
+    if (c2 == null) return -1;
+
+    var comparator = contextComparator;
+    return comparator != null ? comparator(c1, c2) : c1.compareTo(c2);
   }
 
   ContextualResource<T, C> _getResource(
@@ -503,15 +528,11 @@ class ContextualResourceResolver<T, C extends Comparable<C>> {
     var low = 0;
     var high = options.length - 1;
 
-    var comparator = contextComparator;
-
     while (low <= high) {
       var mid = (low + high) ~/ 2;
       var midVal = options[mid];
 
-      var cmp = comparator != null
-          ? comparator(midVal.context!, context)
-          : midVal.compareContext(context);
+      var cmp = _compareContexts(midVal.context, context);
 
       if (cmp < 0) {
         low = mid + 1;
@@ -522,7 +543,9 @@ class ContextualResourceResolver<T, C extends Comparable<C>> {
       } // key found
     }
 
-    return options[low];
+    // `low` is the next greater option. If the context is greater than all
+    // the options, `low == options.length`: the greatest option.
+    return low < options.length ? options[low] : options.last;
   }
 
   /// Returns a resolved resource using [defaultContext].

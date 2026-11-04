@@ -824,15 +824,16 @@ void main() {
         ]);
         expect(map.keys.toList(), [keys[0], keys[2]]);
 
-        // NOTE: current behaviour; possibly a bug: `purge` removes the key
-        // entry from the internal key map directly (bypassing
-        // `_onRemoveEntry`), and `_onPurgeValues` only drops reverse entries
-        // whose *value* was collected. So the reverse entry of a live value
-        // whose key was collected survives the purge:
-        expect(map.containsValueNoPurge(values[1]), isTrue);
-        // It is only dropped lazily, on a purging lookup:
-        expect(map.getKeyFromValue(values[1]), isNull);
+        // Regression: `purge` removed the key entry from the internal key map
+        // directly (bypassing `_onRemoveEntry`), and `_onPurgeValues` only
+        // dropped reverse entries whose *value* was collected. So the reverse
+        // entry of a live value whose key was collected survived the purge
+        // (until a purging lookup).
         expect(map.containsValueNoPurge(values[1]), isFalse);
+        expect(map.swapped.keys.toList(), [values[0], values[2]]);
+        expect(map.getKeyFromValue(values[1]), isNull);
+        expect(map.getKeyFromValue(values[0]), same(keys[0]));
+        expect(map.length, 2);
       });
 
       test('keys iteration removes the entry on both sides', () {

@@ -577,11 +577,12 @@ void main() {
       var d = Dimension(800, 600);
       var other = Dimension(700, 400);
       // dw = 100, dh = 200.
-      expect(d.subtract(other), equals(200));
-      // NOTE: current behaviour; possibly a bug: the doc says
-      // `maximumDifferences: true` returns the maximum difference, but it
-      // returns the minimum one (and the default returns the maximum).
-      expect(d.subtract(other, true), equals(100));
+      // Regression: the doc says `maximumDifferences` = true returns the
+      // maximum difference, but it returned the minimum one (and the default
+      // returned the maximum).
+      expect(d.subtract(other), equals(100));
+      expect(d.subtract(other, false), equals(100));
+      expect(d.subtract(other, true), equals(200));
     });
   });
 }

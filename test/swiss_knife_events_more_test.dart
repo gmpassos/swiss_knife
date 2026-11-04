@@ -106,29 +106,110 @@ void main() {
       expect(es.cancelSingletonSubscription('x'), isFalse);
     });
 
-    test('listenOneShot ignores singletonIdentifier', () async {
+    test('listenOneShot with singletonIdentifier', () async {
       var es = EventStream<int>();
 
       var a = <int>[];
       var b = <int>[];
 
-      // NOTE: current behaviour; possibly a bug: `EventStream.listenOneShot`
-      // accepts `singletonIdentifier`/`singletonIdentifyByInstance` but never
-      // passes them to the `ListenerWrapper`, so two one-shot listeners with
-      // the same identifier are both registered and no singleton
-      // subscription is recorded.
+      // Regression: `EventStream.listenOneShot` accepted
+      // `singletonIdentifier`/`singletonIdentifyByInstance` but never passed
+      // them to the `ListenerWrapper`, so two one-shot listeners with the
+      // same identifier were both registered and no singleton subscription
+      // was recorded.
       var w1 = es.listenOneShot(a.add, singletonIdentifier: 'ONE')!;
-      var w2 = es.listenOneShot(b.add, singletonIdentifier: 'ONE')!;
+      // Not registered while the singleton is listening:
+      var w2 = es.listenOneShot(b.add, singletonIdentifier: 'ONE');
+      expect(w2, isNull);
 
-      expect(identical(w1.subscription, w2.subscription), isFalse);
-      expect(w1.singletonIdentifier, isNull);
-      expect(es.getSingletonSubscription('ONE'), isNull);
+      expect(w1.singletonIdentifier, equals('ONE'));
+      expect(w1.singletonIdentifyByInstance, isTrue);
+      expect(es.getSingletonSubscription('ONE'), same(w1.subscription));
 
       es.add(1);
       es.add(2);
       await _tick();
 
       expect(a, equals([1]));
+      expect(b, isEmpty);
+
+      // After the one shot, the singleton is released, so a new one-shot
+      // listener with the same identifier is registered:
+      expect(es.getSingletonSubscription('ONE'), isNull);
+      var c = <int>[];
+      var w3 = es.listenOneShot(c.add, singletonIdentifier: 'ONE')!;
+      expect(identical(w3.subscription, w1.subscription), isFalse);
+      es.add(3);
+      es.add(4);
+      await _tick();
+      expect(c, equals([3]));
+      expect(a, equals([1]));
+
+      // `singletonIdentifyByInstance: false` compares with `==`:
+      var d = <int>[];
+      var e = <int>[];
+      var id1 = 'T${1}';
+      var id2 = 'T${1}';
+      es.listenOneShot(
+        d.add,
+        singletonIdentifier: id1,
+        singletonIdentifyByInstance: false,
+      )!;
+      var w5 = es.listenOneShot(
+        e.add,
+        singletonIdentifier: id2,
+        singletonIdentifyByInstance: false,
+      );
+      expect(w5, isNull);
+      es.add(5);
+      await _tick();
+      expect(d, equals([5]));
+      expect(e, isEmpty);
+
+      await es.close();
+    });
+
+    test('listenOneShot singleton cancelled by the wrapper', () async {
+      var es = EventStream<int>();
+      var a = <int>[];
+      var w1 = es.listenOneShot(a.add, singletonIdentifier: 'X')!;
+      w1.cancel();
+      expect(w1.isListening, isFalse);
+      expect(es.getSingletonSubscription('X'), isNull);
+
+      var b = <int>[];
+      es.listenOneShot(b.add, singletonIdentifier: 'X')!;
+      es.add(1);
+      await _tick();
+      expect(a, isEmpty);
+      expect(b, equals([1]));
+
+      await es.close();
+    });
+
+    test('ListenerWrapper singleton through a buffering delegator', () async {
+      EventStream<int>? target;
+      var d = EventStreamDelegator<int>.provider(() => target);
+
+      var a = <int>[];
+      var w1 = ListenerWrapper<int>(d, a.add, singletonIdentifier: 'id');
+      expect(w1.listen(), isTrue);
+
+      var es = EventStream<int>();
+      d.eventStream = es;
+      expect(es.getSingletonSubscription('id'), isNotNull);
+
+      // The wrapper holds the buffered subscription: cancelling it releases
+      // the singleton registered on flush.
+      w1.cancel();
+      expect(es.getSingletonSubscription('id'), isNull);
+
+      var b = <int>[];
+      var w2 = ListenerWrapper<int>(es, b.add, singletonIdentifier: 'id');
+      expect(w2.listen(), isTrue);
+      es.add(1);
+      await _tick();
+      expect(a, isEmpty);
       expect(b, equals([1]));
 
       await es.close();
@@ -487,69 +568,177 @@ void main() {
       await _tick();
       expect(values, equals([1]));
 
-      // NOTE: current behaviour; possibly a bug: the subscription returned
-      // while buffering is a lazy proxy that calls `listen` again on first
-      // use, so it controls a second subscription (duplicating events) and
-      // cancelling it does not cancel the listener registered by `flush`.
+      // Regression: the subscription returned while buffering was a lazy
+      // proxy that called `listen` again on first use, so it controlled a
+      // second subscription (duplicating events) and cancelling it did not
+      // cancel the listener registered by `flush`.
       expect(sub.isPaused, isFalse);
       d.add(2);
       await _tick();
-      expect(values, equals([1, 2, 2]));
-
-      await sub.cancel();
-      d.add(3);
-      await _tick();
-      expect(values, equals([1, 2, 2, 3]));
-
-      await d.close();
-    });
-
-    test('subscription proxy delegates to the subscription', () async {
-      EventStream<int>? target;
-      var d = EventStreamDelegator<int>.provider(() => target);
-
-      var sub = d.listen((_) {});
-      d.clearUnflushed();
-      target = EventStream<int>();
-
-      var data = <int>[];
-      var errors = <Object>[];
-      var done = false;
-
-      sub.onData(data.add);
-      sub.onError((Object e) => errors.add(e));
-      sub.onDone(() => done = true);
+      expect(values, equals([1, 2]));
 
       sub.pause();
       expect(sub.isPaused, isTrue);
-      d.add(1);
-      d.addError('E');
+      d.add(3);
       await _tick();
-      expect(data, isEmpty);
-
+      expect(values, equals([1, 2]));
       sub.resume();
       expect(sub.isPaused, isFalse);
       await _tick();
-      expect(data, equals([1]));
-      expect(errors, equals(['E']));
+      expect(values, equals([1, 2, 3]));
+
+      await sub.cancel();
+      d.add(4);
+      await _tick();
+      expect(values, equals([1, 2, 3]));
 
       await d.close();
-      await _tick();
-      expect(done, isTrue);
     });
 
-    test('subscription proxy asFuture', () async {
+    test(
+      'subscription returned while buffering: state set before flush',
+      () async {
+        EventStream<int>? target;
+        var d = EventStreamDelegator<int>.provider(() => target);
+
+        var original = <int>[];
+        var sub = d.listen(original.add);
+
+        var data = <int>[];
+        var errors = <Object>[];
+        var done = false;
+
+        // Set while buffered, applied to the subscription registered by flush:
+        sub.onData(data.add);
+        sub.onError((Object e) => errors.add(e));
+        sub.onDone(() => done = true);
+
+        sub.pause();
+        sub.pause();
+        expect(sub.isPaused, isTrue);
+        sub.resume();
+        expect(sub.isPaused, isTrue);
+
+        target = EventStream<int>();
+        expect(d.eventStream, same(target));
+        expect(sub.isPaused, isTrue);
+
+        d.add(1);
+        d.addError('E');
+        await _tick();
+        expect(data, isEmpty);
+
+        sub.resume();
+        expect(sub.isPaused, isFalse);
+        await _tick();
+        expect(data, equals([1]));
+        expect(errors, equals(['E']));
+        expect(original, isEmpty);
+
+        await d.close();
+        await _tick();
+        expect(done, isTrue);
+      },
+    );
+
+    test(
+      'subscription returned while buffering: pause with resumeFuture',
+      () async {
+        EventStream<int>? target;
+        var d = EventStreamDelegator<int>.provider(() => target);
+
+        var values = <int>[];
+        var sub = d.listen(values.add);
+
+        var resume = Completer<void>();
+        sub.pause(resume.future);
+        expect(sub.isPaused, isTrue);
+
+        target = EventStream<int>();
+        d.flush();
+        expect(sub.isPaused, isTrue);
+
+        d.add(1);
+        await _tick();
+        expect(values, isEmpty);
+
+        resume.complete();
+        await _tick();
+        await _tick();
+        expect(sub.isPaused, isFalse);
+        expect(values, equals([1]));
+
+        await d.close();
+      },
+    );
+
+    test(
+      'subscription returned while buffering: cancel before flush',
+      () async {
+        EventStream<int>? target;
+        var d = EventStreamDelegator<int>.provider(() => target);
+
+        var values = <int>[];
+        var sub = d.listen(values.add);
+        await sub.cancel();
+        expect(sub.isPaused, isFalse);
+
+        // Calls after the cancel are ignored:
+        sub.pause();
+        expect(sub.isPaused, isFalse);
+        sub.onData((_) => fail('cancelled'));
+
+        target = EventStream<int>();
+        expect(d.eventStream, same(target));
+
+        d.add(1);
+        await _tick();
+        expect(values, isEmpty);
+
+        await d.close();
+      },
+    );
+
+    test('subscription returned while buffering: clearUnflushed', () async {
+      EventStream<int>? target;
+      var d = EventStreamDelegator<int>.provider(() => target);
+
+      var values = <int>[];
+      var sub = d.listen(values.add);
+      d.clearUnflushed();
+
+      target = EventStream<int>();
+      expect(d.eventStream, same(target));
+
+      // The buffered listener was dropped: using the subscription doesn't
+      // register it (the old lazy proxy called `listen` on first use).
+      sub.onData(values.add);
+      expect(sub.isPaused, isFalse);
+      d.add(1);
+      await _tick();
+      expect(values, isEmpty);
+      await sub.cancel();
+
+      await d.close();
+    });
+
+    test('subscription returned while buffering: asFuture', () async {
       EventStream<int>? target;
       var d = EventStreamDelegator<int>.provider(() => target);
 
       var sub = d.listen((_) {});
-      d.clearUnflushed();
-      target = EventStream<int>();
-
       var future = sub.asFuture<String>('finished');
+
+      target = EventStream<int>();
+      d.flush();
+
       d.add(1);
       await d.close();
       expect(await future, equals('finished'));
+
+      // After the flush, it delegates to the registered subscription:
+      var sub2 = d.listen((_) {});
+      expect(sub2, isNot(same(sub)));
     });
   });
 
@@ -565,20 +754,51 @@ void main() {
       },
     );
 
+    test('a function not declared as returning T', () async {
+      // Regression (dead branch): a generic `Function` (not `T Function()`
+      // nor `Future Function()`) had its result wrapped in a
+      // `Future<dynamic>`, which could never be cast to `Future<T>`, so the
+      // branch always threw, even when the result was a `T`.
+      dynamic fDynamic() => 10;
+      var av1 = AsyncValue<int>.from(fDynamic);
+      expect(await av1.future, equals(10));
+      expect(av1.isLoadedOK, isTrue);
+
+      Object fObject() => Future<int>.value(11);
+      var av2 = AsyncValue<int>.from(fObject);
+      expect(await av2.future, equals(11));
+
+      FutureOr<int> fFutureOr() => 12;
+      expect(await AsyncValue<int>.from(fFutureOr).future, equals(12));
+
+      // A `Future<dynamic>` (and a function returning one) holding a `T`:
+      Future<dynamic> fFutureDynamic() async => 13;
+      expect(await AsyncValue<int>.from(fFutureDynamic).future, equals(13));
+      expect(
+        await AsyncValue<int>.from(Future<dynamic>.value(14)).future,
+        equals(14),
+      );
+    });
+
     test('a function not returning T', () async {
+      // A result that isn't a `T` completes the future with a `TypeError`
+      // (it threw synchronously from the constructor):
       String f() => 'x';
-      // NOTE: current behaviour; possibly a bug (dead branch): a generic
-      // `Function` (not `T Function()` nor `Future Function()`) has its result
-      // wrapped in a `Future<dynamic>`, which can never be cast to
-      // `Future<T>` for such a `T`, so the branch always throws.
-      expect(() => AsyncValue<int>.from(f), throwsA(isA<TypeError>()));
+      var av1 = AsyncValue<int>.from(f);
+      await expectLater(av1.future, throwsA(isA<TypeError>()));
+      expect(av1.isLoadedWithError, isTrue);
+      expect(av1.error, isA<TypeError>());
 
       // A `Future Function()` returning a `Future` of another type:
       Future<String> fAsync() async => 'y';
-      expect(() => AsyncValue<int>.from(fAsync), throwsA(isA<TypeError>()));
+      var av2 = AsyncValue<int>.from(fAsync);
+      await expectLater(av2.future, throwsA(isA<TypeError>()));
+      expect(av2.hasError, isTrue);
 
-      // Let the scheduled microtasks run:
-      await _tick();
+      // A nullable `T` completes with `null`:
+      var av3 = AsyncValue<int?>.from(f);
+      expect(await av3.future, isNull);
+      expect(av3.error, isA<TypeError>());
     });
   });
 

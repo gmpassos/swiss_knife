@@ -242,9 +242,18 @@ void main() {
     test('getPathWithoutFileName', () {
       expect(getPathWithoutFileName(null), isNull);
       expect(getPathWithoutFileName('  '), isNull);
-      // NOTE: current behaviour; possibly a bug: with no path separator the
-      // whole input is returned, so the file name is not removed.
-      expect(getPathWithoutFileName('file.txt'), equals('file.txt'));
+      // Regression: with no path separator the whole input was returned, so
+      // the file name was not removed.
+      expect(getPathWithoutFileName('file.txt'), equals(''));
+      expect(getPathWithoutFileName(' file.txt '), equals(''));
+      // `path without file name` + `file name` == `path`:
+      for (var p in ['file.txt', '/a/b/c.txt', r'C:\dir\f.txt', 'a/b']) {
+        expect(
+          '${getPathWithoutFileName(p)}${getPathFileName(p) ?? ''}',
+          equals(p),
+        );
+      }
+      expect(getPathWithoutFileName('/file.txt'), equals('/'));
       expect(getPathWithoutFileName(' /a/b/c.txt '), equals('/a/b/'));
       expect(getPathWithoutFileName(r'C:\dir\f.txt'), equals(r'C:\dir\'));
       expect(getPathWithoutFileName('/a/b/'), equals('/a/b/'));

@@ -119,6 +119,9 @@ class MimeType {
   /// Constructor that parses a [mimeType] string.
   ///
   /// [defaultMimeType] if [mimeType] is invalid.
+  ///
+  /// A [mimeType] without a type before the `/` (such as `/foo`) is invalid:
+  /// returns [defaultMimeType] parsed, or `null`.
   static MimeType? parse(String? mimeType, [String? defaultMimeType]) {
     if (mimeType != null) {
       mimeType = mimeType.trim();
@@ -159,7 +162,7 @@ class MimeType {
         mimeType == 'jpg' ||
         mimeType.endsWith('/jpeg') ||
         mimeType.endsWith('/jpg')) {
-      return MimeType('image', 'jpeg');
+      return MimeType('image', 'jpeg', charset);
     } else if (mimeType == 'png' || mimeType.endsWith('/png')) {
       return MimeType('image', 'png', charset);
     } else if (mimeType == 'svg' ||
@@ -167,7 +170,7 @@ class MimeType {
         mimeType.endsWith('/svg+xml')) {
       return MimeType('image', 'svg+xml', charset);
     } else if (mimeType == 'text' || mimeType == 'txt') {
-      return MimeType('text', 'plain');
+      return MimeType('text', 'plain', charset);
     } else if (mimeType == 'css' || mimeType.endsWith('/css')) {
       return MimeType('text', 'css', charset);
     } else if (mimeType == 'html' ||
@@ -215,7 +218,7 @@ class MimeType {
     } else if (mimeType == 'mp3' ||
         mimeType.endsWith('/mp3') ||
         mimeType.endsWith('audio/mpeg')) {
-      return MimeType('audio', 'mp3', charset);
+      return MimeType('audio', 'mpeg', charset);
     } else if (mimeType == 'mpeg' || mimeType.endsWith('video/mpeg')) {
       return MimeType('video', 'mpeg', charset);
     } else if (mimeType == 'xhtml' ||
@@ -232,7 +235,10 @@ class MimeType {
 
     var idx = mimeType.indexOf('/');
 
-    if (idx > 0) {
+    if (idx == 0) {
+      // No type before the '/' (e.g. `/foo`): invalid.
+      return defaultMimeType != null ? MimeType.parse(defaultMimeType) : null;
+    } else if (idx > 0) {
       var type = mimeType.substring(0, idx).trim();
       var subType = mimeType.substring(idx + 1).trim();
 
@@ -789,51 +795,77 @@ bool isEmail(Object? value) {
 
 /// Represents a Geo Location in latitude and longitude.
 class Geolocation {
-  static final RegExp geolocationFormat = RegExp(
-    r'([-=]?)(\d+[,.]?\d*)\s*[°o]?\s*(\w)',
+  /// The format of a latitude or longitude value: an optional sign (`-` or
+  /// `+`), a number (with `.` or `,` as decimal separator), an optional degree
+  /// symbol (`°` or `o`) and an optional cardinal letter.
+  ///
+  /// Not anchored (it can find a value inside a text);
+  /// [parseLatitudeOrLongitudeValue] requires the whole value to match.
+  static final RegExp geolocationFormat = RegExp(_geolocationFormatPattern);
+
+  static const String _geolocationFormatPattern =
+      r'([-+]?)(\d+(?:[.,]\d+)?|[.,]\d+)\s*[°o]?\s*([a-zA-Z]?)';
+
+  static final RegExp _geolocationFormatFull = RegExp(
+    '^$_geolocationFormatPattern\$',
   );
 
+  /// Parses a latitude or longitude value, such as `10.5N`, `10.5°S`,
+  /// `-20.25`, `20,25W` or `123`.
+  ///
+  /// - The cardinals `S` and `W` negate the value; `N` and `E` keep it.
+  /// - An explicit sign wins over the cardinal.
+  /// - Both `.` and `,` are accepted as decimal separator (`10,5` is `10.5`).
+  /// - An unknown cardinal letter is ignored.
+  /// - If [onlyWithCardinals] is `true`, a value with an explicit sign, without
+  ///   a cardinal or with an unknown cardinal returns `null`.
+  ///
+  /// Returns `null` if [s] is `null` or the whole (trimmed) [s] doesn't match
+  /// [geolocationFormat] (it never throws).
   static num? parseLatitudeOrLongitudeValue(
     String? s, [
     bool onlyWithCardinals = false,
   ]) {
     if (s == null) return null;
 
-    var match = geolocationFormat.firstMatch(s);
+    var match = _geolocationFormatFull.firstMatch(s.trim());
     if (match == null) return null;
 
-    var signal = match.group(1);
-    var number = match.group(2);
-    var cardinal = match.group(3);
+    var signal = match.group(1)!;
+    var number = match.group(2)!.replaceFirst(',', '.');
+    var cardinal = match.group(3)!.toUpperCase();
 
-    if (signal != null && signal.isNotEmpty) {
+    var value = double.tryParse(number);
+    if (value == null) return null;
+
+    if (signal.isNotEmpty) {
       if (onlyWithCardinals) return null;
-      return double.parse('$signal$number');
-    } else if (cardinal != null && cardinal.isNotEmpty) {
-      cardinal = cardinal.toUpperCase();
+      return signal == '-' ? -value : value;
+    }
 
-      switch (cardinal) {
-        case 'N':
-          return double.parse('$number');
-        case 'S':
-          return double.parse('-$number');
-        case 'E':
-          return double.parse('$number');
-        case 'W':
-          return double.parse('-$number');
-      }
+    switch (cardinal) {
+      case 'N':
+      case 'E':
+        return value;
+      case 'S':
+      case 'W':
+        return -value;
     }
 
     if (onlyWithCardinals) return null;
-    return number != null ? double.parse(number) : null;
+    return value;
   }
 
+  /// Formats a latitude [lat] with the cardinal `N` (`lat >= 0`) or `S`
+  /// (`lat < 0`, shown without the minus sign): `10°N`, `10°S`.
   static String formatLatitude(num lat) {
-    return lat >= 0 ? '$lat°E' : '$lat°W';
+    return lat < 0 ? '${-lat}°S' : '${lat.abs()}°N';
   }
 
+  /// Formats a longitude [long] with the cardinal `E` (`long >= 0`) or `W`
+  /// (`long < 0`, shown without the minus sign): `20°E`, `20°W`.
   static String formatLongitude(num long) {
-    return long >= 0 ? '$long°N' : '$long°S';
+    return long < 0 ? '${-long}°W' : '${long.abs()}°E';
   }
 
   static String formatGeolocation(Point geo) {
@@ -854,7 +886,9 @@ class Geolocation {
     coords = coords.trim();
     if (coords.isEmpty) return null;
 
-    var parts = coords.split(RegExp(r'\s+'));
+    // Separated by blanks, optionally after a `,` or `;` (`10.5N, 20.3E`).
+    // A `,` not followed by a blank is a decimal separator (`10,5N`).
+    var parts = coords.split(RegExp(r'\s*;\s*|,\s+|\s+'));
     if (parts.length < 2) return null;
 
     var lat = parseLatitudeOrLongitudeValue(parts[0], onlyWithCardinals);

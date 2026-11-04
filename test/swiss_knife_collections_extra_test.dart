@@ -67,12 +67,16 @@ void main() {
       var d1 = Dimension(10, 20);
       var d2 = Dimension(4, 15);
       // dw = 6, dh = 5
-      // NOTE: current behaviour; possibly a bug: the doc says
-      // `maximumDifferences = true` returns the maximum difference, but the
-      // implementation swaps min/max (true -> min, false -> max).
-      expect(d1.subtract(d2), equals(6));
-      expect(d1.subtract(d2, true), equals(5));
-      expect(d1.subtract(d2, false), equals(6));
+      // Regression: the doc says `maximumDifferences = true` returns the
+      // maximum difference, but the implementation swapped min/max
+      // (true -> min, false -> max).
+      expect(d1.subtract(d2), equals(5));
+      expect(d1.subtract(d2, true), equals(6));
+      expect(d1.subtract(d2, false), equals(5));
+
+      // Negative differences:
+      expect(d2.subtract(d1), equals(-6));
+      expect(d2.subtract(d1, true), equals(-5));
     });
   });
 
@@ -124,17 +128,55 @@ void main() {
         isTrue,
       );
 
-      // NOTE: current behaviour; possibly a bug: without `eqValueIndex` the
-      // default `eqValue` is the first *element* of the first non-empty
-      // sub-list, but each whole sub-list is compared against it, so the
-      // result is always false for lists of lists.
+      // Regression: without `eqValueIndex` the default `eqValue` was the first
+      // *element* of the first non-empty sub-list, but each whole sub-list was
+      // compared against it, so the result was always false.
       expect(
         isListOfListValuesAllEquals([
           [1],
           [1],
         ]),
+        isTrue,
+      );
+      expect(
+        isListOfListValuesAllEquals([
+          [],
+          [7, 7],
+          [7],
+        ]),
+        isTrue,
+      );
+      expect(
+        isListOfListValuesAllEquals([
+          [1, 1],
+          [1, 2],
+        ]),
         isFalse,
       );
+      expect(
+        isListOfListValuesAllEquals([
+          [3],
+          [3],
+        ], eqValue: 3),
+        isTrue,
+      );
+      expect(
+        isListOfListValuesAllEquals([
+          [3],
+          [3],
+        ], eqValue: 4),
+        isFalse,
+      );
+      expect(
+        isListOfListValuesAllEquals([
+          [null],
+          [null],
+        ]),
+        isTrue,
+      );
+      // No values at all (it threw a StateError):
+      expect(isListOfListValuesAllEquals([[], []]), isFalse);
+      expect(isListOfListValuesAllEquals([[], []], eqValue: 1), isFalse);
     });
 
     test('isEmptyObject with Iterable/Set', () {

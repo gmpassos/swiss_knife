@@ -357,9 +357,16 @@ void main() {
       expect(cache.remove(Uri.parse('mem://x')), isNull);
       expect(cache.size, equals(1));
 
-      // `contains` inserts when absent (it calls `get`):
-      expect(cache.contains(Uri.parse('mem://z')), isTrue);
-      expect(cache.size, equals(2));
+      // Regression: `contains` inserted the resource when absent (it called
+      // `get`), so it was always true.
+      expect(cache.contains(Uri.parse('mem://z')), isFalse);
+      expect(cache.contains('mem://z'), isFalse);
+      expect(cache.contains(ResourceContent(null, 'not cached')), isFalse);
+      expect(cache.size, equals(1));
+      expect(cache.contains(Uri.parse('mem://x')), isFalse);
+      expect(cache.contains(byString), isTrue);
+      expect(cache.contains('mem://y'), isTrue);
+      expect(cache.size, equals(1));
 
       cache.clear();
       expect(cache.size, equals(0));
@@ -380,11 +387,11 @@ void main() {
 
       expect(cached.hasContent, isTrue);
       expect(await cached.getContent(), equals('CONTENT'));
-      // NOTE: current behaviour; possibly a bug: the transferred content does
-      // not mark the cached instance as loaded, so `getContentIfLoaded`
-      // still returns null.
-      expect(cached.isLoaded, isFalse);
-      expect(cached.getContentIfLoaded(), isNull);
+      // Regression: the transferred content did not mark the cached instance
+      // as loaded, so `getContentIfLoaded` still returned null.
+      expect(cached.isLoaded, isTrue);
+      expect(cached.isLoadedWithError, isFalse);
+      expect(cached.getContentIfLoaded(), equals('CONTENT'));
 
       await Future.delayed(Duration.zero);
       expect(events, equals(['CONTENT']));
@@ -497,14 +504,20 @@ void main() {
     });
 
     test('compareContext', () {
-      // NOTE: current behaviour; possibly a bug: `compareContext` never
-      // compares the contexts: it returns -1 whenever this context is
-      // non-null and 1 when it is null (the `compareTo` branch is dead).
+      // Regression: `compareContext` never compared the contexts: it returned
+      // -1 whenever this context was non-null and 1 when it was null (the
+      // `compareTo` branch was dead).
       var r5 = ContextualResource<String, String>('a', '5');
-      expect(r5.compareContext('1'), equals(-1));
-      expect(r5.compareContext('5'), equals(-1));
-      expect(r5.compareContext('9'), equals(-1));
+      expect(r5.compareContext('1'), greaterThan(0));
+      expect(r5.compareContext('5'), equals(0));
+      expect(r5.compareContext('9'), lessThan(0));
 
+      var i5 = ContextualResource<String, num>('a', 5);
+      expect(i5.compareContext(1), equals(1));
+      expect(i5.compareContext(5), equals(0));
+      expect(i5.compareContext(9), equals(-1));
+
+      // A null context is greater than any context:
       var rn = ContextualResource<String, String>('n', null);
       expect(rn.compareContext('1'), equals(1));
     });
@@ -563,11 +576,11 @@ void main() {
       // `defaultContext`:
       expect(resolver['img'], equals('r50'));
 
-      // NOTE: current behaviour; possibly a bug: a context greater than all
-      // options makes the binary search end at `low == length` and
-      // `options[low]` throws a `RangeError` instead of returning the last
-      // (greatest) option.
-      expect(() => resolver.resolve('img', '101'), throwsRangeError);
+      // Regression: a context greater than all options made the binary
+      // search end at `low == length` and `options[low]` threw a `RangeError`
+      // instead of returning the last (greatest) option.
+      expect(resolver.resolve('img', '101'), equals('r100'));
+      expect(resolver.resolve('img', '999'), equals('r100'));
 
       // Adding a new option invalidates the sorted cache:
       resolver.add('img', [cr('r200', '200')]);
@@ -582,17 +595,53 @@ void main() {
       var resolver = ContextualResourceResolver<String, String>();
       resolver.add('img', [cr('r10', '010'), cr('r50', '050')]);
 
-      // NOTE: current behaviour; possibly a bug: without a
-      // `contextComparator`, `compareContext` always returns -1 for non-null
-      // contexts, so the search runs past the end and throws a `RangeError`
-      // even for an exact match.
-      expect(() => resolver.resolve('img', '010'), throwsRangeError);
-      expect(() => resolver.resolve('img', '050'), throwsRangeError);
+      // Regression: without a `contextComparator`, `compareContext` always
+      // returned -1 for non-null contexts, so the search ran past the end and
+      // threw a `RangeError` even for an exact match.
+      expect(resolver.resolve('img', '010'), equals('r10'));
+      expect(resolver.resolve('img', '050'), equals('r50'));
+      expect(resolver.resolve('img', '001'), equals('r10'));
+      expect(resolver.resolve('img', '011'), equals('r50'));
+      expect(resolver.resolve('img', '051'), equals('r50'));
 
-      // With a null-context option (sorted last) it is always the one found:
+      // A null-context option (sorted last) is the one found for contexts
+      // greater than all the others (it was found for every context):
       resolver.add('img', [cr('any', null)]);
-      expect(resolver.resolve('img', '010'), equals('any'));
-      expect(resolver.resolve('img', '050'), equals('any'));
+      expect(resolver.resolve('img', '010'), equals('r10'));
+      expect(resolver.resolve('img', '050'), equals('r50'));
+      expect(resolver.resolve('img', '051'), equals('any'));
+    });
+
+    test('resolve with a context comparator and null contexts', () {
+      // Regression: a null-context option threw a `TypeError` with a
+      // `contextComparator` (`midVal.context!`), and the options were sorted
+      // with the natural order instead of the comparator.
+      var resolver = ContextualResourceResolver<String, num>(
+        // Reversed order:
+        contextComparator: (a, b) => b.compareTo(a),
+      );
+      resolver.add('img', [
+        ContextualResource<String, num>('r10', 10),
+        ContextualResource<String, num>('r50', 50),
+        ContextualResource<String, num>('r100', 100),
+        ContextualResource<String, num>('any', null),
+      ]);
+
+      expect(resolver.resolve('img', 100), equals('r100'));
+      expect(resolver.resolve('img', 50), equals('r50'));
+      expect(resolver.resolve('img', 10), equals('r10'));
+      // Next "greater" in the reversed order:
+      expect(resolver.resolve('img', 60), equals('r50'));
+      expect(resolver.resolve('img', 200), equals('r100'));
+      expect(resolver.resolve('img', 5), equals('any'));
+    });
+
+    test('resolve with int contexts and a single option', () {
+      var resolver = ContextualResourceResolver<String, num>();
+      resolver.add('img', [ContextualResource<String, num>('only', 10)]);
+      expect(resolver.resolve('img', 1), equals('only'));
+      expect(resolver.resolve('img', 10), equals('only'));
+      expect(resolver.resolve('img', 100), equals('only'));
     });
 
     test('constructor resources map', () {

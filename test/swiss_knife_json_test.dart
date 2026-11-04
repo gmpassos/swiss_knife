@@ -55,11 +55,17 @@ void main() {
     });
 
     test('long blank string', () {
-      // NOTE: current behaviour; possibly a bug: the blank-string shortcut only
-      // applies to strings shorter than 100 chars, so a longer blank string is
-      // decoded and throws instead of returning `def`.
-      expect(() => parseJSON(' ' * 100, 'def'), throwsFormatException);
+      // Regression: the blank-string shortcut only applied to strings shorter
+      // than 100 chars, so a longer blank string was decoded and threw
+      // instead of returning `def`.
+      expect(parseJSON(' ' * 100, 'def'), equals('def'));
+      expect(parseJSON(' \n\t' * 1000, 'def'), equals('def'));
+      expect(parseJSON(' ' * 1000), isNull);
       expect(parseJSON(' ' * 99, 'def'), equals('def'));
+
+      // A long JSON with blanks is still decoded:
+      expect(parseJSON('${' ' * 200}[1]${' ' * 200}'), equals([1]));
+      expect(() => parseJSON('${' ' * 200}x'), throwsFormatException);
     });
   });
 
@@ -361,25 +367,41 @@ void main() {
       expect(r0, isA<Map<String, dynamic>>());
       expect(r0, isEmpty);
 
-      // NOTE: current behaviour; possibly a bug: the homogeneous-value branches
-      // (`value as int`, `as double`, ...) look meant to return a typed map,
-      // but `Map.map` is inferred from the `Map` return type, so the result is
-      // a plain `Map<dynamic, dynamic>` copy.
+      // Regression: the homogeneous-value branches (`value as int`,
+      // `as double`, ...) were meant to return a typed map, but `Map.map` was
+      // inferred from the `Map` return type, so the result was a plain
+      // `Map<dynamic, dynamic>` copy (and the `num` branch was dead: no value
+      // has `runtimeType == num`).
       var intsIn = <String, dynamic>{'a': 1, 'b': 2};
       var ints = toEncodableJSONMap(intsIn);
       expect(ints, isNot(same(intsIn)));
-      expect(ints, isNot(isA<Map<dynamic, int>>()));
+      expect(ints, isA<Map<String, int>>());
       expect(ints, equals({'a': 1, 'b': 2}));
 
       var doubles = toEncodableJSONMap(<String, Object>{'a': 1.5});
-      expect(doubles, isNot(isA<Map<dynamic, double>>()));
+      expect(doubles, isA<Map<String, double>>());
       expect(doubles, equals({'a': 1.5}));
 
+      var nums = toEncodableJSONMap(<String, Object>{'a': 1, 'b': 1.5});
+      expect(nums, isA<Map<String, num>>());
+      expect(nums, equals({'a': 1, 'b': 1.5}));
+
       var bools = toEncodableJSONMap(<String, dynamic>{'a': true});
+      expect(bools, isA<Map<String, bool>>());
       expect(bools, equals({'a': true}));
 
       var strings = toEncodableJSONMap(<String, dynamic>{'a': 'x'});
+      expect(strings, isA<Map<String, String>>());
       expect(strings, equals({'a': 'x'}));
+
+      // Mixed numbers in a list (the `num` branch was dead too):
+      var numList = toEncodableJSONList(<Object>[1, 1.5]);
+      expect(numList, isA<List<num>>());
+      expect(numList, equals([1, 1.5]));
+
+      // Not homogeneous (a null value):
+      var withNull = toEncodableJSONMap(<String, dynamic>{'a': 1, 'b': null});
+      expect(withNull, equals({'a': 1, 'b': null}));
 
       expect(
         toEncodableJSONMap(<String, Object>{'a': 1, 'b': 'x'}),
@@ -449,11 +471,39 @@ void main() {
       expect(isEncodedJSONNumber('1.5'), isTrue);
       expect(isEncodedJSONNumber('abc'), isFalse);
 
-      // NOTE: current behaviour; possibly a bug: number detection relies on
-      // `num.tryParse`, which accepts tokens that are not valid JSON numbers.
-      expect(isEncodedJSONNumber('NaN'), isTrue);
-      expect(isEncodedJSONNumber('0x1F'), isTrue);
-      expect(isEncodedJSON('NaN'), isTrue);
+      // Regression: number detection relied on `num.tryParse`, which accepts
+      // tokens that are not valid JSON numbers.
+      expect(isEncodedJSONNumber('NaN'), isFalse);
+      expect(isEncodedJSONNumber('0x1F'), isFalse);
+      expect(isEncodedJSONNumber('Infinity'), isFalse);
+      expect(isEncodedJSONNumber('-Infinity'), isFalse);
+      expect(isEncodedJSONNumber('+1'), isFalse);
+      expect(isEncodedJSONNumber('.5'), isFalse);
+      expect(isEncodedJSONNumber('1.'), isFalse);
+      expect(isEncodedJSONNumber('01'), isFalse);
+      expect(isEncodedJSONNumber('1e'), isFalse);
+      expect(isEncodedJSONNumber('1 2'), isFalse);
+      expect(isEncodedJSON('NaN'), isFalse);
+      expect(isEncodedJSONPrimitive('0x1F'), isFalse);
+
+      // Valid JSON numbers:
+      for (var s in [
+        '0',
+        '-0',
+        '7',
+        '-12',
+        '0.5',
+        '-0.5',
+        '1e3',
+        '1E+3',
+        '-1.5e-3',
+        '123456789012345678901234567890',
+      ]) {
+        expect(isEncodedJSONNumber(s), isTrue, reason: s);
+        expect(isEncodedJSON(s), isTrue, reason: s);
+        // Consistent with the JSON decoder:
+        expect(parseJSON(s), isA<num>(), reason: s);
+      }
     });
 
     test('isEncodedJSONString', () {
