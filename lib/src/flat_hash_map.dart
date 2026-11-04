@@ -17,6 +17,15 @@ class FlatHashMap<K extends Object, V extends Object> extends MapBase<K, V> {
   /// Mask used to normalize hash codes to positive values.
   static const int _maskRemoveNegativeSign = 0x7FFFFFFF;
 
+  /// Mask used to normalize hash codes to the unsigned 32-bit range
+  /// stored in [_chainHash].
+  static const int _maskUint32 = 0xFFFFFFFF;
+
+  /// Returns the hash code of [key] normalized to an unsigned 32-bit value,
+  /// matching what can be stored in [_chainHash] (so negative or wider than
+  /// 32-bit hash codes can still be matched).
+  static int _hashOf(Object key) => key.hashCode & _maskUint32;
+
   /// Computes the bucket index for a hash code.
   static int _groupIndex(int objHashcode, int totalGroups) {
     return (objHashcode & _maskRemoveNegativeSign) % totalGroups;
@@ -168,7 +177,7 @@ class FlatHashMap<K extends Object, V extends Object> extends MapBase<K, V> {
   bool containsKey(Object? key) {
     if (key == null) return false;
 
-    final objHash = key.hashCode;
+    final objHash = _hashOf(key);
     final groupIdx = _groupIndex(objHash, _groups.length);
 
     var pos = _groups[groupIdx];
@@ -182,7 +191,8 @@ class FlatHashMap<K extends Object, V extends Object> extends MapBase<K, V> {
   }
 
   @override
-  bool containsValue(Object? value) => _chainVal.contains(value);
+  bool containsValue(Object? value) =>
+      value != null && _chainVal.contains(value);
 
   @override
   V? operator [](Object? key) => get(key);
@@ -193,7 +203,7 @@ class FlatHashMap<K extends Object, V extends Object> extends MapBase<K, V> {
   V? get(Object? key) {
     if (key == null) return null;
 
-    final objHash = key.hashCode;
+    final objHash = _hashOf(key);
     final groupIdx = _groupIndex(objHash, _groups.length);
 
     var pos = _groups[groupIdx];
@@ -214,7 +224,7 @@ class FlatHashMap<K extends Object, V extends Object> extends MapBase<K, V> {
   /// Inserts or replaces a key-value pair.
   /// Returns the previous value if the key already existed.
   V? put(K key, V value) {
-    final objHash = key.hashCode;
+    final objHash = _hashOf(key);
     final groupIdx = _groupIndex(objHash, _groups.length);
 
     final groupPos = _groups[groupIdx];
@@ -257,7 +267,7 @@ class FlatHashMap<K extends Object, V extends Object> extends MapBase<K, V> {
   V? remove(Object? key) {
     if (key == null) return null;
 
-    final objHash = key.hashCode;
+    final objHash = _hashOf(key);
     final groupIdx = _groupIndex(objHash, _groups.length);
 
     var prevPos = 0;
@@ -313,7 +323,7 @@ class FlatHashMap<K extends Object, V extends Object> extends MapBase<K, V> {
       final key = _chainKey[i];
       if (key == null) continue;
 
-      final objHash = key.hashCode;
+      final objHash = _hashOf(key);
       final groupIdx = _groupIndex(objHash, totalGroups);
 
       final prevPos = groups2[groupIdx];

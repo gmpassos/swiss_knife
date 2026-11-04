@@ -221,7 +221,7 @@ class MimeType {
     } else if (mimeType == 'xhtml' ||
         mimeType.endsWith('/xhtml') ||
         mimeType.endsWith('/xhtml+xml')) {
-      return MimeType('application', 'xhtml');
+      return MimeType('application', 'xhtml+xml', charset);
     } else if (mimeType == 'markdown' ||
         mimeType == 'md' ||
         mimeType.endsWith('/markdown')) {
@@ -525,7 +525,7 @@ class MimeType {
       case 'xhtml+xml':
         return 'xhtml';
       case 'mpeg':
-        return type == 'audio' ? 'mp3' : 'mp3g';
+        return type == 'audio' ? 'mp3' : 'mpg';
       case 'x-icon':
         return 'ico';
       default:

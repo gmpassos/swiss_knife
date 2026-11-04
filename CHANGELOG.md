@@ -1,3 +1,32 @@
+## 3.4.1
+
+- `Math.ceil`, `Math.floor`, `Math.round`: fixed negative non-integer values (they truncated toward zero:
+  `ceil(-2.3)` was `-1`, `floor(-2.3)` was `-2`, `round(-2.7)` was `-2`). Ties still round toward positive infinity.
+- `parsePercent`: honour the `def` parameter (it was ignored).
+- `maxInIterable`: fixed iterables with only negative values (it returned `0`).
+- `TreeReferenceMap.getParentValue`: forward `includePurgedEntries` to `getParentKey`.
+- `FlatHashMap`:
+  - Fixed keys with a negative (or wider than 32-bit) `hashCode`, such as negative `int` keys: they could not be
+    found, replaced or removed, and re-putting them added duplicates.
+  - `containsValue(null)` returns `false` (it was `true`, even for an empty map).
+- `WeakKeyMap`/`DualWeakMap` (and the lazy variants): overwriting a key now replaces the stored entry, so
+  `keys`/`values`/`entries`/`containsValue` see the new value and the dual map drops the previous value's reverse
+  mapping. The overwritten key moves to the end of the iteration order.
+- `decodeQueryString`: split each pair on the first `=` only (`'a=b=c'` decoded to `{'a': 'b'}`).
+- `Parameters2`/`Parameters3`/`Parameters4`: `hashCode` now includes all fields (the extra fields cancelled out).
+- `MimeType.parse('xhtml')` (and `application/xhtml+xml`): returns `application/xhtml+xml` with its charset
+  (it returned `application/xhtml`, so `isXHTML` was `false`).
+- `MimeType.fileExtension` for `video/mpeg`: `mpg` (it was `mp3g`).
+- `EventStreamDelegator.listenOneShot`: `cancelOnError` defaults to `false` (it threw a `TypeError` when omitted,
+  including when flushing a buffered call).
+- `ResourceContent.fromURI(null, content)`: creates a content-only instance (it created a `Resource('null')`).
+- `ResourceContentCache`: content-only `ResourceContent` instances can be cached (it threw a `TypeError`).
+- Tests:
+  - New unit tests for math, regexp, uri, loader, data, json, utils, string, collections, events, resources,
+    weak maps, lazy weak references, `FlatHashMap` and `ExpandoWithFinalizer`.
+  - New integration tests (JSON → paging → collections, events, resources from real temp files).
+  - Coverage: 71% -> 99%.
+
 ## 3.4.0
 
 - `AsyncValue`:

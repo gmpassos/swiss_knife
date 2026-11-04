@@ -2357,7 +2357,7 @@ num? maxInIterable<I, R>(Iterable<num> iterable) => iterable.isEmpty
     : mergeIterable(
         iterable,
         (num? total, num value) => value > total! ? value : total,
-        0,
+        iterable.first,
       );
 
 /// Uses [mergeIterable] to find minimum value in [iterable].
@@ -2862,7 +2862,10 @@ class TreeReferenceMap<K extends Object, V extends Object>
   V? getParentValue(K? child, {bool includePurgedEntries = false}) {
     if (child == null) return null;
 
-    var parent = getParentKey(child);
+    var parent = getParentKey(
+      child,
+      includePurgedEntries: includePurgedEntries,
+    );
     return parent != null
         ? (includePurgedEntries
               ? getAlsoFromPurgedEntries(parent)

@@ -67,7 +67,7 @@ class ResourceContentCache {
     if (uri != null) return uri.toString();
 
     if (resourceContent.hasContent) {
-      var content = resourceContent.getContentIfLoaded()!;
+      var content = resourceContent._content!;
 
       String init;
       String end;
@@ -116,7 +116,9 @@ class ResourceContent {
   ///
   /// [content] in case of content/body is already resolved.
   static ResourceContent? fromURI(Object? uri, [String? content]) {
-    if (uri == null && content == null) return null;
+    if (uri == null) {
+      return content != null ? ResourceContent(null, content) : null;
+    }
 
     if (uri is Uri) {
       return ResourceContent(Resource(uri), content);

@@ -541,7 +541,7 @@ class EventStreamDelegator<T> implements EventStream<T> {
         v[0],
         onError: v[1],
         onDone: v[2],
-        cancelOnError: v[3],
+        cancelOnError: v[3] ?? false,
         singletonIdentifier: v[4],
         singletonIdentifyByInstance: v[5],
       );
@@ -697,7 +697,7 @@ class EventStreamDelegator<T> implements EventStream<T> {
         onData,
         onError: onError,
         onDone: onDone,
-        cancelOnError: cancelOnError!,
+        cancelOnError: cancelOnError ?? false,
         singletonIdentifier: singletonIdentifier,
         singletonIdentifyByInstance: singletonIdentifyByInstance,
       );
