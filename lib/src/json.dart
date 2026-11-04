@@ -1,17 +1,18 @@
 import 'dart:convert' as dart_convert;
 
 import 'collections.dart';
-import 'math.dart';
 import 'string.dart';
 
 /// Parses [json] to a JSON tree.
 ///
-/// [def] The default value if [json] is null, empty or a blank String.
+/// [def] The default value if [json] is null, empty or a blank String
+/// (of any length).
 dynamic parseJSON(Object? json, [Object? def]) {
   if (json == null) return def;
 
   if (json is String) {
-    if (json.isEmpty || (json.length < 100 && isBlankString(json))) return def;
+    // `isBlankString` stops at the first non-blank char (cheap for a JSON).
+    if (json.isEmpty || isBlankString(json)) return def;
     return dart_convert.json.decode(json);
   } else {
     return json;
@@ -161,9 +162,10 @@ List toEncodableJSONList(List? list) {
 
   if (list.isEmpty) return <dynamic>[];
 
-  if (isListEntriesAllOfType(list, num)) return List<num>.from(list);
   if (isListEntriesAllOfType(list, int)) return List<int>.from(list);
   if (isListEntriesAllOfType(list, double)) return List<double>.from(list);
+  // Mixed `int` and `double` values (no value has `runtimeType == num`):
+  if (list.every((e) => e is num)) return List<num>.from(list);
   if (isListEntriesAllOfType(list, bool)) return List<bool>.from(list);
   if (isListEntriesAllOfType(list, String)) return List<String>.from(list);
 
@@ -188,24 +190,30 @@ Map toEncodableJSONMap(Map? map) {
   if (map is Map<String, List<bool>>) return map;
   if (map is Map<String, List<String>>) return map;
 
+  // Homogeneous values: returns a typed copy (`Map<String, int>`, ...).
   if (map is Map<String, Object> || map is Map<String, dynamic>) {
-    var values = map.values.toList();
+    var values = map.values;
 
-    if (isListEntriesAllOfType(values, num)) {
-      return map.map((key, value) => MapEntry(key, value as num));
-    } else if (isListEntriesAllOfType(values, int)) {
-      return map.map((key, value) => MapEntry(key, value as int));
+    if (isListEntriesAllOfType(values, int)) {
+      return _typedJSONMap<int>(map);
     } else if (isListEntriesAllOfType(values, double)) {
-      return map.map((key, value) => MapEntry(key, value as double));
+      return _typedJSONMap<double>(map);
+    } else if (values.every((e) => e is num)) {
+      // Mixed `int` and `double` values (no value has `runtimeType == num`):
+      return _typedJSONMap<num>(map);
     } else if (isListEntriesAllOfType(values, bool)) {
-      return map.map((key, value) => MapEntry(key, value as bool));
+      return _typedJSONMap<bool>(map);
     } else if (isListEntriesAllOfType(values, String)) {
-      return map.map((key, value) => MapEntry(key, value as String));
+      return _typedJSONMap<String>(map);
     }
   }
 
   return map.map((key, value) => MapEntry('$key', toEncodableJSON(value)));
 }
+
+Map<String, V> _typedJSONMap<V>(Map map) => map.map<String, V>(
+  (key, value) => MapEntry<String, V>(key as String, value as V),
+);
 
 /// Returns [true] if [s] is a encoded JSON String of a primitive value.
 bool isEncodedJSON(String? s) {
@@ -252,7 +260,9 @@ bool isEncodedJSONBoolean(String? s) {
 
 bool _isEncodedJSONBoolean(String s) => s == 'true' || s == 'false';
 
-/// Returns [true] if [s] is a encoded JSON [num].
+/// Returns [true] if [s] is a encoded JSON [num] (surrounding blanks are
+/// ignored). Tokens that are not valid JSON numbers, such as `NaN`,
+/// `Infinity`, `0x1F`, `+1`, `.5`, `1.` or `01`, return `false`.
 bool isEncodedJSONNumber(String? s) {
   if (s == null) return false;
   s = s.trim();
@@ -260,7 +270,13 @@ bool isEncodedJSONNumber(String? s) {
   return _isEncodedJSONNumber(s);
 }
 
-bool _isEncodedJSONNumber(String s) => isNum(s);
+/// A JSON number (RFC 8259): an optional minus sign, an integer part without
+/// leading zeros, an optional fraction and an optional exponent.
+final RegExp _regExpJSONNumber = RegExp(
+  r'^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][-+]?\d+)?$',
+);
+
+bool _isEncodedJSONNumber(String s) => _regExpJSONNumber.hasMatch(s);
 
 /// Returns [true] if [s] is a encoded JSON [String].
 bool isEncodedJSONString(String? s) {

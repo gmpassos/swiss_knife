@@ -75,11 +75,18 @@ void main() {
     });
 
     test('mp3 / audio/mpeg', () {
-      // NOTE: current behaviour; possibly a bug: `MimeType.mp3` is
-      // 'audio/mpeg', but parsing it yields the non-standard 'audio/mp3'.
-      expect(_mt('mp3'), equals('audio/mp3'));
-      expect(_mt(MimeType.mp3), equals('audio/mp3'));
-      expect(MimeType.parse(MimeType.mp3), isNot(MimeType('audio', 'mpeg')));
+      // Regression: `MimeType.mp3` is 'audio/mpeg', but parsing it (or 'mp3')
+      // yielded the non-standard 'audio/mp3'.
+      expect(_mt('mp3'), equals('audio/mpeg'));
+      expect(_mt('audio/mp3'), equals('audio/mpeg'));
+      expect(_mt(MimeType.mp3), equals(MimeType.mp3));
+      expect(_mt('audio/mpeg; charset=utf-8'), 'audio/mpeg; charset=utf-8');
+      var m = MimeType.parse(MimeType.mp3)!;
+      expect(m.toString(), equals(MimeType('audio', 'mpeg').toString()));
+      expect(m.subType, equals('mpeg'));
+      expect(m.isAudio, isTrue);
+      expect(m.fileExtension, equals('mp3'));
+      expect(MimeType.byExtension('mp3')!.fileExtension, equals('mp3'));
     });
 
     test('xhtml', () {
@@ -98,9 +105,13 @@ void main() {
       expect(_mt('Foo/Bar'), equals('foo/bar'));
       expect(_mt('something'), equals('application/something'));
       expect(() => MimeType.parse('foo/'), throwsArgumentError);
-      // NOTE: current behaviour; possibly a bug: a leading '/' isn't rejected
-      // and produces a sub-type containing the slash.
-      expect(_mt('/foo'), equals('application//foo'));
+      // Regression: a leading '/' (no type) wasn't rejected and produced
+      // 'application//foo'.
+      expect(_mt('/foo'), isNull);
+      expect(MimeType.parse('/foo'), isNull);
+      expect(_mt(' /foo/bar '), isNull);
+      expect(_mt('/foo', 'png'), equals('image/png'));
+      expect(_mt('/foo', '/bar'), isNull);
     });
 
     test('charset', () {
@@ -115,10 +126,17 @@ void main() {
       expect(_mt('png;charset=utf8'), equals('image/png; charset=utf8'));
       expect(_mt('text/plain; '), equals('text/plain'));
 
-      // NOTE: current behaviour; possibly a bug: the jpeg and 'text'/'txt'
-      // branches drop the parsed charset, unlike every other branch.
-      expect(_mt('image/jpeg; charset=utf-8'), equals('image/jpeg'));
-      expect(_mt('txt; charset=utf-8'), equals('text/plain'));
+      // Regression: the jpeg and 'text'/'txt' branches dropped the parsed
+      // charset, unlike every other branch.
+      expect(
+        _mt('image/jpeg; charset=utf-8'),
+        equals('image/jpeg; charset=utf-8'),
+      );
+      expect(_mt('jpg;charset=latin1'), equals('image/jpeg; charset=latin1'));
+      expect(_mt('txt; charset=utf-8'), equals('text/plain; charset=utf-8'));
+      expect(_mt('text; charset=UTF-8'), equals('text/plain; charset=utf-8'));
+      expect(MimeType.parse('txt; charset=utf-8')!.isCharsetUTF8, isTrue);
+      expect(_mt('image/jpeg'), equals('image/jpeg'));
       expect(
         _mt('xhtml; charset=utf-8'),
         equals('application/xhtml+xml; charset=utf-8'),
@@ -148,7 +166,7 @@ void main() {
       expect(ext('text'), equals('text/plain'));
       expect(ext('txt'), equals('text/plain'));
       expect(ext('pdf'), equals('application/pdf'));
-      expect(ext('mp3'), equals('audio/mp3'));
+      expect(ext('mp3'), equals('audio/mpeg'));
       expect(ext('mpeg'), equals('video/mpeg'));
       expect(ext('xml'), equals('application/xml'));
       expect(ext('icon'), equals('image/x-icon'));
@@ -626,31 +644,67 @@ void main() {
       expect(p('10.5X'), equals(10.5));
       expect(p('10.5X', true), isNull);
 
-      // NOTE: current behaviour; possibly a bug: the format RegExp requires a
-      // trailing word char (the cardinal), so a plain number loses its last
-      // digit: '123' parses as 12.
-      expect(p('123'), equals(12));
+      // Regression: the format RegExp required a trailing word char (the
+      // cardinal), so a plain number lost its last digit: '123' parsed as 12.
+      expect(p('123'), equals(123));
+      expect(p('1'), equals(1));
+      expect(p('-123'), equals(-123));
+      expect(p('+12.5'), equals(12.5));
+      expect(p(' 12.5 '), equals(12.5));
       expect(p('123', true), isNull);
+      expect(p('123N', true), equals(123));
+      expect(p('12°'), equals(12));
+      expect(p('12o'), equals(12));
+      expect(p('12oS'), equals(-12));
+      expect(p('.5N'), equals(0.5));
 
-      // NOTE: current behaviour; possibly a bug: the RegExp accepts '=' as a
-      // sign and ',' as decimal separator, but neither is valid for
-      // `double.parse`, so these throw instead of returning a value or null.
-      expect(() => p('=10.5N'), throwsFormatException);
-      expect(() => p('10,5N'), throwsFormatException);
+      // Regression: the RegExp accepted '=' as a sign and ',' as decimal
+      // separator, but neither was valid for `double.parse`, so these threw.
+      // Now ',' is a decimal separator and '=' is invalid (null):
+      expect(p('=10.5N'), isNull);
+      expect(p('10,5N'), equals(10.5));
+      expect(p('10,5'), equals(10.5));
+      expect(p('-10,5'), equals(-10.5));
+
+      // Invalid formats return null (never throw):
+      expect(p(''), isNull);
+      expect(p('10.5NE'), isNull);
+      expect(p('10.5.3N'), isNull);
+      expect(p('10,5,3'), isNull);
+      expect(p('10.'), isNull);
+      expect(p('N10.5'), isNull);
+      expect(p('--10'), isNull);
+      expect(p('x 10.5N'), isNull);
+
+      // The public format is not anchored (finds a value inside a text):
+      var m = Geolocation.geolocationFormat.firstMatch('at 10,5°S now')!;
+      expect(m.group(2), equals('10,5'));
+      expect(m.group(3), equals('S'));
+      expect(Geolocation.geolocationFormat.firstMatch('123')!.group(2), '123');
     });
 
     test('format', () {
-      // NOTE: current behaviour; possibly a bug: latitude is formatted with
-      // E/W and longitude with N/S (swapped), and negative values keep the
-      // minus sign in addition to the W/S cardinal.
-      expect(Geolocation.formatLatitude(10), equals('10°E'));
-      expect(Geolocation.formatLatitude(-10), equals('-10°W'));
-      expect(Geolocation.formatLongitude(20), equals('20°N'));
-      expect(Geolocation.formatLongitude(-20), equals('-20°S'));
+      // Regression: latitude was formatted with E/W and longitude with N/S
+      // (swapped), and negative values kept the minus sign in addition to the
+      // W/S cardinal ('-10°W').
+      expect(Geolocation.formatLatitude(10), equals('10°N'));
+      expect(Geolocation.formatLatitude(-10), equals('10°S'));
+      expect(Geolocation.formatLatitude(0), equals('0°N'));
+      expect(Geolocation.formatLatitude(-0.0), equals('${0.0}°N'));
+      expect(Geolocation.formatLatitude(-10.5), equals('10.5°S'));
+      expect(Geolocation.formatLongitude(20), equals('20°E'));
+      expect(Geolocation.formatLongitude(-20), equals('20°W'));
+      expect(Geolocation.formatLongitude(-20.25), equals('20.25°W'));
       expect(
         Geolocation.formatGeolocation(const Point(1, -2)),
-        equals('1°E -2°S'),
+        equals('1°N 2°W'),
       );
+
+      // The formatted values parse back to the same coordinates:
+      var geo = Geolocation.fromCoords(
+        Geolocation.formatGeolocation(const Point(-10.5, -20.25)),
+      )!;
+      expect(geo.asPoint(), equals(const Point(-10.5, -20.25)));
     });
 
     test('instance', () {
@@ -658,7 +712,7 @@ void main() {
       expect(geo.latitude, equals(10.5));
       expect(geo.longitude, equals(-20.25));
       expect(geo.asPoint(), equals(const Point(10.5, -20.25)));
-      expect(geo.toString(), equals('10.5°E -20.25°S'));
+      expect(geo.toString(), equals('10.5°N 20.25°W'));
       expect(geo.windowID('geo'), equals('geo__10.5__-20.25'));
       expect(
         geo.googleMapsURL(),

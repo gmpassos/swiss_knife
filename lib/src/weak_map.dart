@@ -898,10 +898,12 @@ class DualWeakMap<K extends Object, V extends Object> extends WeakKeyMap<K, V> {
     _mapValues.clear();
   }
 
+  /// Drops the reverse entries whose value (`target`) or key (`payload`) was
+  /// collected, and their key entries (both directions).
   @override
   void _onPurgeValues(List<V> purgedValues) {
     _mapValues.removeWhere((key, value) {
-      if (value.target == null) {
+      if (value.target == null || value.payload == null) {
         _map.remove(value.keyEntry);
         return true;
       }

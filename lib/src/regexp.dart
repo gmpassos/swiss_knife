@@ -132,10 +132,22 @@ class RegExpDialect {
     _dialect = _compile(dialect, throwCompilationErrors);
   }
 
-  RegExpDialect._(this._dialect, this.multiLine, this.caseSensitive);
+  RegExpDialect._(
+    this._dialect,
+    this.multiLine,
+    this.caseSensitive,
+    Map<String, List<String>> errors,
+  ) {
+    _errors.addAll(errors);
+  }
 
   /// Returns a copy of this instance with parameters [multiLine] and [caseSensitive].
   /// If this instance already have the same parameters returns this instance.
+  ///
+  /// If this instance [hasErrors] and [throwCompilationErrors] is `true`,
+  /// throws a [StateError]. Otherwise the copy keeps the compilation errors
+  /// ([hasErrors], [errorWords], ...), and [getWordPattern] throws a
+  /// [StateError] for the words with errors, like this instance.
   RegExpDialect withParameters({
     bool? multiLine = false,
     bool? caseSensitive = true,
@@ -154,7 +166,7 @@ class RegExpDialect {
       return this;
     }
 
-    return RegExpDialect._(_dialect, multiLine, caseSensitive);
+    return RegExpDialect._(_dialect, multiLine, caseSensitive, _errors);
   }
 
   static RegExpDialect? from(

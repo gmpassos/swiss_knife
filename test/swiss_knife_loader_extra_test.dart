@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:swiss_knife/swiss_knife.dart';
 import 'package:test/test.dart';
 
@@ -10,12 +12,30 @@ void main() {
       var id1 = int.parse(l1.id);
       var id2 = int.parse(l2.id);
 
-      // NOTE: current behaviour; possibly a bug: the `id` field initializer
-      // and the constructor both increment the global counter, so
-      // consecutive generated ids skip one value.
-      expect(id2 - id1, equals(2));
+      // Regression: the `id` field initializer and the constructor both
+      // incremented the global counter, so consecutive generated ids skipped
+      // one value.
+      expect(id2 - id1, equals(1));
 
+      // A custom id doesn't consume a generated one:
       expect(LoadController('custom').id, equals('custom'));
+      var l3 = LoadController.function(() async => true);
+      expect(int.parse(l3.id) - id2, equals(1));
+    });
+
+    test('load does not print', () async {
+      // Regression: `load()` called `print(this)` (a debug leftover).
+      var printed = <String>[];
+      await runZoned(
+        () async {
+          var loader = LoadController.function(() async => true, 'quiet');
+          expect(await loader.load(), isTrue);
+        },
+        zoneSpecification: ZoneSpecification(
+          print: (self, parent, zone, line) => printed.add(line),
+        ),
+      );
+      expect(printed, isEmpty);
     });
 
     test('LoadController.function', () async {

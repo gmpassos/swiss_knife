@@ -149,11 +149,24 @@ void main() {
       expect(p.hashCode, equals(Parameters3(1, 'b', {'c': 3}).hashCode));
       expect(p.computeHashCode3, equals(deepHashCode({'c': 3})));
 
-      // NOTE: current behaviour; possibly a bug: `copy()` uses `deepCopy`,
-      // which rebuilds maps as `Map<dynamic, dynamic>` and then casts to the
-      // original type (collections.dart `deepCopy`), so copying a parameter
-      // holding a typed map (here `Map<String, int>`) throws a TypeError.
-      expect(p.copy, throwsA(isA<TypeError>()));
+      // Regression: `copy()` uses `deepCopy`, which rebuilt maps as
+      // `Map<dynamic, dynamic>` and then cast them to the original type, so
+      // copying a parameter holding a typed map (here `Map<String, int>`)
+      // threw a TypeError.
+      var pc = p.copy();
+      expect(pc, equals(p));
+      expect(pc.c, isA<Map<String, int>>());
+      expect(pc.c, isNot(same(p.c)));
+
+      var typedObj = Parameter(<String, Object>{
+        'x': [1, 2],
+        'y': <String, int>{'z': 1},
+      });
+      var typedObjCopy = typedObj.copy();
+      expect(typedObjCopy, equals(typedObj));
+      expect(typedObjCopy.a, isA<Map<String, Object>>());
+      expect(typedObjCopy.a!['y'], isA<Map<String, int>>());
+      expect(typedObjCopy.a!['y'], isNot(same(typedObj.a['y'])));
 
       var untyped = Parameters3(1, 'b', <dynamic, dynamic>{'c': 3});
       var c = untyped.copy();
@@ -207,11 +220,29 @@ void main() {
       expect(m[Parameters4(1, 'x', 'z', 'q')], 'p4');
     });
 
-    test('equality is asymmetric across arities', () {
-      // NOTE: current behaviour; possibly a bug: `Parameter.==` only checks
-      // `other is Parameter` and `a`, so it is not symmetric with subclasses.
-      expect(Parameter(1) == Parameters2(1, 2), isTrue);
+    test('equality is symmetric across arities', () {
+      // Regression: `Parameter.==` only checked `other is Parameter` and `a`,
+      // so `Parameter(1) == Parameters2(1, 2)` was true but not the reverse
+      // (and their hash codes differed).
+      expect(Parameter(1) == Parameters2(1, 2), isFalse);
       expect(Parameters2(1, 2) == Parameter(1), isFalse);
+      expect(Parameters2(1, 2) == Parameters3(1, 2, 3), isFalse);
+      expect(Parameters3(1, 2, 3) == Parameters2(1, 2), isFalse);
+      expect(Parameters3(1, 2, 3) == Parameters4(1, 2, 3, 4), isFalse);
+      expect(Parameters4(1, 2, 3, 4) == Parameters3(1, 2, 3), isFalse);
+
+      // Same arity, different type arguments:
+      expect(Parameter<num>(1) == Parameter<int>(1), isTrue);
+      expect(Parameter<int>(1) == Parameter<num>(1), isTrue);
+      expect(
+        Parameters2<int, Object>(1, [2]) == Parameters2<num, List>(1, [2]),
+        isTrue,
+      );
+
+      var set = {Parameter(1), Parameters2(1, 2)};
+      expect(set.length, equals(2));
+      expect(set.contains(Parameter(1)), isTrue);
+      expect(set.contains(Parameters2(1, 2)), isTrue);
     });
   });
 
@@ -251,25 +282,50 @@ void main() {
       expect(cc.generateKey('Xy'), equals('xy'));
     });
 
-    test('null results are not cached', () {
-      // NOTE: current behaviour; possibly a bug: a cached `null` result is
-      // indistinguishable from a cache miss, so it is recomputed every time.
+    test('null results are cached', () {
+      // Regression: a cached `null` result was indistinguishable from a cache
+      // miss, so it was recomputed every time.
       var cc = CachedComputation<int?, int, int>((x) => null);
       expect(cc.compute(1), isNull);
       expect(cc.compute(1), isNull);
-      expect(cc.computationCount, equals(2));
+      expect(cc.computationCount, equals(1));
       expect(cc.cacheSize, equals(1));
+
+      // A `null` key (from a custom key generator) is cached too:
+      var cc2 = CachedComputation<String?, int, int?>((x) => null, (x) => null);
+      expect(cc2.compute(1), isNull);
+      expect(cc2.compute(2), isNull);
+      expect(cc2.computationCount, equals(1));
     });
 
     test('List values with the default key generator', () {
-      // NOTE: current behaviour; possibly a bug: the default key generator
-      // deep-copies the value, but `List` keys use identity equality in the
-      // cache `Map`, so List inputs never hit the cache and the cache grows on
-      // every call.
+      // Regression: the default key generator deep-copies the value, but
+      // `List` keys used identity equality in the cache `Map`, so List inputs
+      // never hit the cache and the cache grew on every call.
       var cc = CachedComputation<int, List<int>, List<int>>((l) => l.length);
       var input = [1, 2];
       expect(cc.compute(input), equals(2));
       expect(cc.compute(input), equals(2));
+      expect(cc.compute([1, 2]), equals(2));
+      expect(cc.computationCount, equals(1));
+      expect(cc.cacheSize, equals(1));
+
+      // The key is a copy: changing the input after the computation doesn't
+      // change the cached key.
+      input.add(3);
+      expect(cc.compute(input), equals(3));
+      expect(cc.compute([1, 2]), equals(2));
+      expect(cc.computationCount, equals(2));
+      expect(cc.cacheSize, equals(2));
+    });
+
+    test('Map values with the default key generator', () {
+      var cc = CachedComputation<int, Map<String, int>, Map<String, int>>(
+        (m) => m.length,
+      );
+      expect(cc.compute({'a': 1}), equals(1));
+      expect(cc.compute({'a': 1}), equals(1));
+      expect(cc.compute({'a': 2}), equals(1));
       expect(cc.computationCount, equals(2));
       expect(cc.cacheSize, equals(2));
     });

@@ -460,6 +460,9 @@ class LazyWeakReferenceManager<T extends Object> {
   final int id = ++_idCount;
 
   /// Time before a strong reference becomes weak. Default: 1 sec
+  ///
+  /// Any positive duration is kept (even 1 ms); a zero or negative duration
+  /// is replaced by [defaultWeakenDelay].
   final Duration weakenDelay;
 
   /// Maximum references processed per batch. Default: 100
@@ -479,7 +482,7 @@ class LazyWeakReferenceManager<T extends Object> {
     Duration weakenDelay = defaultWeakenDelay,
     int batchLimit = defaultBatchLimit,
     Duration batchInterval = defaultBatchInterval,
-  }) : weakenDelay = weakenDelay.inMilliseconds > 1
+  }) : weakenDelay = weakenDelay > Duration.zero
            ? weakenDelay
            : defaultWeakenDelay,
        batchLimit = batchLimit > 1 ? batchLimit : 1,

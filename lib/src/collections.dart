@@ -1,5 +1,6 @@
 import 'dart:collection';
 import 'dart:math' as dart_math;
+import 'dart:typed_data';
 
 import 'date.dart';
 import 'math.dart';
@@ -173,14 +174,15 @@ class Dimension implements Comparable<Dimension> {
   /// Area of the dimension.
   int get area => width * height;
 
-  /// Returns the difference between `this` and [other], using [width] and [height].
+  /// Returns the difference between `this` and [other], using [width] and [height]:
+  /// the minimum of `width - other.width` and `height - other.height`.
   ///
-  /// [maximumDifferences] If true will return the maximum difference,
-  /// instead of the minimum difference.
+  /// [maximumDifferences] (positional) If `true` returns the maximum of the
+  /// two differences, instead of the minimum (the default).
   int subtract(Dimension other, [bool maximumDifferences = false]) {
     var dw = width - other.width;
     var dh = height - other.height;
-    var d = maximumDifferences ? Math.min(dw, dh) : Math.max(dw, dh);
+    var d = maximumDifferences ? Math.max(dw, dh) : Math.min(dw, dh);
     return d;
   }
 
@@ -986,8 +988,16 @@ bool isListValuesAllEquals(Object? list, [Object? eqValue]) {
   return listMatchesAll(list, (v) => v == eqValue);
 }
 
-/// Returns [true] if [list] elements are all equals to value
-/// at index [valueIndex].
+/// Returns [true] if the values of the sub-lists of [list] are all equals
+/// to [eqValue].
+///
+/// - With [eqValueIndex]: compares only the value at index [eqValueIndex] of
+///   each sub-list. [eqValue] defaults to the value at [eqValueIndex] of the
+///   first sub-list.
+/// - Without [eqValueIndex]: compares every value of every sub-list (empty
+///   sub-lists have no values to compare). [eqValue] defaults to the first
+///   value of the first non-empty sub-list. If all the sub-lists are empty,
+///   returns `false`.
 bool isListOfListValuesAllEquals(
   Iterable<List>? list, {
   Object? eqValue,
@@ -997,15 +1007,23 @@ bool isListOfListValuesAllEquals(
 
   if (list.isEmpty) return false;
 
-  eqValue ??= eqValueIndex != null
-      ? list.first[eqValueIndex]
-      : list.firstWhere((e) => e.isNotEmpty).first;
-
   if (eqValueIndex != null) {
+    eqValue ??= list.first[eqValueIndex];
     return listMatchesAll(list, (v) => v[eqValueIndex] == eqValue);
-  } else {
-    return listMatchesAll(list, (v) => v == eqValue);
   }
+
+  var hasValues = false;
+  for (var l in list) {
+    for (var v in l) {
+      if (!hasValues) {
+        hasValues = true;
+        eqValue ??= v;
+      }
+      if (v != eqValue) return false;
+    }
+  }
+
+  return hasValues;
 }
 
 typedef ParserFunction<T, R> = R Function(T value);
@@ -1586,23 +1604,55 @@ typedef Copier = T? Function<T>(T? o);
 
 /// Deeply copies [o].
 ///
+/// - [List]: copied with the same element type (a `List<int>` stays a
+///   `List<int>`); a typed-data list (such as `Uint8List`) keeps its class.
+/// - [Map]: copied into a new [LinkedHashMap], keeping the key and value
+///   types of [o] when they can be reproduced (Dart can't create a map with
+///   the type arguments of another instance): keys of type `String`, `int`,
+///   `Object` or `dynamic`, and values of a primitive type (`String`, `int`,
+///   `double`, `bool`, `num`, nullable or not), a `List` or a `Map<String, *>`
+///   of those, `Object` or `dynamic`. A map with other key/value types is
+///   copied with a wider type (such as `Map<Object, Object>`) when that still
+///   satisfies [T], otherwise the original instance is kept (not copied).
+///   The same applies to such a map nested in a collection whose type
+///   doesn't accept the wider type.
+/// - Other objects: [copier] is used, if provided, otherwise the same
+///   instance is returned.
+///
 /// [copier] Copy [Function] for non-primitive types.
 T? deepCopy<T>(T? o, {Copier? copier}) {
+  if (o == null) return null;
+  var copy = _deepCopyImpl(o, copier);
+  return copy is T ? copy : o;
+}
+
+Object? _deepCopyImpl(Object? o, Copier? copier) {
   if (o == null) return null;
   if (o is String) return o;
   if (o is num) return o;
   if (o is bool) return o;
 
   if (o is List) {
+    // A typed-data list (`Uint8List`, ...) only holds numbers, and `sublist`
+    // keeps its class:
+    if (o is TypedData) return o.sublist(0);
+
     // `toList` keeps the runtime element type of `o` (a `List<int>` stays a
     // `List<int>`), so the copy can be returned as `T`.
     var copy = o.toList();
     for (var i = 0; i < copy.length; ++i) {
-      copy[i] = deepCopy(copy[i], copier: copier);
+      var e = copy[i];
+      var c = _deepCopyImpl(e, copier);
+      if (_isStorableCopy(c, e)) {
+        copy[i] = c;
+      } else {
+        _setListCopy(copy, i, c);
+      }
     }
-    return copy as T?;
+    return copy;
   }
-  if (o is Map) return deepCopyMap(o, copier: copier) as T?;
+
+  if (o is Map) return _deepCopyMapTyped(o, copier);
 
   if (copier != null) {
     return copier(o);
@@ -1611,13 +1661,156 @@ T? deepCopy<T>(T? o, {Copier? copier}) {
   }
 }
 
+/// Deep copy of [o] into a [LinkedHashMap] with the key/value types of [o]
+/// (see [_mapCopyTypeOf]).
+Map _deepCopyMapTyped(Map o, Copier? copier) {
+  var copy = _mapCopyTypeOf(o).create();
+  for (var e in o.entries) {
+    var k = e.key;
+    var v = e.value;
+    var kc = _deepCopyImpl(k, copier);
+    var vc = _deepCopyImpl(v, copier);
+    if (_isStorableCopy(kc, k) && _isStorableCopy(vc, v)) {
+      copy[kc] = vc;
+    } else {
+      _setMapCopy(copy, kc, vc, k, v);
+    }
+  }
+  return copy;
+}
+
+/// Whether the [copy] of [original] can surely be stored where [original]
+/// was: anything but a map copy with a (possibly) wider type.
+bool _isStorableCopy(Object? copy, Object? original) =>
+    copy is! Map ||
+    identical(copy, original) ||
+    copy.runtimeType == original.runtimeType;
+
+/// Stores the map [copy] at [index] of [list] (that holds the original). If
+/// the [copy] (with a wider type) isn't accepted by [list], keeps the
+/// original.
+void _setListCopy(List list, int index, Object? copy) {
+  try {
+    list[index] = copy;
+  } on TypeError {
+    // Keeps the original (already at `index`).
+  }
+}
+
+/// Stores [keyCopy] -> [valueCopy] in [map]. If a (map) copy with a wider
+/// type isn't accepted by [map], stores the original [key] or [value].
+void _setMapCopy(
+  Map map,
+  Object? keyCopy,
+  Object? valueCopy,
+  Object? key,
+  Object? value,
+) {
+  try {
+    map[keyCopy] = valueCopy;
+    return;
+  } on TypeError {
+    // Try with the originals below.
+  }
+  try {
+    map[keyCopy] = value;
+    return;
+  } on TypeError {
+    // Try with the original key below.
+  }
+  map[key] = value;
+}
+
+/// Returns the [_MapCopyType] for [o] (cached by `runtimeType`): the one
+/// that creates a map with the same `runtimeType` as [o], if any, otherwise
+/// the most specific one that accepts [o].
+_MapCopyType _mapCopyTypeOf(Map o) {
+  var runtimeType = o.runtimeType;
+  return _mapCopyTypesByRuntimeType[runtimeType] ??= () {
+    _MapCopyType? accepted;
+    for (var t in _mapCopyTypes) {
+      if (!t.accepts(o)) continue;
+      if (t.mapRuntimeType == runtimeType) return t;
+      accepted ??= t;
+    }
+    // The last type (`Map<Object?, Object?>`) accepts any `Map`:
+    return accepted!;
+  }();
+}
+
+/// The key/value types of a map copy.
+class _MapCopyType<K, V> {
+  _MapCopyType();
+
+  bool accepts(Map m) => m is Map<K, V>;
+
+  Map<K, V> create() => <K, V>{};
+
+  late final Type mapRuntimeType = create().runtimeType;
+}
+
+/// Lists the [_MapCopyType]s with keys of type [K], from the most specific
+/// value type to the least specific.
+class _MapCopyKeyType<K> {
+  const _MapCopyKeyType();
+
+  List<_MapCopyType> get types => <_MapCopyType>[
+    _MapCopyType<K, String>(),
+    _MapCopyType<K, int>(),
+    _MapCopyType<K, double>(),
+    _MapCopyType<K, bool>(),
+    _MapCopyType<K, num>(),
+    _MapCopyType<K, String?>(),
+    _MapCopyType<K, int?>(),
+    _MapCopyType<K, double?>(),
+    _MapCopyType<K, bool?>(),
+    _MapCopyType<K, num?>(),
+    _MapCopyType<K, List<String>>(),
+    _MapCopyType<K, List<int>>(),
+    _MapCopyType<K, List<double>>(),
+    _MapCopyType<K, List<bool>>(),
+    _MapCopyType<K, List<num>>(),
+    _MapCopyType<K, List<Object>>(),
+    _MapCopyType<K, List<dynamic>>(),
+    _MapCopyType<K, List<Object?>>(),
+    _MapCopyType<K, List<dynamic>?>(),
+    _MapCopyType<K, Map<String, String>>(),
+    _MapCopyType<K, Map<String, int>>(),
+    _MapCopyType<K, Map<String, double>>(),
+    _MapCopyType<K, Map<String, bool>>(),
+    _MapCopyType<K, Map<String, num>>(),
+    _MapCopyType<K, Map<String, Object>>(),
+    _MapCopyType<K, Map<String, dynamic>>(),
+    _MapCopyType<K, Map<String, Object?>>(),
+    _MapCopyType<K, Map<String, dynamic>?>(),
+    _MapCopyType<K, Map<dynamic, dynamic>>(),
+    _MapCopyType<K, Map<dynamic, dynamic>?>(),
+    _MapCopyType<K, Object>(),
+    _MapCopyType<K, dynamic>(),
+    _MapCopyType<K, Object?>(),
+  ];
+}
+
+/// All the [_MapCopyType]s, from the most specific to the least specific.
+/// The last one (`Map<Object?, Object?>`) accepts any [Map].
+final List<_MapCopyType> _mapCopyTypes = <_MapCopyType>[
+  ...const _MapCopyKeyType<String>().types,
+  ...const _MapCopyKeyType<int>().types,
+  ...const _MapCopyKeyType<Object>().types,
+  ...const _MapCopyKeyType<dynamic>().types,
+  ...const _MapCopyKeyType<Object?>().types,
+];
+
+final Map<Type, _MapCopyType> _mapCopyTypesByRuntimeType =
+    <Type, _MapCopyType>{};
+
 /// Deeply copies [list].
 ///
 /// [copier] Copy [Function] for non-primitive types.
 List<T>? deepCopyList<T>(List<T>? l, {Copier? copier}) {
   if (l == null) return null;
   if (l.isEmpty) return <T>[];
-  return l.map((T e) => deepCopy(e, copier: copier)!).toList();
+  return l.map((T e) => deepCopy(e, copier: copier) as T).toList();
 }
 
 /// Deeply copies [map].

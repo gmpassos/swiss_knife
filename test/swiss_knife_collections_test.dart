@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:swiss_knife/swiss_knife.dart';
 import 'package:test/test.dart';
 
@@ -822,6 +824,129 @@ void main() {
         deepCopy(obj, copier: <T>(T? o) => (o is Pair ? o.swapAB() : o) as T?),
         equals(Pair(2, 1)),
       );
+    });
+
+    test('deepCopy of typed maps', () {
+      // Regression: maps were rebuilt as `Map<dynamic, dynamic>` and then
+      // cast to the original type, so typed maps threw a TypeError.
+      var ints = <String, int>{'a': 1, 'b': 2};
+      var intsCopy = deepCopy(ints)!;
+      expect(intsCopy, isA<Map<String, int>>());
+      expect(intsCopy, equals(ints));
+      expect(identical(intsCopy, ints), isFalse);
+
+      var empty = deepCopy(<String, Object>{})!;
+      expect(empty, isA<Map<String, Object>>());
+      expect(empty, isEmpty);
+
+      var objs = <String, Object>{
+        'l': <int>[1, 2],
+        'm': <String, int>{'x': 1},
+        'd': <dynamic, dynamic>{'k': 'v'},
+      };
+      var objsCopy = deepCopy(objs)!;
+      expect(objsCopy, isA<Map<String, Object>>());
+      expect(objsCopy, equals(objs));
+      expect(objsCopy['l'], isA<List<int>>());
+      expect(objsCopy['m'], isA<Map<String, int>>());
+      expect(identical(objsCopy['l'], objs['l']), isFalse);
+      expect(identical(objsCopy['m'], objs['m']), isFalse);
+      expect(identical(objsCopy['d'], objs['d']), isFalse);
+
+      // The copy is mutable with its own type:
+      (objsCopy['m'] as Map<String, int>)['y'] = 2;
+      expect(objs['m'], equals({'x': 1}));
+
+      // Typed maps nested in typed collections:
+      var listOfMaps = <Map<String, int>>[
+        {'a': 1},
+      ];
+      var listOfMapsCopy = deepCopy(listOfMaps)!;
+      expect(listOfMapsCopy, isA<List<Map<String, int>>>());
+      expect(listOfMapsCopy[0], isA<Map<String, int>>());
+      expect(identical(listOfMapsCopy[0], listOfMaps[0]), isFalse);
+
+      var mapOfMaps = <String, Map<String, Object?>>{
+        'a': {'b': null},
+      };
+      var mapOfMapsCopy = deepCopy(mapOfMaps)!;
+      expect(mapOfMapsCopy, isA<Map<String, Map<String, Object?>>>());
+      expect(mapOfMapsCopy, equals(mapOfMaps));
+      expect(identical(mapOfMapsCopy['a'], mapOfMaps['a']), isFalse);
+
+      var intKeys = <int, String?>{1: 'a', 2: null};
+      expect(deepCopy(intKeys), isA<Map<int, String?>>());
+      expect(deepCopy(intKeys), equals(intKeys));
+
+      var mapType = deepCopyMap(<String, double>{'a': 1.5})!;
+      expect(mapType, isA<Map<String, double>>());
+
+      // `deepCopy` with an explicit wider type:
+      var wide = deepCopy<Map>(<String, int>{'a': 1})!;
+      expect(wide, equals({'a': 1}));
+    });
+
+    test('deepCopy of maps with types it cannot reproduce', () {
+      // A typed map whose key type can't be reproduced: copied with a wider
+      // type when that is accepted...
+      var pairs = <Pair<int>, int>{Pair(1, 2): 3};
+      var pairsCopy = deepCopy<Map<Object, int>>(pairs)!;
+      expect(pairsCopy, equals(pairs));
+      expect(identical(pairsCopy, pairs), isFalse);
+
+      // ... otherwise the original instance is kept (it used to throw):
+      expect(deepCopy(pairs), same(pairs));
+      var listOfPairs = <Map<Pair<int>, int>>[pairs];
+      var listOfPairsCopy = deepCopy(listOfPairs)!;
+      expect(listOfPairsCopy, isA<List<Map<Pair<int>, int>>>());
+      expect(listOfPairsCopy[0], same(pairs));
+
+      // In an untyped collection the wider copy is stored:
+      var untypedList = <dynamic>[pairs];
+      var untypedListCopy = deepCopy(untypedList)!;
+      expect(untypedListCopy[0], equals(pairs));
+      expect(identical(untypedListCopy[0], pairs), isFalse);
+
+      var mapOfPairs = <String, Map<Pair<int>, int>>{'p': pairs};
+      var mapOfPairsCopy = deepCopy<Map<String, Object>>(mapOfPairs)!;
+      expect(mapOfPairsCopy['p'], equals(pairs));
+      expect(identical(mapOfPairsCopy['p'], pairs), isFalse);
+      // Not as a `Map<String, Map<Pair<int>, int>>`:
+      expect(deepCopy(mapOfPairs), same(mapOfPairs));
+    });
+
+    test('deepCopy of a decoded JSON', () {
+      // Regression guard: a decoded JSON map isn't a `LinkedHashMap` on every
+      // platform (dart2js uses a `_JsonMap`); its nested maps must still be
+      // copied.
+      var json = parseJSON('{"a": [{"b": 1, "c": null}], "d": {"e": "f"}}');
+      dynamic copy = deepCopy(json);
+      expect(copy, equals(json));
+      expect(identical(copy['a'][0], json['a'][0]), isFalse);
+      expect(identical(copy['d'], json['d']), isFalse);
+      (copy['a'][0] as Map).remove('c');
+      expect((json['a'][0] as Map).containsKey('c'), isTrue);
+    });
+
+    test('deepCopy of typed-data lists', () {
+      // Regression: copied as a `List<int>`, which can't be returned as a
+      // `Uint8List` (TypeError).
+      var bytes = Uint8List.fromList([1, 2, 3]);
+      var bytesCopy = deepCopy(bytes)!;
+      expect(bytesCopy, isA<Uint8List>());
+      expect(bytesCopy, equals(bytes));
+      expect(identical(bytesCopy, bytes), isFalse);
+
+      var nested = <Uint8List>[bytes];
+      var nestedCopy = deepCopy(nested)!;
+      expect(nestedCopy[0], isA<Uint8List>());
+      expect(identical(nestedCopy[0], bytes), isFalse);
+    });
+
+    test('deepCopyList with null elements', () {
+      // Regression: `deepCopyList` used `deepCopy(e)!`, so a null element
+      // threw.
+      expect(deepCopyList<int?>([1, null]), equals([1, null]));
     });
 
     test('deepReplaceValues', () {

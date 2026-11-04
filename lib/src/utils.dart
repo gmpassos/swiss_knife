@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'collections.dart';
 
@@ -164,9 +165,19 @@ class Parameter<A> {
 
   Parameter<A?> copy() => Parameter(deepCopy(a));
 
+  /// The number of parameters.
+  int get _arity => 1;
+
+  /// Compares the fields with [other] (of the same [_arity]).
+  bool _equalsFields(Parameter other) => isEqualsDeep(a, other.a);
+
+  /// Equal if [other] is a [Parameter] with the same number of parameters
+  /// (a [Parameter] is never equal to a [Parameters2]) and deeply equal
+  /// values (see [isEqualsDeep]).
   @override
   bool operator ==(Object other) =>
-      identical(this, other) || other is Parameter && isEqualsDeep(a, other.a);
+      identical(this, other) ||
+      other is Parameter && other._arity == _arity && _equalsFields(other);
 
   int? _hashCode;
 
@@ -198,10 +209,16 @@ class Parameters2<A, B> extends Parameter<A> {
   @override
   int get hashCode => super.hashCode;
 
+  /// See [Parameter.==].
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Parameters2 && super == other && isEqualsDeep(b, other.b);
+  bool operator ==(Object other) => super == other;
+
+  @override
+  int get _arity => 2;
+
+  @override
+  bool _equalsFields(Parameter other) =>
+      super._equalsFields(other) && isEqualsDeep(b, (other as Parameters2).b);
 
   @override
   int get computeHashCode => super.computeHashCode ^ deepHashCode(b);
@@ -227,10 +244,16 @@ class Parameters3<A, B, C> extends Parameters2<A, B> {
   @override
   int get hashCode => super.hashCode;
 
+  /// See [Parameter.==].
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Parameters3 && super == other && isEqualsDeep(c, other.c);
+  bool operator ==(Object other) => super == other;
+
+  @override
+  int get _arity => 3;
+
+  @override
+  bool _equalsFields(Parameter other) =>
+      super._equalsFields(other) && isEqualsDeep(c, (other as Parameters3).c);
 
   @override
   int get computeHashCode => super.computeHashCode ^ deepHashCode(c);
@@ -256,10 +279,16 @@ class Parameters4<A, B, C, D> extends Parameters3<A, B, C> {
   @override
   int get hashCode => super.hashCode;
 
+  /// See [Parameter.==].
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Parameters4 && super == other && isEqualsDeep(d, other.d);
+  bool operator ==(Object other) => super == other;
+
+  @override
+  int get _arity => 4;
+
+  @override
+  bool _equalsFields(Parameter other) =>
+      super._equalsFields(other) && isEqualsDeep(d, (other as Parameters4).d);
 
   @override
   int get computeHashCode => super.computeHashCode ^ deepHashCode(d);
@@ -271,15 +300,25 @@ class Parameters4<A, B, C, D> extends Parameters3<A, B, C> {
 }
 
 /// Caches a value that can be computed.
+///
+/// The cache keys are compared deeply (see [isEqualsDeep] and
+/// [deepHashCode]), so `List` and `Map` keys hit the cache when they have
+/// equal contents. `null` results are cached too.
 class CachedComputation<R, T, K> {
   final R Function(T) function;
 
+  /// Generates the cache key of a value. The default one is a deep copy of
+  /// the value (see [deepCopy]), so changing a value after the computation
+  /// doesn't change its cached key.
   final K? Function(T) keyGenerator;
 
   CachedComputation(this.function, [K Function(T)? keyGenerator])
     : keyGenerator = keyGenerator ?? ((T value) => deepCopy(value as K));
 
-  final Map<K?, R> _cache = {};
+  final Map<K?, R> _cache = LinkedHashMap<K?, R>(
+    equals: isEqualsDeep,
+    hashCode: deepHashCode,
+  );
 
   int get cacheSize => _cache.length;
 
@@ -299,7 +338,8 @@ class CachedComputation<R, T, K> {
     var key = generateKey(value);
 
     var prev = _cache[key];
-    if (prev != null) return prev;
+    // A cached `null` result is told apart from a cache miss by `containsKey`:
+    if (prev != null || _cache.containsKey(key)) return prev as R;
 
     ++_computationCount;
     var result = function(value);

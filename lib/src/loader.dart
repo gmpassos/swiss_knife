@@ -9,20 +9,19 @@ class LoadController {
   static String _newID() => (++_idCounter).toString();
 
   /// Global ID of this loader.
-  String id = (++_idCounter).toString();
+  ///
+  /// Generated sequentially (`1`, `2`, `3`...) when not provided.
+  String id;
 
   /// The actual loading function that is handled by this [LoadController].
   LoaderFunction? loader;
 
   final EventStream<LoadController> onLoad = EventStream();
 
-  LoadController([String? id]) {
-    this.id = id ?? _newID();
-  }
+  LoadController([String? id]) : id = id ?? _newID();
 
-  LoadController.function(this.loader, [String? id]) {
+  LoadController.function(this.loader, [String? id]) : id = id ?? _newID() {
     if (loader == null) throw ArgumentError('Null LoaderFunction');
-    this.id = id ?? _newID();
   }
 
   Future<bool>? _loadFuture;
@@ -71,8 +70,6 @@ class LoadController {
     _loaded = true;
 
     onLoad.add(this);
-
-    print(this);
 
     return _loadSuccessful!;
   }

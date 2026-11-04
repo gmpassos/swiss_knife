@@ -372,14 +372,18 @@ String? getPathFileName(String? path) {
   return name.isNotEmpty ? name : null;
 }
 
-/// Returns [path] removing File name if present.
+/// Returns [path] removing File name if present (keeping the trailing
+/// separator: `/a/b/c.txt` -> `/a/b/`).
+///
+/// A [path] without a separator (`/` or `\`) is only a file name (see
+/// [getPathFileName]), so it returns an empty string (`file.txt` -> ``).
 String? getPathWithoutFileName(String? path) {
   if (path == null) return null;
   path = path.trim();
   if (path.isEmpty) return null;
 
   var idx = path.lastIndexOf(RegExp(r'[/\\]'));
-  if (idx < 0) return path;
+  if (idx < 0) return '';
 
   var onlyPath = path.substring(0, idx + 1);
   return onlyPath;

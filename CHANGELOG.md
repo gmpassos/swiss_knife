@@ -1,3 +1,81 @@
+## 3.4.2
+
+Fixes the 28 behaviours the 3.4.1 tests pinned as "possibly a bug". Changes of visible output are marked
+**(output change)**.
+
+- `Geolocation`:
+  - `formatLatitude`/`formatLongitude` (and `formatGeolocation`/`toString`) **(output change)**: latitude uses `N`/`S`
+    and longitude `E`/`W` (they were swapped), and a negative value is shown without the minus sign
+    (`formatLatitude(-10)` is `10°S`, it was `-10°W`). The output now parses back with `fromCoords`.
+  - `parseLatitudeOrLongitudeValue` (and `fromCoords`): a plain number parses fully (`'123'` was `12`), `,` is a
+    decimal separator (`'10,5N'` is `10.5`, it threw), `+` is a sign, and an invalid value returns `null`
+    (`'=10.5N'` threw a `FormatException`; trailing garbage was ignored): the whole trimmed value must match
+    `geolocationFormat`, whose cardinal is now optional (it required a trailing word char).
+- `MimeType.parse`:
+  - `mp3`, `audio/mp3` and `audio/mpeg` return `audio/mpeg` (= `MimeType.mp3`); they returned the non-standard
+    `audio/mp3` **(output change)**. `byExtension('mp3')` too.
+  - The `jpeg`/`jpg` and `text`/`txt` aliases keep the charset (`'image/jpeg; charset=utf-8'` dropped it)
+    **(output change)**.
+  - A MIME type without a type before the `/` (`'/foo'`) is invalid: returns the `defaultMimeType` or `null` (it
+    returned `application//foo`).
+- `Dimension.subtract(other, [maximumDifferences])` **(output change)**: returns the minimum of the width/height
+  differences by default and the maximum with `maximumDifferences = true`, as documented (min and max were swapped).
+  The signature is unchanged (`maximumDifferences` is still positional).
+- `getPathWithoutFileName('file.txt')`: returns `''` (no directory part) **(output change)**; it returned the file
+  name.
+- JSON:
+  - `isEncodedJSONNumber` (and `isEncodedJSON`/`isEncodedJSONPrimitive`): only valid JSON numbers are accepted
+    **(output change)**: `NaN`, `Infinity`, `0x1F`, `+1`, `.5`, `1.` and `01` return `false` (they returned `true`).
+  - `parseJSON`: a blank string of any length returns `def` (a blank string of 100+ chars threw a
+    `FormatException`).
+  - `toEncodableJSONMap`: a `Map<String, dynamic>`/`Map<String, Object>` with homogeneous values returns a typed copy
+    (`Map<String, int>`, `Map<String, double>`, `Map<String, num>`, `Map<String, bool>`, `Map<String, String>`);
+    it returned a `Map<dynamic, dynamic>` (**type change**: adding a value of another type to the result now throws). Mixed `int`/`double` values (maps and lists) are now detected as `num`
+    (that branch was dead).
+- `deepCopy`:
+  - Typed maps (`Map<String, int>`, `<String, Object>{}`, ...) keep their types and no longer throw a `TypeError`
+    (they were rebuilt as `Map<dynamic, dynamic>` and then cast). This also fixes `Parameter*.copy()` with typed
+    maps. Limit: Dart can't create a map with another map's type arguments, so the copy reproduces keys of type
+    `String`, `int`, `Object` or `dynamic` and values of the common JSON-like types; a map with other types is
+    copied with a wider type when that satisfies the requested type, otherwise the original instance is kept
+    (not copied) instead of throwing.
+  - A typed-data list (`Uint8List`, ...) is copied with its class (it threw a `TypeError` for a `Uint8List` `T`).
+  - `deepCopyList` accepts `null` elements (it threw).
+- `CachedComputation`:
+  - Keys are compared deeply, so `List`/`Map` inputs hit the cache (with the default key generator a `List` input
+    was never found and the cache grew on every call).
+  - `null` results are cached (they were recomputed every time).
+- `Parameter`/`Parameters2`/`Parameters3`/`Parameters4`: `==` is symmetric and consistent with `hashCode`:
+  parameters of different arities are never equal (`Parameter(1) == Parameters2(1, 2)` was `true`, the reverse
+  `false`).
+- `isListOfListValuesAllEquals` without `eqValueIndex`: compares every value of every sub-list, as documented (it
+  always returned `false`, and threw a `StateError` when all the sub-lists were empty).
+- `EventStream.listenOneShot`: honours `singletonIdentifier`/`singletonIdentifyByInstance` like `listen` (they were
+  ignored). The singleton is released after the one shot (or `ListenerWrapper.cancel`).
+- `EventStreamDelegator.listen` while buffering: returns a single subscription, bound to the one registered on
+  flush (events are delivered once; `pause`/`resume`/`cancel`/handlers act on it, including calls made before the
+  flush). It was a lazy proxy that called `listen` again on first use (duplicated events; `cancel` didn't cancel
+  the flushed listener). Cancelling it before the flush drops the buffered listener; `clearUnflushed` drops them
+  too.
+- `AsyncValue.from`: a function declared with another return type (`dynamic`, `Object`, `FutureOr<T>`) or a
+  `Future<dynamic>` holding a `T` works (that branch always threw a `TypeError`); a result that isn't a `T`
+  completes the `future` with the `TypeError` (see `error`) instead of throwing from the constructor.
+- `ResourceContentCache.contains`: a pure check (it inserted the resource when absent, so it was always `true`).
+- `ResourceContentCache.get`: content transferred into a cached instance marks it as loaded (`isLoaded`,
+  `getContentIfLoaded`).
+- `ContextualResource.compareContext`: compares the contexts (it returned `-1` for any non-null context).
+- `ContextualResourceResolver.resolve`: returns the exact match or the next greater context, and the greatest option
+  for a context greater than all (it threw a `RangeError`, even for an exact match without a `contextComparator`).
+  With a `contextComparator`, options are sorted with it and `null` contexts no longer throw.
+- `DualWeakMap.purge`: also drops the reverse entry of a live value whose key was collected.
+- `RegExpDialect.withParameters`: the copy keeps the compilation errors (`hasErrors`, `errorWords`, and the
+  `StateError` from `getWordPattern`); it reported none and failed with a raw `FormatException`.
+- `LazyWeakReferenceManager`: any positive `weakenDelay` is kept (a 1 ms delay became the 1 s default); zero or
+  negative uses the default.
+- `LoadController`: generated ids are sequential (they skipped a number), and `load()` no longer prints the
+  controller (debug leftover).
+- Tests: every pinning test now asserts the fixed behaviour, with regression tests.
+
 ## 3.4.1
 
 - `Math.ceil`, `Math.floor`, `Math.round`: fixed negative non-integer values (they truncated toward zero:
