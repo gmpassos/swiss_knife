@@ -71,9 +71,7 @@ class Math {
       if (a.isNaN || a.isInfinite) return a;
     }
 
-    var n = a.toInt();
-    if (n == a) return n;
-    return n + 1;
+    return a.ceil();
   }
 
   /// Returns the largest (closest to positive infinity) double value that is less than or equal to the argument [a] and is equal to a mathematical integer.
@@ -84,8 +82,7 @@ class Math {
       if (a.isNaN || a.isInfinite) return a;
     }
 
-    var n = a.toInt();
-    return n;
+    return a.floor();
   }
 
   /// Returns the closest int to the argument [a], with ties rounding to positive infinity.
@@ -96,7 +93,7 @@ class Math {
       if (a.isNaN || a.isInfinite) return a;
     }
 
-    var n = a.toInt();
+    var n = a.floor();
     if (a == n) return n;
 
     var diff = a - n;
@@ -526,17 +523,17 @@ List<num> parseNumsFromList(List list) {
 ///
 /// [def] the default value if [v] is invalid.
 num? parsePercent(Object? v, [double? def]) {
-  if (v == null) return null;
+  if (v == null) return def;
 
   if (v is num) {
-    return v.isNaN || v.isInfinite ? null : v;
+    return v.isNaN || v.isInfinite ? def : v;
   }
 
   if (v is String) {
     var s = v.trim();
     if (s.endsWith('%')) {
       s = s.substring(0, s.length - 1).trim();
-      return parseNum(s);
+      return parseNum(s, def);
     } else {
       var n = num.parse(v);
       if (n >= 0 && n <= 1) {
@@ -547,7 +544,7 @@ num? parsePercent(Object? v, [double? def]) {
     }
   }
 
-  return parseNum(v);
+  return parseNum(v, def);
 }
 
 /// Formats [value] to a decimal value.

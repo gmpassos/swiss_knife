@@ -38,10 +38,10 @@ Map<String, String> decodeQueryString(String? queryString) {
 
   for (var pair in pairs) {
     if (pair.isEmpty) continue;
-    var kv = pair.split('=');
+    var idx = pair.indexOf('=');
 
-    var k = kv[0];
-    var v = kv.length > 1 ? kv[1] : '';
+    var k = idx >= 0 ? pair.substring(0, idx) : pair;
+    var v = idx >= 0 ? pair.substring(idx + 1) : '';
 
     k = Uri.decodeQueryComponent(k);
     v = Uri.decodeQueryComponent(v);
@@ -192,12 +192,11 @@ class Parameters2<A, B> extends Parameter<A> {
   @override
   Parameters2<A?, B?> copy() => Parameters2(deepCopy(a), deepCopy(b));
 
-  int? _hashCode2;
-
-  @override
-  int get hashCode => super.hashCode ^ (_hashCode2 ??= computeHashCode2);
-
   int get computeHashCode2 => deepHashCode(b);
+
+  /// Computed (and cached) from the overridden [computeHashCode].
+  @override
+  int get hashCode => super.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -222,12 +221,11 @@ class Parameters3<A, B, C> extends Parameters2<A, B> {
   Parameters3<A?, B?, C?> copy() =>
       Parameters3(deepCopy(a), deepCopy(b), deepCopy(c));
 
-  int? _hashCode3;
-
-  @override
-  int get hashCode => super.hashCode ^ (_hashCode3 ??= computeHashCode3);
-
   int get computeHashCode3 => deepHashCode(c);
+
+  /// Computed (and cached) from the overridden [computeHashCode].
+  @override
+  int get hashCode => super.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -252,12 +250,11 @@ class Parameters4<A, B, C, D> extends Parameters3<A, B, C> {
   Parameters4<A?, B?, C?, D?> copy() =>
       Parameters4(deepCopy(a), deepCopy(b), deepCopy(c), deepCopy(d));
 
-  int? _hashCode4;
-
-  @override
-  int get hashCode => super.hashCode ^ (_hashCode4 ??= computeHashCode4);
-
   int get computeHashCode4 => deepHashCode(d);
+
+  /// Computed (and cached) from the overridden [computeHashCode].
+  @override
+  int get hashCode => super.hashCode;
 
   @override
   bool operator ==(Object other) =>

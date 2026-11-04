@@ -396,6 +396,12 @@ class WeakKeyMap<K extends Object, V extends Object> extends MapBase<K, V> {
   /// Inserts or replaces a key-value pair.
   void put(K key, V value) {
     var keyEntry = _createEntry(key, value);
+    // A `Map` keeps its existing key on overwrite, and iteration walks the
+    // keys, so remove the previous entry first to not keep its old value:
+    var prev = _map.remove(keyEntry);
+    if (prev != null) {
+      _onRemoveEntry(prev);
+    }
     _map[keyEntry] = keyEntry;
     _onPutEntry(keyEntry, value);
     ++_unpurgedCount;
